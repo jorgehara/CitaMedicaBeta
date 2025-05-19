@@ -10,58 +10,158 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 exports.getAllAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find().sort({ date: 1, time: 1 });
+    const { date } = req.query;
+    console.log('1. Backend - getAllAppointments - fecha solicitada:', date);
+    
+    let appointments;
+    if (date) {
+      console.log('2. Backend - Buscando citas para la fecha específica');
+      appointments = await Appointment.find({ date }).sort({ time: 1 });
+    } else {
+      console.log('2. Backend - Buscando todas las citas');
+      appointments = await Appointment.find().sort({ date: 1, time: 1 });
+    }
+
+    console.log('3. Backend - Citas encontradas:', appointments.length);
     res.json(appointments);
+    
   } catch (error) {
-    console.error('Error al obtener las citas:', error);
+    console.error('Error en getAllAppointments:', error);
     res.status(500).json({ 
+      success: false,
       message: 'Error al obtener las citas', 
       error: error.message 
     });
   }
 };
 
-exports.getAppointmentById = async (req, res) => {
-  try {
-    if (!isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'ID de cita inválido' });
-    }
+exports.getAvailableAppointments = async (req, res) => {
+    try {
+        const { date } = req.params;
+        console.log('1. Backend - getAvailableAppointments - fecha solicitada:', date);
 
-    const appointment = await Appointment.findById(req.params.id);
-    if (!appointment) {
-      return res.status(404).json({ message: 'Cita no encontrada' });
+        // Crear array con todos los horarios posibles
+        const allPossibleSlots = [];
+        
+        // Horarios de la mañana (8:00 a 11:45)
+        for (let hour = 8; hour < 12; hour++) {
+            for (let minute = 0; minute < 60; minute += 15) {
+                allPossibleSlots.push({
+                    displayTime: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
+                    time: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
+                    status: 'available'  // Cambiado de 'disponible' a 'available'
+                });
+            }
+        }
+        
+        // Horarios de la tarde (16:00 a 19:45)
+        for (let hour = 16; hour < 20; hour++) {
+            for (let minute = 0; minute < 60; minute += 15) {
+                allPossibleSlots.push({
+                    displayTime: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
+                    time: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
+                    status: 'available'  // Cambiado de 'disponible' a 'available'
+                });
+            }
+        }        // Obtener las citas existentes para la fecha
+        const existingAppointments = await Appointment.find({ 
+            date,
+            status: { $ne: 'cancelled' } // Excluir citas canceladas
+        });
+
+        // Marcar horarios ocupados
+        const bookedTimes = existingAppointments.map(apt => apt.time);
+        allPossibleSlots.forEach(slot => {
+            if (bookedTimes.includes(slot.time)) {
+                slot.status = 'unavailable';  // Cambiado de 'ocupado' a 'unavailable'
+            }
+        });
+
+        // Separar slots en mañana y tarde
+        const morning = allPossibleSlots.filter(slot => {
+            const hour = parseInt(slot.time.split(':')[0]);
+            return hour < 12;
+        });
+
+        const afternoon = allPossibleSlots.filter(slot => {
+            const hour = parseInt(slot.time.split(':')[0]);
+            return hour >= 16;
+        });
+        
+        const response = {
+            success: true,
+            data: {
+                displayDate: date,
+                available: {
+                    morning,
+                    afternoon
+                }
+            }
+        };
+
+        res.json(response);
+    } catch (error) {
+        console.error('Error en getAvailableAppointments:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener las citas disponibles',
+            error: error.message
+        });
     }
-    res.json(appointment);
-  } catch (error) {
-    console.error('Error al obtener la cita:', error);
-    res.status(500).json({ 
-      message: 'Error al obtener la cita', 
-      error: error.message 
-    });
-  }
 };
 
 exports.createAppointment = async (req, res) => {
-    try {
-        // Crear la cita en MongoDB
-        const appointment = new Appointment(req.body);
-        const savedAppointment = await appointment.save();
+  try {
+    const appointmentData = {
+      clientName: req.body.clientName,
+      socialWork: req.body.socialWork,
+      phone: req.body.phone,
+      email: req.body.email,
+      date: req.body.date,
+      time: req.body.time,
+      status: 'pending'  // Cambiado de 'ocupado' a 'pending' para coincidir con el enum del modelo
+    };
 
-        // Intentar crear el evento en Google Calendar
-        const eventId = await googleCalendar.createCalendarEvent(savedAppointment);
-        if (eventId) {
-            savedAppointment.googleEventId = eventId;
-            await savedAppointment.save();
-        }
+    // Verificar si ya existe una cita en ese horario
+    const existingAppointment = await Appointment.findOne({
+      date: appointmentData.date,
+      time: appointmentData.time,
+      status: { $ne: 'cancelled' }
+    });
 
-        res.status(201).json(savedAppointment);
-    } catch (error) {
-        console.error('Error al crear la cita:', error);
-        res.status(500).json({ 
-            message: 'Error al crear la cita', 
-            error: error.message 
-        });
+    if (existingAppointment) {
+      return res.status(400).json({
+        success: false,
+        message: 'El horario seleccionado ya no está disponible'
+      });
     }
+
+    const appointment = new Appointment(appointmentData);
+    await appointment.save();
+
+    // Intentar crear el evento en Google Calendar
+    try {
+      await googleCalendar.ensureInitialized();
+      const eventId = await googleCalendar.createEvent(appointment);
+      appointment.googleEventId = eventId;
+      await appointment.save();
+    } catch (calendarError) {
+      console.error('Error al crear evento en Google Calendar:', calendarError);
+      // Continuamos con la creación de la cita aunque falle la sincronización con Google Calendar
+    }
+
+    res.status(201).json({
+      success: true,
+      data: appointment
+    });
+  } catch (error) {
+    console.error('Error al crear la cita:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al crear la cita',
+      error: error.message
+    });
+  }
 };
 
 exports.updateAppointment = async (req, res) => {
@@ -102,12 +202,18 @@ exports.updateAppointment = async (req, res) => {
 exports.deleteAppointment = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'ID de cita inválido' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'ID de cita inválido' 
+      });
     }
 
     const appointment = await Appointment.findById(req.params.id);
     if (!appointment) {
-      return res.status(404).json({ message: 'Cita no encontrada' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Cita no encontrada' 
+      });
     }
 
     try {
@@ -119,11 +225,15 @@ exports.deleteAppointment = async (req, res) => {
       // Continuamos con la eliminación de la cita aunque falle la sincronización
     }
 
-    await appointment.remove();
-    res.json({ message: 'Cita eliminada correctamente' });
+    await Appointment.deleteOne({ _id: req.params.id });
+    res.json({ 
+      success: true,
+      message: 'Cita eliminada correctamente' 
+    });
   } catch (error) {
     console.error('Error al eliminar la cita:', error);
     res.status(500).json({ 
+      success: false,
       message: 'Error al eliminar la cita', 
       error: error.message 
     });

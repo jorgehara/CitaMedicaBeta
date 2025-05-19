@@ -19,11 +19,28 @@ const Dashboard = () => {
   };
 
   return (
-    <Box sx={{ height: '100%' }}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 3 }}>
+    <Box sx={{ 
+      height: '100vh',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <Box sx={{ 
+        flex: 1,
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', md: '1fr' },
+        gap: 3,
+        overflow: 'hidden',
+        p: 3
+      }}>
         {/* Panel izquierdo */}
-        <Box>
-          <Card sx={{ mb: 3, bgcolor: 'background.paper' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          overflow: 'hidden',
+          gap: 3
+        }}>
+          <Card sx={{ bgcolor: 'background.paper' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 <EventNoteIcon color="primary" />
@@ -38,11 +55,19 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Paper sx={{ p: 3, bgcolor: 'background.paper' }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ 
+            flex: 1,
+            bgcolor: 'background.paper',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <Typography variant="h6" sx={{ p: 3, pb: 0 }}>
               Citas del Día
             </Typography>
-            <AppointmentList />
+            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+              <AppointmentList />
+            </Box>
           </Paper>
         </Box>
       </Box>

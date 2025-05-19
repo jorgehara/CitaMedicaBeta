@@ -153,18 +153,21 @@ const AppointmentList = () => {
 
     try {
       await appointmentService.delete(appointmentToDelete);
-      await loadAppointments();
+      // Solo actualizamos la UI si la eliminación fue exitosa
       setSnackbar({
         open: true,
         message: 'Cita eliminada correctamente',
         severity: 'success'
       });
-    } catch {
+      await loadAppointments(); // Recargar la lista de citas
+    } catch (error) {
+      console.error('Error al eliminar la cita:', error);
       setSnackbar({
         open: true,
-        message: 'Error al eliminar la cita',
+        message: error instanceof Error ? error.message : 'Error al eliminar la cita',
         severity: 'error'
       });
+      await loadAppointments(); // Recargar para asegurar consistencia con el backend
     } finally {
       setDeleteConfirmOpen(false);
       setAppointmentToDelete(null);
@@ -231,8 +234,8 @@ const AppointmentList = () => {
         alignItems: viewMode === 'list' ? 'center' : 'flex-start',
         justifyContent: viewMode === 'list' ? 'flex-start' : 'space-between',
         gap: 2,
-        height: '100%'
-      }}>
+        height: '100%'}
+      }>
         <Box sx={{ 
           flex: viewMode === 'list' ? '0 0 200px' : 1,
           minWidth: viewMode === 'list' ? '200px' : 'auto'
@@ -374,16 +377,24 @@ const AppointmentList = () => {
     );
   };
 
-  return (    <Box sx={{ display: 'flex', height: '100%', overflow: 'hidden' }}>      <Box sx={{ 
+  return (
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      height: '100vh',
+      width: '100%',
+      overflow: 'hidden'
+    }}>
+      <Box sx={{ 
         flex: 1, 
         p: 3,
-        width: '100%',
-        height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        minHeight: 0 // Importante para que el scroll funcione correctamente
       }}>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>          <Box>
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
+          <Box>
             <Tooltip title={viewMode === 'grid' ? 'Vista de Lista' : 'Vista de Cuadrícula'}>
               <IconButton
                 color="primary"
@@ -405,19 +416,23 @@ const AppointmentList = () => {
               <AddIcon />
             </IconButton>
           </Tooltip>
-        </Box>        <Box sx={{
+        </Box>
+        <Box sx={{
           flex: 1,
-          display: viewMode === 'grid' ? 'grid' : 'flex',          gridTemplateColumns: viewMode === 'grid' ? 'repeat(2, minmax(300px, 1fr))' : '1fr',
-          gap: 1,
+          display: viewMode === 'grid' ? 'grid' : 'flex',
+          gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr',
+          gap: 2,
           flexDirection: 'column',
           width: '100%',
           overflow: 'auto',
           alignContent: 'start',
-          padding: 1
+          padding: 1,
+          minHeight: 0 // Importante para que el scroll funcione correctamente
         }}>
           {appointments.map(renderAppointmentCard)}
         </Box>
-      </Box>      <Drawer
+      </Box>
+      <Drawer
         anchor="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}

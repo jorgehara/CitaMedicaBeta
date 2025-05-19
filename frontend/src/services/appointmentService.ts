@@ -1,6 +1,6 @@
 import type { Appointment, BaseAppointment } from '../types/appointment';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const appointmentService = {
   async getAll(): Promise<Appointment[]> {
@@ -51,9 +51,9 @@ export const appointmentService = {
     const response = await fetch(`${API_URL}/appointments/${_id}`, {
       method: 'DELETE',
     });
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Error al eliminar la cita' }));
-      throw new Error(error.message || 'Error al eliminar la cita');
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error al eliminar la cita');
     }
   },
 
