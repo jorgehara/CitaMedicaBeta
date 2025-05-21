@@ -110,6 +110,32 @@ exports.getAvailableAppointments = async (req, res) => {
     }
 };
 
+exports.getReservedAppointments = async (req, res) => {
+  try {
+    const { date } = req.params;
+    console.log('1. Backend - getReservedAppointments - fecha solicitada:', date);
+    
+    const appointments = await Appointment.find({ 
+      date,
+      status: { $ne: 'cancelled' } // Excluir citas canceladas
+    }).select('time');
+
+    console.log('2. Backend - Citas reservadas encontradas:', appointments.length);
+
+    res.json({
+      success: true,
+      data: appointments
+    });
+  } catch (error) {
+    console.error('Error en getReservedAppointments:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener las citas reservadas',
+      error: error.message
+    });
+  }
+};
+
 exports.createAppointment = async (req, res) => {
   try {
     const appointmentData = {
@@ -167,17 +193,34 @@ exports.createAppointment = async (req, res) => {
 exports.updateAppointment = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'ID de cita inválido' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'ID de cita inválido' 
+      });
     }
 
     await googleCalendar.ensureInitialized();
     
     const appointment = await Appointment.findById(req.params.id);
     if (!appointment) {
-      return res.status(404).json({ message: 'Cita no encontrada' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Cita no encontrada' 
+      });
     }
 
-    Object.assign(appointment, req.body);
+    // Lista de campos permitidos para actualizar
+    const allowedFields = ['attended', 'description', 'status'];
+    const updates = {};
+    
+    for (const field of allowedFields) {
+      if (field in req.body) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    // Actualizar solo los campos permitidos
+    Object.assign(appointment, updates);
     const updatedAppointment = await appointment.save();
     
     try {

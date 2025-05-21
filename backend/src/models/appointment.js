@@ -33,10 +33,13 @@ const appointmentSchema = new mongoose.Schema({
         enum: ['pending', 'confirmed', 'cancelled'],
         default: 'pending'
     },
-    eventId: String,
-    createdAt: { 
+    eventId: String,    createdAt: { 
         type: Date, 
         default: Date.now 
+    },
+    attended: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

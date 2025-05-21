@@ -5,6 +5,7 @@ const appointmentController = require('../controllers/appointmentController');
 // Rutas para citas
 router.get('/appointments', appointmentController.getAllAppointments);
 router.get('/appointments/available/:date', appointmentController.getAvailableAppointments);
+router.get('/appointments/reserved/:date', appointmentController.getReservedAppointments);
 router.post('/appointments', appointmentController.createAppointment);
 router.put('/appointments/:id', appointmentController.updateAppointment);
 router.delete('/appointments/:id', appointmentController.deleteAppointment);

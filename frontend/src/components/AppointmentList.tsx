@@ -240,30 +240,56 @@ const AppointmentList = () => {
       if (event) {
         event.stopPropagation();
       }
-      // Si se marca como asistida, también cambiamos el estado a 'confirmed'
+
+      // Primero actualizamos el estado local para una respuesta inmediata
       const updateData = {
         attended,
         status: attended ? 'confirmed' as AppointmentStatus : 'pending' as AppointmentStatus
       };
-      
-      await appointmentService.update(appointmentId, updateData);
-      
+
       // Actualizar el estado local de la cita seleccionada si está abierta en el drawer
       if (selectedAppointment && selectedAppointment._id === appointmentId) {
-        setSelectedAppointment({
-          ...selectedAppointment,
+        setSelectedAppointment(prev => ({
+          ...prev!,
           ...updateData
-        });
+        }));
       }
+
+      // También actualizar en el listado
+      setAppointments(prev => prev.map(app => 
+        app._id === appointmentId ? { ...app, ...updateData } : app
+      ));
+      
+      // Luego actualizar en la base de datos
+      await appointmentService.update(appointmentId, updateData);
       
       setSnackbar({
         open: true,
         message: `Asistencia ${attended ? 'marcada' : 'desmarcada'} correctamente`,
         severity: 'success'
       });
-      await loadAppointments();
     } catch (error: unknown) {
       console.error('Error al actualizar asistencia:', error);
+      
+      // Revertir los cambios locales si hay error
+      if (selectedAppointment && selectedAppointment._id === appointmentId) {
+        setSelectedAppointment(prev => ({
+          ...prev!,
+          attended: !attended,
+          status: !attended ? 'confirmed' as AppointmentStatus : 'pending' as AppointmentStatus
+        }));
+      }
+      
+      setAppointments(prev => prev.map(app => 
+        app._id === appointmentId 
+          ? { 
+              ...app, 
+              attended: !attended,
+              status: !attended ? 'confirmed' as AppointmentStatus : 'pending' as AppointmentStatus
+            } 
+          : app
+      ));
+
       setSnackbar({
         open: true,
         message: 'Error al actualizar el estado de asistencia',
@@ -583,13 +609,15 @@ const AppointmentList = () => {
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle2" gutterBottom>
                   Estado de la Cita
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                </Typography>                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <FormControlLabel
                     control={
                       <Switch
                         checked={selectedAppointment.attended || false}
-                        onChange={(e) => handleAttendedChange(selectedAppointment._id, e.target.checked)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleAttendedChange(selectedAppointment._id, e.target.checked, e);
+                        }}
                         color="success"
                         sx={{
                           '& .MuiSwitch-switchBase.Mui-checked': {
@@ -614,30 +642,35 @@ const AppointmentList = () => {
               </Box>              <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle2" gutterBottom sx={{ mb: 2 }}>
                   Notas y Observaciones
-                </Typography>
-                <TextField
+                </Typography>                <TextField
                   multiline
                   rows={8}
                   fullWidth
                   variant="outlined"
                   value={selectedAppointment.description || ''}
-                  onChange={async (e) => {
+                  onChange={(e) => {
                     const newDescription = e.target.value;
-                    try {
-                      await appointmentService.update(selectedAppointment._id, { description: newDescription });
-                      // Actualizar el estado local de la cita seleccionada
-                      setSelectedAppointment({
-                        ...selectedAppointment,
-                        description: newDescription
+                    // Primero actualizar el estado local para una respuesta inmediata
+                    setSelectedAppointment({
+                      ...selectedAppointment,
+                      description: newDescription
+                    });
+                    
+                    // Luego actualizar en la base de datos
+                    appointmentService.update(selectedAppointment._id, { description: newDescription })
+                      .catch(error => {
+                        console.error('Error al actualizar la descripción:', error);
+                        setSnackbar({
+                          open: true,
+                          message: 'Error al guardar la descripción',
+                          severity: 'error'
+                        });
+                        // Revertir el cambio local si hay error
+                        setSelectedAppointment(prev => ({
+                          ...prev!,
+                          description: prev?.description || ''
+                        }));
                       });
-                    } catch (error) {
-                      console.error('Error al actualizar la descripción:', error);
-                      setSnackbar({
-                        open: true,
-                        message: 'Error al guardar la descripción',
-                        severity: 'error'
-                      });
-                    }
                   }}
                   placeholder="Agregar notas o comentarios sobre la consulta..."
                   sx={{ 
