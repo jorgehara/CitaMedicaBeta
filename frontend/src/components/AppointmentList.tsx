@@ -261,48 +261,77 @@ const AppointmentList = () => {
   const pendingAppointments = appointments.filter(app => 
     app.status === 'pending'
   );
-
   const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
     <Card 
       sx={{ 
         marginBottom: 2, 
         cursor: 'pointer',
-        '&:hover': { boxShadow: 6 } 
+        '&:hover': { boxShadow: 6 },
+        display: 'flex',
+        flexDirection: viewMode === 'grid' ? 'column' : 'row',
+        height: viewMode === 'grid' ? 'auto' : '100px'
       }}
       onClick={() => handleAppointmentClick(appointment)}
     >
-      <CardContent>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" component="div">
-              {appointment.clientName}
-            </Typography>
-            <Typography color="text.secondary">
-              {format(new Date(appointment.date), 'dd/MM/yyyy')} - {appointment.time}
-            </Typography>
-            <Typography color="text.secondary">
-              Obra Social: {appointment.socialWork}
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", justifyContent: { xs: "flex-start", md: "flex-end" }, alignItems: "center", gap: 1 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={appointment.attended || false}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                    e.stopPropagation();
-                    handleAttendedChange(appointment._id, e.target.checked);
-                  }}
-                  onClick={(e: MouseEvent) => e.stopPropagation()}
-                />
-              }
-              label="Asistió"
-            />
-            <Chip
-              label={appointment.status}
-              color={getStatusColor(appointment.status)}
-            />
-          </Box>
+      <CardContent sx={{ 
+        flex: 1, 
+        display: 'flex',
+        flexDirection: viewMode === 'grid' ? 'column' : 'row',
+        alignItems: viewMode === 'grid' ? 'flex-start' : 'center',
+        gap: 2,
+        py: viewMode === 'grid' ? 2 : 1,
+        "&:last-child": { pb: viewMode === 'grid' ? 2 : 1 }
+      }}>
+        <Box sx={{ 
+          flex: viewMode === 'grid' ? 1 : 0.3,
+          minWidth: viewMode === 'grid' ? 'auto' : '200px'
+        }}>
+          <Typography variant="h6" component="div" noWrap>
+            {appointment.clientName}
+          </Typography>
+          <Typography color="text.secondary" variant={viewMode === 'grid' ? 'body1' : 'body2'}>
+            {format(new Date(appointment.date), 'dd/MM/yyyy')} - {appointment.time}
+          </Typography>
+        </Box>
+
+        <Box sx={{ 
+          flex: viewMode === 'grid' ? 1 : 0.3,
+          display: 'flex',
+          flexDirection: viewMode === 'grid' ? 'column' : 'row',
+          alignItems: viewMode === 'grid' ? 'flex-start' : 'center',
+          gap: 1
+        }}>
+          <Typography color="text.secondary" variant={viewMode === 'grid' ? 'body1' : 'body2'}>
+            Obra Social: {appointment.socialWork}
+          </Typography>
+        </Box>
+
+        <Box sx={{ 
+          flex: viewMode === 'grid' ? 1 : 0.4,
+          display: 'flex',
+          justifyContent: viewMode === 'grid' ? 'flex-start' : 'flex-end',
+          alignItems: 'center',
+          gap: 2,
+          ml: viewMode === 'grid' ? 0 : 'auto'
+        }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={appointment.attended || false}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  e.stopPropagation();
+                  handleAttendedChange(appointment._id, e.target.checked);
+                }}
+                onClick={(e: MouseEvent) => e.stopPropagation()}
+              />
+            }
+            label="Asistió"
+          />
+          <Chip
+            label={appointment.status}
+            color={getStatusColor(appointment.status)}
+            size={viewMode === 'grid' ? 'medium' : 'small'}
+          />
         </Box>
       </CardContent>
     </Card>
@@ -372,19 +401,21 @@ const AppointmentList = () => {
             </Tooltip>
           </Box>
         </Box>
-        
-        <Box sx={{
+          <Box sx={{
           display: viewMode === 'grid' ? 'grid' : 'flex',
           flexDirection: 'column',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: viewMode === 'grid' ? 3 : 2,
+          gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr',
+          gap: 2,
           overflow: 'auto',
           flex: 1,
           width: '100%',
           height: 'calc(100vh - 250px)'
         }}>
           {paginatedAppointments.map(appointment => (
-            <AppointmentCard key={appointment._id} appointment={appointment} />
+            <AppointmentCard 
+              key={appointment._id} 
+              appointment={appointment} 
+            />
           ))}
         </Box>
         
