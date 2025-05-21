@@ -74,9 +74,14 @@ const Layout = ({ children }: LayoutProps) => {
       </List>
     </Box>
   );
-
   return (
-    <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      bgcolor: 'background.default', 
+      minHeight: '100vh',
+      width: '100vw',
+      overflow: 'hidden'
+    }}>
       <AppBar
         position="fixed"
         sx={{
@@ -142,15 +147,18 @@ const Layout = ({ children }: LayoutProps) => {
         >
           {drawer}
         </Drawer>
-      </Box>
-
-      <Box
+      </Box>      <Box 
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          p: 0,
+          width: { 
+            xs: '100%',
+            sm: `calc(100% - ${drawerWidth}px)` 
+          },
           mt: 8,
+          height: 'calc(100vh - 64px)', // 64px es la altura del AppBar
+          overflow: 'auto'
         }}
       >
         {children}

@@ -17,7 +17,8 @@ import {
   Paper,
   Drawer,
   Divider,
-  Tooltip
+  Tooltip,
+  Pagination
 } from '@mui/material';
 import {
   AccessTime as AccessTimeIcon,
@@ -28,7 +29,8 @@ import {
   Delete as DeleteIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Assignment as AssignmentIcon
 } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
 import { appointmentService } from '../services/appointmentService';
@@ -79,9 +81,12 @@ const getStatusLabel = (status: AppointmentStatus) => {
   }
 };
 
+const ITEMS_PER_PAGE = 15;
+
 const AppointmentList = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [page, setPage] = useState(1);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormState);
@@ -98,6 +103,16 @@ const AppointmentList = () => {
   });
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
+  const paginatedAppointments = appointments.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -212,98 +227,123 @@ const AppointmentList = () => {
     setDrawerOpen(true);
   };
 
-  const renderAppointmentCard = (appointment: Appointment) => (    <Card      key={appointment._id} 
+  const renderAppointmentCard = (appointment: Appointment) => (    <Card
+      key={appointment._id} 
       sx={{ 
         position: 'relative',
         cursor: 'pointer',
         '&:hover': {
           boxShadow: 6,
+          transform: 'translateY(-2px)',
+          transition: 'all 0.2s ease-in-out'
         },
-        display: viewMode === 'list' ? 'flex' : 'flex',
-        flexDirection: 'column',
-        mb: viewMode === 'list' ? 2 : 0,
-        height: '100%',
-        minHeight: viewMode === 'grid' ? '200px' : 'auto'
+        display: 'flex',
+        flexDirection: {
+          xs: 'column',
+          sm: viewMode === 'list' ? 'row' : 'column'
+        },
+        mb: { xs: 1, sm: 2 },
+        height: {
+          xs: 'auto',
+          sm: viewMode === 'list' ? '100px' : '250px'
+        },
+        flex: 1,
+        width: '100%',
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider'
       }}
       onClick={() => handleAppointmentClick(appointment)}
     >      <CardContent sx={{ 
         flex: 1,
         width: '100%',
+        height: '100%',
         display: 'flex',
-        flexDirection: viewMode === 'list' ? 'row' : 'column',
-        alignItems: viewMode === 'list' ? 'center' : 'flex-start',
-        justifyContent: viewMode === 'list' ? 'flex-start' : 'space-between',
-        gap: 2,
-        height: '100%'}
-      }>
+        flexDirection: {
+          xs: 'column',
+          sm: viewMode === 'list' ? 'row' : 'column'
+        },
+        alignItems: {
+          xs: 'stretch',
+          sm: viewMode === 'list' ? 'center' : 'stretch'
+        },
+        justifyContent: 'space-between',
+        gap: { xs: 1, sm: 2 },
+        p: { xs: 1.5, sm: 2 },
+        '&:last-child': {
+          pb: { xs: 1.5, sm: 2 }
+        },
+        '& > *': { // Esto asegura que los hijos también ocupen el espacio disponible
+          width: '100%',
+          height: '100%'
+        }
+      }}>
         <Box sx={{ 
           flex: viewMode === 'list' ? '0 0 200px' : 1,
-          minWidth: viewMode === 'list' ? '200px' : 'auto'
-        }}>          <Typography variant="h6" gutterBottom={viewMode !== 'list'}>
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 'medium', fontSize: viewMode === 'list' ? '1rem' : '1.25rem' }}>
             {appointment.clientName}
           </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AccessTimeIcon sx={{ fontSize: 'small', color: 'primary.main' }} />
+            <Typography variant="body2" color="text.secondary">
+              {appointment.date} - {appointment.time}
+            </Typography>
+          </Box>
         </Box>
 
         <Box sx={{ 
-          flex: viewMode === 'list' ? '0 0 200px' : 1,
           display: 'flex',
-          alignItems: 'center'
-        }}>
-          <AccessTimeIcon sx={{ mr: 1, fontSize: 'small' }} />
-          <Typography variant="body2">
-            {appointment.date} - {appointment.time}
-          </Typography>
-        </Box>
-
-        <Box sx={{ 
-          flex: viewMode === 'list' ? '0 0 150px' : 1,
-          display: 'flex',
-          alignItems: 'center'
+          alignItems: 'center',
+          gap: 2
         }}>
           <Chip
             label={getStatusLabel(appointment.status)}
             color={getStatusColor(appointment.status)}
             size="small"
+            sx={{ minWidth: 90 }}
           />
-        </Box>
-
-        <Box sx={{ 
-          flex: viewMode === 'list' ? '0 0 200px' : 1,
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
             {appointment.socialWork}
           </Typography>
-        </Box>
-
-        <Box sx={{ 
-          position: viewMode === 'list' ? 'relative' : 'absolute',
-          top: viewMode === 'list' ? 'auto' : 8,
-          right: viewMode === 'list' ? 'auto' : 8,
-          display: 'flex',
-          gap: 1
-        }}>
-          <IconButton 
-            size="small" 
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditClick(appointment);
-            }}
-            color="primary"
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton 
-            size="small" 
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteClick(appointment._id);
-            }}
-            color="error"
-          >
-            <DeleteIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton 
+              size="small" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditClick(appointment);
+              }}
+              color="primary"
+              sx={{ 
+                '&:hover': { 
+                  bgcolor: 'primary.light',
+                  '& svg': { color: 'white' }
+                }
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+            <IconButton 
+              size="small" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(appointment._id);
+              }}
+              color="error"
+              sx={{ 
+                '&:hover': { 
+                  bgcolor: 'error.light',
+                  '& svg': { color: 'white' }
+                }
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
         </Box>
       </CardContent>
     </Card>
@@ -313,66 +353,162 @@ const AppointmentList = () => {
     if (!selectedAppointment) return null;
 
     return (
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5">Detalles del Paciente</Typography>
-          <IconButton onClick={() => setDrawerOpen(false)}>
+      <Box sx={{ 
+        p: 4,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 3 
+        }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+            Detalles del Paciente
+          </Typography>
+          <IconButton 
+            onClick={() => setDrawerOpen(false)}
+            sx={{ 
+              '&:hover': { 
+                bgcolor: 'primary.light',
+                color: 'white'
+              }
+            }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
 
-        <Divider sx={{ mb: 3 }} />
-
-        <Typography variant="h6" gutterBottom>
-          {selectedAppointment.clientName}
-        </Typography>
-
-        <Box sx={{ my: 2 }}>
-          <Chip
-            label={getStatusLabel(selectedAppointment.status)}
-            color={getStatusColor(selectedAppointment.status)}
-            sx={{ mb: 2 }}
-          />
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <AccessTimeIcon sx={{ mr: 1 }} />
-          <Typography>
-            {selectedAppointment.date} - {selectedAppointment.time}
+        <Paper sx={{ 
+          p: 3, 
+          flex: 1,
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          boxShadow: 1
+        }}>
+          <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 'medium' }}>
+            {selectedAppointment.clientName}
           </Typography>
-        </Box>
 
-        <Typography variant="subtitle1" gutterBottom>
-          Obra Social
-        </Typography>
-        <Typography color="text.secondary" paragraph>
-          {selectedAppointment.socialWork}
-        </Typography>
-
-        {selectedAppointment.phone && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <PhoneIcon sx={{ mr: 1 }} />
-            <Typography>{selectedAppointment.phone}</Typography>
+          <Box sx={{ my: 3 }}>
+            <Chip
+              label={getStatusLabel(selectedAppointment.status)}
+              color={getStatusColor(selectedAppointment.status)}
+              sx={{ 
+                px: 2,
+                py: 2.5,
+                borderRadius: 2,
+                fontSize: '1rem'
+              }}
+            />
           </Box>
-        )}
 
-        {selectedAppointment.email && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <EmailIcon sx={{ mr: 1 }} />
-            <Typography>{selectedAppointment.email}</Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 3,
+            mt: 4
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              p: 2,
+              bgcolor: 'background.default',
+              borderRadius: 1
+            }}>
+              <AccessTimeIcon color="primary" />
+              <Box>
+                <Typography variant="overline" color="text.secondary">
+                  Fecha y Hora
+                </Typography>
+                <Typography variant="body1">
+                  {selectedAppointment.date} - {selectedAppointment.time}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              p: 2,
+              bgcolor: 'background.default',
+              borderRadius: 1
+            }}>
+              <AssignmentIcon color="primary" />
+              <Box>
+                <Typography variant="overline" color="text.secondary">
+                  Obra Social
+                </Typography>
+                <Typography variant="body1">
+                  {selectedAppointment.socialWork}
+                </Typography>
+              </Box>
+            </Box>
+
+            {selectedAppointment.phone && (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 2,
+                p: 2,
+                bgcolor: 'background.default',
+                borderRadius: 1
+              }}>
+                <PhoneIcon color="primary" />
+                <Box>
+                  <Typography variant="overline" color="text.secondary">
+                    Teléfono
+                  </Typography>
+                  <Typography variant="body1">
+                    {selectedAppointment.phone}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            {selectedAppointment.email && (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 2,
+                p: 2,
+                bgcolor: 'background.default',
+                borderRadius: 1
+              }}>
+                <EmailIcon color="primary" />
+                <Box>
+                  <Typography variant="overline" color="text.secondary">
+                    Email
+                  </Typography>
+                  <Typography variant="body1">
+                    {selectedAppointment.email}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            {selectedAppointment.description && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="overline" color="text.secondary" display="block" gutterBottom>
+                  Descripción
+                </Typography>
+                <Paper variant="outlined" sx={{ 
+                  p: 2,
+                  bgcolor: 'background.default',
+                  borderRadius: 1
+                }}>
+                  <Typography variant="body1">
+                    {selectedAppointment.description}
+                  </Typography>
+                </Paper>
+              </Box>
+            )}
           </Box>
-        )}
-
-        {selectedAppointment.description && (
-          <>
-            <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
-              Descripción
-            </Typography>
-            <Paper variant="outlined" sx={{ p: 2 }}>
-              <Typography>{selectedAppointment.description}</Typography>
-            </Paper>
-          </>
-        )}
+        </Paper>
       </Box>
     );
   };
@@ -384,16 +520,28 @@ const AppointmentList = () => {
       height: '100vh',
       width: '100%',
       overflow: 'hidden'
-    }}>
-      <Box sx={{ 
+    }}>      <Box sx={{ 
         flex: 1, 
         p: 3,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        minHeight: 0 // Importante para que el scroll funcione correctamente
+        minHeight: 0,
+        maxWidth: '1400px',
+        width: '100%',
+        mx: 'auto'
       }}>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
+        <Box sx={{ 
+          mb: 3, 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          width: '100%',
+          height: '64px', // Altura fija para el título
+          alignItems: 'center',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          px: 2
+        }}>
           <Box>
             <Tooltip title={viewMode === 'grid' ? 'Vista de Lista' : 'Vista de Cuadrícula'}>
               <IconButton
@@ -416,23 +564,51 @@ const AppointmentList = () => {
               <AddIcon />
             </IconButton>
           </Tooltip>
-        </Box>
+        </Box>        
         <Box sx={{
           flex: 1,
           display: viewMode === 'grid' ? 'grid' : 'flex',
-          gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(300px, 1fr))' : '1fr',
-          gap: 2,
           flexDirection: 'column',
-          width: '100%',
+          width: '1150px',
           overflow: 'auto',
           alignContent: 'start',
           padding: 1,
-          minHeight: 0 // Importante para que el scroll funcione correctamente
+          minHeight: 0,
+          height: '100%',
+          bgcolor: 'background.default',
+          borderRadius: 1
         }}>
-          {appointments.map(renderAppointmentCard)}
+          {paginatedAppointments.map(renderAppointmentCard)}
+        </Box>        
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          gap: 1,
+          mt: 2,
+          mb: 2,
+          borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+          pt: 2
+        }}>
+          <Typography variant="body2" color="text.secondary">
+            Mostrando {Math.min(ITEMS_PER_PAGE * page, appointments.length)} de {appointments.length} citas
+          </Typography>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="primary"
+            size="large"
+            showFirstButton
+            showLastButton
+            sx={{
+              '& .MuiPaginationItem-root': {
+                mx: 0.5
+              }
+            }}
+          />
         </Box>
-      </Box>
-      <Drawer
+      </Box>      <Drawer
         anchor="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -442,9 +618,11 @@ const AppointmentList = () => {
         }}
         sx={{
           '& .MuiDrawer-paper': {
-            width: 320,
+            width: { xs: '100%', sm: '450px' },
+            maxWidth: '100%',
             boxSizing: 'border-box',
             borderLeft: '1px solid rgba(0, 0, 0, 0.12)',
+            bgcolor: 'background.default'
           },
         }}
       >

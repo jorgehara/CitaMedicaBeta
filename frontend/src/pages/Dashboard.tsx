@@ -21,18 +21,22 @@ const Dashboard = () => {
   return (
     <Box sx={{ 
       height: '100vh',
-      overflow: 'hidden',
+      overflow: 'auto',
       display: 'flex',
       flexDirection: 'column'
     }}>
+      {/* Panel superior */} 
+      {/* este panel debe ocupar todo el ancho de la pantalla y ser responsive */} 
+
       <Box sx={{ 
-        flex: 1,
-        display: 'grid', 
-        gridTemplateColumns: { xs: '1fr', md: '1fr' },
-        gap: 3,
-        overflow: 'hidden',
-        p: 3
-      }}>
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: 2, 
+        bgcolor: 'background.paper',
+        borderBottom: 1,
+        borderColor: 'divider'
+          }}>
         {/* Panel izquierdo */}
         <Box sx={{ 
           display: 'flex', 
