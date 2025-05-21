@@ -21,7 +21,8 @@ import {
   Grid as MuiGrid,
   Switch,
   FormControlLabel,
-  type ChipProps
+  type ChipProps,
+  Avatar
 } from '@mui/material';
 import {
   AccessTime as AccessTimeIcon,
@@ -52,7 +53,8 @@ const initialFormState: FormData = {
   socialWork: 'CONSULTA PARTICULAR',
   phone: '',
   email: '',
-  description: ''
+  description: '',
+  attended: false
 };
 
 const socialWorkOptions: SocialWork[] = [
@@ -233,11 +235,27 @@ const AppointmentList = () => {
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setDrawerOpen(true);
-  };
-
-  const handleAttendedChange = async (appointmentId: string, attended: boolean) => {
+  };  const handleAttendedChange = async (appointmentId: string, attended: boolean, event?: React.SyntheticEvent) => {
     try {
-      await appointmentService.update(appointmentId, { attended });
+      if (event) {
+        event.stopPropagation();
+      }
+      // Si se marca como asistida, también cambiamos el estado a 'confirmed'
+      const updateData = {
+        attended,
+        status: attended ? 'confirmed' as AppointmentStatus : 'pending' as AppointmentStatus
+      };
+      
+      await appointmentService.update(appointmentId, updateData);
+      
+      // Actualizar el estado local de la cita seleccionada si está abierta en el drawer
+      if (selectedAppointment && selectedAppointment._id === appointmentId) {
+        setSelectedAppointment({
+          ...selectedAppointment,
+          ...updateData
+        });
+      }
+      
       setSnackbar({
         open: true,
         message: `Asistencia ${attended ? 'marcada' : 'desmarcada'} correctamente`,
@@ -272,8 +290,7 @@ const AppointmentList = () => {
         height: viewMode === 'grid' ? 'auto' : '100px'
       }}
       onClick={() => handleAppointmentClick(appointment)}
-    >
-      <CardContent sx={{ 
+    >      <CardContent sx={{ 
         flex: 1, 
         display: 'flex',
         flexDirection: viewMode === 'grid' ? 'column' : 'row',
@@ -282,6 +299,15 @@ const AppointmentList = () => {
         py: viewMode === 'grid' ? 2 : 1,
         "&:last-child": { pb: viewMode === 'grid' ? 2 : 1 }
       }}>
+        <Avatar 
+          sx={{ 
+            width: viewMode === 'grid' ? 60 : 40, 
+            height: viewMode === 'grid' ? 60 : 40,
+            bgcolor: appointment.attended ? 'success.main' : 'primary.main'
+          }}
+        >
+          {appointment.clientName.split(' ').map(name => name[0]).join('').toUpperCase()}
+        </Avatar>
         <Box sx={{ 
           flex: viewMode === 'grid' ? 1 : 0.3,
           minWidth: viewMode === 'grid' ? 'auto' : '200px'
@@ -315,14 +341,25 @@ const AppointmentList = () => {
           ml: viewMode === 'grid' ? 0 : 'auto'
         }}>
           <FormControlLabel
-            control={
-              <Switch
+            control={              <Switch
                 checked={appointment.attended || false}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                   e.stopPropagation();
                   handleAttendedChange(appointment._id, e.target.checked);
                 }}
                 onClick={(e: MouseEvent) => e.stopPropagation()}
+                color="success"
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: 'success.main',
+                    '&:hover': {
+                      backgroundColor: 'success.light'
+                    },
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: 'success.main',
+                  },
+                }}
               />
             }
             label="Asistió"
@@ -475,22 +512,40 @@ const AppointmentList = () => {
                 <CloseIcon />
               </IconButton>
             </Box>
-            
-            <Paper sx={{ 
-              p: 3,
-              flex: 1,
-              borderRadius: 2
+              <Paper sx={{ 
+                p: 3,
+                flex: 1,
+                borderRadius: 2,
+                overflow: 'auto'
             }}>
-              <Typography variant="h5" gutterBottom color="primary">
-                {selectedAppointment.clientName}
-              </Typography>
-              
-              <Box sx={{ mt: 3 }}>
-                <Chip
-                  label={getStatusLabel(selectedAppointment.status)}
-                  color={getStatusColor(selectedAppointment.status)}
-                  sx={{ px: 2 }}
-                />
+                <Typography variant="subtitle2" gutterBottom>
+                  Información del Paciente
+                </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 2, 
+                mb: 3 
+              }}>
+                <Avatar 
+                  sx={{ 
+                    width: 64, 
+                    height: 64,
+                    bgcolor: selectedAppointment.attended ? 'success.main' : 'primary.main'
+                  }}
+                >
+                  {selectedAppointment.clientName.split(' ').map(name => name[0]).join('').toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography variant="h5" gutterBottom color="primary" sx={{ mb: 0.5 }}>
+                    {selectedAppointment.clientName}
+                  </Typography>
+                  <Chip
+                    label={getStatusLabel(selectedAppointment.status)}
+                    color={getStatusColor(selectedAppointment.status)}
+                    sx={{ px: 2 }}
+                  />
+                </Box>
               </Box>
               
               <Box sx={{ mt: 4 }}>
@@ -500,16 +555,21 @@ const AppointmentList = () => {
                 <Typography>
                   {selectedAppointment.date} - {selectedAppointment.time}
                 </Typography>
-              </Box>
-
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Información de Contacto
-                </Typography>
+                        <Typography style={
+                          { 
+                            marginTop: 8,
+                            fontWeight: 'semibold'
+                          }
+                        }variant="body2" color="text.secondary">
+                          Obra Social: {selectedAppointment.socialWork}
+                        </Typography>
+              </Box>              <Box sx={{ mt: 1 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PhoneIcon sx={{ fontSize: 20, color: 'primary.main' }} />
-                    <Typography>{selectedAppointment.phone}</Typography>
+                    <Typography>+{selectedAppointment.phone}</Typography>
                   </Box>
                   {selectedAppointment.email && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -520,16 +580,80 @@ const AppointmentList = () => {
                 </Box>
               </Box>
 
-              {selectedAppointment.description && (
-                <Box sx={{ mt: 3 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Descripción
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {selectedAppointment.description}
-                  </Typography>
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Estado de la Cita
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={selectedAppointment.attended || false}
+                        onChange={(e) => handleAttendedChange(selectedAppointment._id, e.target.checked)}
+                        color="success"
+                        sx={{
+                          '& .MuiSwitch-switchBase.Mui-checked': {
+                            color: 'success.main',
+                            '&:hover': {
+                              backgroundColor: 'success.light'
+                            },
+                          },
+                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                            backgroundColor: 'success.main',
+                          },
+                        }}
+                      />
+                    }
+                    label={selectedAppointment.attended ? "Asistió" : "No asistió"}
+                  />
+                  <Chip
+                    label={getStatusLabel(selectedAppointment.status)}
+                    color={getStatusColor(selectedAppointment.status)}
+                  />
                 </Box>
-              )}
+              </Box>              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle2" gutterBottom sx={{ mb: 2 }}>
+                  Notas y Observaciones
+                </Typography>
+                <TextField
+                  multiline
+                  rows={8}
+                  fullWidth
+                  variant="outlined"
+                  value={selectedAppointment.description || ''}
+                  onChange={async (e) => {
+                    const newDescription = e.target.value;
+                    try {
+                      await appointmentService.update(selectedAppointment._id, { description: newDescription });
+                      // Actualizar el estado local de la cita seleccionada
+                      setSelectedAppointment({
+                        ...selectedAppointment,
+                        description: newDescription
+                      });
+                    } catch (error) {
+                      console.error('Error al actualizar la descripción:', error);
+                      setSnackbar({
+                        open: true,
+                        message: 'Error al guardar la descripción',
+                        severity: 'error'
+                      });
+                    }
+                  }}
+                  placeholder="Agregar notas o comentarios sobre la consulta..."
+                  sx={{ 
+                    mt: 1,
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'background.paper',
+                    },
+                    '& .MuiInputBase-input': {
+                      lineHeight: 1.6,
+                    }
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Los cambios se guardan automáticamente al escribir
+                </Typography>
+              </Box>
             </Paper>
           </Box>
         )}
