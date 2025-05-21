@@ -10,6 +10,7 @@ export interface BaseAppointment {
   phone: string;
   email?: string;
   description?: string;
+  attended?: boolean; // indica si el paciente asistió a la cita
 }
 
 export interface Appointment extends BaseAppointment {

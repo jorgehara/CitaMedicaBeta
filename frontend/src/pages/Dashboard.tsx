@@ -9,15 +9,7 @@ import {
 import AppointmentList from '../components/AppointmentList';
 
 const Dashboard = () => {
-  // Datos de ejemplo
-  const citasHoy = 3;
-  const patientDetails = {
-    name: 'Juan Pérez',
-    phone: '555-0001',
-    email: 'juan@email.com',
-    socialSecurity: 'OSDE'
-  };
-
+  
   return (
     <Box sx={{ 
       height: '100vh',
@@ -46,16 +38,10 @@ const Dashboard = () => {
         }}>
           <Card sx={{ bgcolor: 'background.paper' }}>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap:1, padding: 1 }}>
                 <EventNoteIcon color="primary" />
                 <Typography variant="h6">Citas Hoy</Typography>
               </Box>
-              <Typography variant="h3" color="primary">
-                {citasHoy}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                +2 programadas
-              </Typography>
             </CardContent>
           </Card>
 
@@ -66,10 +52,7 @@ const Dashboard = () => {
             display: 'flex',
             flexDirection: 'column'
           }}>
-            <Typography variant="h6" sx={{ p: 3, pb: 0 }}>
-              Citas del Día
-            </Typography>
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+          <Box sx={{ flex: 1, overflow: 'hidden' }}>
               <AppointmentList />
             </Box>
           </Paper>
