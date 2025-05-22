@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const appointmentSchema = new mongoose.Schema({
     clientName: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true
     },
     googleEventId: {
         type: String,
@@ -12,13 +13,19 @@ const appointmentSchema = new mongoose.Schema({
     socialWork: {
         type: String,
         enum: ['INSSSEP', 'Swiss Medical', 'OSDE', 'Galeno', 'CONSULTA PARTICULAR'],
-        default: 'CONSULTA PARTICULAR'
+        default: 'CONSULTA PARTICULAR',
+        required: true
     },
     phone: { 
         type: String, 
-        required: true 
+        required: true,
+        trim: true
     },
-    email: String,
+    email: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
     date: { 
         type: String, 
         required: true 
@@ -27,19 +34,29 @@ const appointmentSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    description: String,
+    description: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     status: {
         type: String,
         enum: ['pending', 'confirmed', 'cancelled'],
-        default: 'pending'
-    },
-    eventId: String,    createdAt: { 
-        type: Date, 
-        default: Date.now 
+        default: 'pending',
+        required: true
     },
     attended: {
         type: Boolean,
-        default: false
+        default: false,
+        required: true
+    },
+    createdAt: { 
+        type: Date, 
+        default: Date.now 
+    },
+    updatedAt: { 
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true

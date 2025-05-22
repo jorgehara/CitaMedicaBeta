@@ -192,6 +192,8 @@ exports.createAppointment = async (req, res) => {
 
 exports.updateAppointment = async (req, res) => {
   try {
+    console.log('Actualizando cita:', req.params.id, req.body);
+
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({ 
         success: false,
@@ -199,8 +201,6 @@ exports.updateAppointment = async (req, res) => {
       });
     }
 
-    await googleCalendar.ensureInitialized();
-    
     const appointment = await Appointment.findById(req.params.id);
     if (!appointment) {
       return res.status(404).json({ 
@@ -209,34 +209,67 @@ exports.updateAppointment = async (req, res) => {
       });
     }
 
-    // Lista de campos permitidos para actualizar
-    const allowedFields = ['attended', 'description', 'status'];
     const updates = {};
     
-    for (const field of allowedFields) {
-      if (field in req.body) {
-        updates[field] = req.body[field];
+    // Manejar el estado y asistencia
+    if ('status' in req.body) {
+      updates.status = req.body.status;
+      // Si se confirma la cita, marcarla como asistida
+      if (req.body.status === 'confirmed') {
+        updates.attended = true;
       }
     }
-
-    // Actualizar solo los campos permitidos
-    Object.assign(appointment, updates);
-    const updatedAppointment = await appointment.save();
     
+    if ('attended' in req.body) {
+      updates.attended = req.body.attended;
+      // Si se marca como asistida, confirmar la cita
+      if (req.body.attended) {
+        updates.status = 'confirmed';
+      }
+    }
+    
+    // Manejar la descripción
+    if ('description' in req.body) {
+      updates.description = req.body.description.trim();
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No se proporcionaron campos válidos para actualizar'
+      });
+    }
+
+    // Actualizar la fecha de modificación
+    updates.updatedAt = new Date();
+
+    console.log('Aplicando actualizaciones:', updates);
+
+    const updatedAppointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    // Actualizar en Google Calendar si es necesario
     try {
       if (appointment.googleEventId) {
         await googleCalendar.updateEvent(appointment.googleEventId, updatedAppointment);
       }
     } catch (calendarError) {
       console.error('Error al actualizar evento en Google Calendar:', calendarError);
-      // La actualización de la cita se mantiene aunque falle la sincronización
     }
 
-    res.json(updatedAppointment);
+    res.json({ 
+      success: true,
+      data: updatedAppointment 
+    });
+
   } catch (error) {
     console.error('Error al actualizar la cita:', error);
     res.status(500).json({ 
-      message: 'Error al actualizar la cita', 
+      success: false,
+      message: 'Error al actualizar la cita',
       error: error.message 
     });
   }

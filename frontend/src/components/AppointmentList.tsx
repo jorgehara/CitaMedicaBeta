@@ -34,9 +34,11 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   Close as CloseIcon,
-  AccountCircle as AccountCircleIcon
+  AccountCircle as AccountCircleIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
 } from '@mui/icons-material';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { format, isToday } from 'date-fns';
 import type { ChangeEvent, MouseEvent } from 'react';
 import type { Appointment, AppointmentStatus, SocialWork } from '../types/appointment';
@@ -98,6 +100,7 @@ const ITEMS_PER_PAGE = 6;
 const AppointmentList = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -115,12 +118,38 @@ const AppointmentList = () => {
   });
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [debouncedDescription, setDebouncedDescription] = useState<NodeJS.Timeout | null>(null);
 
   const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
-  const paginatedAppointments = appointments.slice(
-    (page - 1) * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE
-  );
+
+  // Función para ordenar las citas
+  const getSortedAppointments = useCallback((apps: Appointment[]) => {
+    return [...apps].sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return sortDirection === 'asc' 
+        ? dateA.getTime() - dateB.getTime()
+        : dateB.getTime() - dateA.getTime();
+    });
+  }, [sortDirection]);
+
+  // Manejar el cambio de dirección del ordenamiento
+  const handleSortDirectionChange = useCallback(() => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  }, []);
+
+  // Ordenar las citas
+  const sortedAppointments = useMemo(() => {
+    return getSortedAppointments(appointments);
+  }, [appointments, getSortedAppointments]);
+
+  // Calcular las citas paginadas a partir de las ordenadas
+  const paginatedAppointments = useMemo(() => {
+    return sortedAppointments.slice(
+      (page - 1) * ITEMS_PER_PAGE,
+      page * ITEMS_PER_PAGE
+    );
+  }, [sortedAppointments, page]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
@@ -241,13 +270,15 @@ const AppointmentList = () => {
         event.stopPropagation();
       }
 
-      // Primero actualizamos el estado local para una respuesta inmediata
       const updateData = {
         attended,
         status: attended ? 'confirmed' as AppointmentStatus : 'pending' as AppointmentStatus
       };
 
-      // Actualizar el estado local de la cita seleccionada si está abierta en el drawer
+      // Primero intentar actualizar en el backend
+      await appointmentService.update(appointmentId, updateData);
+
+      // Solo si la actualización fue exitosa, actualizar el estado local
       if (selectedAppointment && selectedAppointment._id === appointmentId) {
         setSelectedAppointment(prev => ({
           ...prev!,
@@ -255,13 +286,9 @@ const AppointmentList = () => {
         }));
       }
 
-      // También actualizar en el listado
       setAppointments(prev => prev.map(app => 
         app._id === appointmentId ? { ...app, ...updateData } : app
       ));
-      
-      // Luego actualizar en la base de datos
-      await appointmentService.update(appointmentId, updateData);
       
       setSnackbar({
         open: true,
@@ -296,6 +323,44 @@ const AppointmentList = () => {
         severity: 'error'
       });
     }
+  };
+
+  const handleDescriptionChange = (appointmentId: string, newDescription: string) => {
+    // Primero actualizar el estado local para una respuesta inmediata
+    if (selectedAppointment && selectedAppointment._id === appointmentId) {
+      setSelectedAppointment(prev => ({
+        ...prev!,
+        description: newDescription
+      }));
+    }
+
+    // Actualizar en el listado
+    setAppointments(prev => prev.map(app => 
+      app._id === appointmentId 
+        ? { ...app, description: newDescription } 
+        : app
+    ));
+
+    // Cancelar el debounce anterior si existe
+    if (debouncedDescription) {
+      clearTimeout(debouncedDescription);
+    }
+
+    // Crear un nuevo debounce
+    const timeoutId = setTimeout(async () => {
+      try {
+        await appointmentService.update(appointmentId, { description: newDescription });
+      } catch (error) {
+        console.error('Error al actualizar la descripción:', error);
+        setSnackbar({
+          open: true,
+          message: 'Error al guardar la descripción',
+          severity: 'error'
+        });
+      }
+    }, 1000); // Esperar 1 segundo antes de hacer la actualización
+
+    setDebouncedDescription(timeoutId);
   };
 
   // Calcular estadísticas
@@ -342,7 +407,7 @@ const AppointmentList = () => {
             {appointment.clientName}
           </Typography>
           <Typography color="text.secondary" variant={viewMode === 'grid' ? 'body1' : 'body2'}>
-            {format(new Date(appointment.date), 'dd/MM/yyyy')} - {appointment.time}
+            {format(new Date(`${appointment.date}T00:00:00`), 'dd/MM/yyyy')} - {appointment.time}
           </Typography>
         </Box>
 
@@ -431,16 +496,34 @@ const AppointmentList = () => {
                 {viewMode === 'grid' ? <ViewListIcon /> : <GridViewIcon />}
               </IconButton>
             </Tooltip>
+            <Tooltip title={`Ordenar ${sortDirection === 'asc' ? 'Descendente' : 'Ascendente'}`}>
+              <IconButton
+                color="primary"
+                onClick={handleSortDirectionChange}
+              >
+                {sortDirection === 'asc' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
+              </IconButton>
+            </Tooltip>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" color="primary">
-                {todaysAppointments.length}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Citas Hoy
-              </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>          <Box sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2 
+            }}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" color="primary">
+                  {todaysAppointments.length}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Citas Hoy
+                </Typography>
+              </Box>
+              <Tooltip title={`Ordenar por fecha ${sortDirection === 'asc' ? 'descendente' : 'ascendente'}`}>
+                <IconButton onClick={handleSortDirectionChange} color="primary">
+                  {sortDirection === 'asc' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
+                </IconButton>
+              </Tooltip>
             </Box>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h6" color="warning.main">
@@ -579,7 +662,7 @@ const AppointmentList = () => {
                   Fecha y Hora
                 </Typography>
                 <Typography>
-                  {selectedAppointment.date} - {selectedAppointment.time}
+                  {format(new Date(`${selectedAppointment.date}T00:00:00`), 'dd/MM/yyyy')} - {selectedAppointment.time}
                 </Typography>
                         <Typography style={
                           { 
@@ -650,27 +733,7 @@ const AppointmentList = () => {
                   value={selectedAppointment.description || ''}
                   onChange={(e) => {
                     const newDescription = e.target.value;
-                    // Primero actualizar el estado local para una respuesta inmediata
-                    setSelectedAppointment({
-                      ...selectedAppointment,
-                      description: newDescription
-                    });
-                    
-                    // Luego actualizar en la base de datos
-                    appointmentService.update(selectedAppointment._id, { description: newDescription })
-                      .catch(error => {
-                        console.error('Error al actualizar la descripción:', error);
-                        setSnackbar({
-                          open: true,
-                          message: 'Error al guardar la descripción',
-                          severity: 'error'
-                        });
-                        // Revertir el cambio local si hay error
-                        setSelectedAppointment(prev => ({
-                          ...prev!,
-                          description: prev?.description || ''
-                        }));
-                      });
+                    handleDescriptionChange(selectedAppointment._id, newDescription);
                   }}
                   placeholder="Agregar notas o comentarios sobre la consulta..."
                   sx={{ 
