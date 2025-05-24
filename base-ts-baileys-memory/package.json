@@ -17,6 +17,7 @@
     "@builderbot/provider-baileys": "1.2.5",
     "@types/dotenv": "^8.2.3",
     "@types/mongoose": "^5.11.97",
+    "@types/qrcode": "^1.5.5",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "date-fns": "^4.1.0",
@@ -26,6 +27,7 @@
     "express": "^5.1.0",
     "mongoose": "^8.14.2",
     "node-fetch": "^3.3.2",
+    "qrcode": "^1.5.4",
     "typescript": "^5.8.3"
   },
   "devDependencies": {

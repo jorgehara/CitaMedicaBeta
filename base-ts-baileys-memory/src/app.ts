@@ -1,17 +1,23 @@
 import { createBot, createProvider, createFlow, addKeyword, MemoryDB } from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
-
 import fetch from 'node-fetch'
 import { format } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
 import { es } from 'date-fns/locale'
 import express from 'express'
+import cors from 'cors'
 import dotenv from 'dotenv'
 import { connectDB } from './database/connection'
 import { MongoAdapter } from '@builderbot/database-mongo'
 import axios from 'axios'
+import qrcode from 'qrcode'
 
 dotenv.config()
+
+// Configuración de Express
+const app = express()
+app.use(cors())
+app.use(express.json())
 
 // Configuración de MongoDB
 export const adapterDB = new MongoAdapter({
@@ -397,6 +403,25 @@ const welcomeFlow = addKeyword<Provider, IDBDatabase>(['hi', 'hello', 'hola'])
         ].join('\n')
     );
 
+// Variable global para almacenar el QR y el estado del bot
+let globalQR: string | null = null;
+let provider: Provider | null = null;
+
+// Endpoint para servir el código QR
+app.get('/qr', async (req, res) => {
+    try {
+        if (!globalQR) {
+            return res.status(404).json({ error: 'QR no disponible aún' });
+        }
+        const qrBuffer = await qrcode.toBuffer(globalQR);
+        res.type('png');
+        res.send(qrBuffer);
+    } catch (error) {
+        console.error('Error al generar QR:', error);
+        res.status(500).json({ error: 'Error al generar QR' });
+    }
+});
+
 // Función principal para iniciar el bot
 const main = async () => {
     await connectDB();
@@ -409,6 +434,17 @@ const main = async () => {
     ])
 
     const adapterProvider = createProvider(Provider)
+    provider = adapterProvider;
+
+    adapterProvider.on('qr', (qr) => {
+        globalQR = qr;
+        console.log('Nuevo QR generado');
+    });
+
+    adapterProvider.on('ready', () => {
+        console.log('Bot está listo');
+        globalQR = null; // Limpiar QR cuando el bot está conectado
+    });
 
     const { handleCtx, httpServer } = await createBot({
         flow: adapterFlow,
