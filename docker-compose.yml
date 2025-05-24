@@ -6,6 +6,8 @@ services:
     restart: always
     container_name: mongo
     environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: Consultorio*2025*
       MONGO_INITDB_DATABASE: consultorio
     ports:
       - "27017:27017"
@@ -16,7 +18,7 @@ services:
     build: ./backend
     container_name: backend
     environment:
-      - MONGODB_URI=mongodb://mongo:27017/consultorio
+      - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       # Otras variables de entorno...
@@ -30,8 +32,7 @@ services:
     container_name: chatbot
     environment:
       - NODE_ENV=production
-      - MONGO_DB_URI=mongodb://mongo:27017
-      - MONGO_DB_NAME=consultorio
+      - MONGODB_URI=mongodb://admin:tu_password_segura@mongo:27017/consultorio
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
       # Otras variables de entorno...
