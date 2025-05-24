@@ -1,0 +1,46 @@
+{
+  "name": "base-bailey-json",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node ./dist/app.js",
+    "lint": "eslint . --no-ignore",
+    "dev": "nodemon ./src/app.ts",
+    "build": "npx rollup -c"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@builderbot/bot": "1.2.5",
+    "@builderbot/database-mongo": "^1.2.6",
+    "@builderbot/provider-baileys": "1.2.5",
+    "@types/dotenv": "^8.2.3",
+    "@types/mongoose": "^5.11.97",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dotenv": "^16.5.0",
+    "eslint": "^8.57.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.14.2",
+    "node-fetch": "^3.3.2",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/date-fns": "^2.6.3",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^5.59.0",
+    "@typescript-eslint/parser": "^5.59.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-builderbot": "latest",
+    "nodemon": "^3.1.0",
+    "rollup": "^4.10.0",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.0.4"
+  },
+  "author": "",
+  "license": "ISC"
+}
