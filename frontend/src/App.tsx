@@ -3,6 +3,7 @@ import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { useMemo, useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
+import QRCode from './components/QRCode';
 import { ColorModeContext } from './context/ColorModeContext';
 
 const App = () => {
@@ -65,6 +66,7 @@ const App = () => {
             <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/qr" element={<QRCode />} />
               </Routes>
             </Box>
           </Layout>
