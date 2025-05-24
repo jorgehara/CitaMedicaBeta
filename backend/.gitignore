@@ -1,12 +1,24 @@
 dist/*
 node_modules
-.env
 
+# Environment variables
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Sessions and tokens
 *_sessions
 *tokens
 .wwebjs*
 
+# Logs
 *.log
 *qr.png
 
+# Credentials
 credentials.json
+*.pem
+*.key
