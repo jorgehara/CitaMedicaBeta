@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
-import { config } from '../config/config';
 
 const QRCode: React.FC = () => {
   const [qrImage, setQrImage] = useState<string>('');
 
   const fetchQR = async () => {
     try {
-      const response = await fetch(`${config.botUrl}/qr`);
+      const response = await fetch('http://localhost:3008');
       if (response.ok) {
         const blob = await response.blob();
         const imageUrl = URL.createObjectURL(blob);

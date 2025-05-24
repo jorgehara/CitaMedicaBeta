@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { createProxyMiddleware } = require('http-proxy-middleware');
 
 // Verificar variables de entorno críticas
 console.log('Verificando variables de entorno...');
@@ -45,16 +44,6 @@ app.use('/api', appointmentRoutes);
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });
 });
-
-// Proxy para el bot en producción
-// Configurar proxy para el bot
-app.use('/bot', createProxyMiddleware({
-    target: process.env.BOT_URL || 'http://localhost:3008',
-    changeOrigin: true,
-    pathRewrite: {
-        '^/bot': ''
-    }
-}));
 
 // Manejo de rutas no encontradas
 app.use((req, res, next) => {
