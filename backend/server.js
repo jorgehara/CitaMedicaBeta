@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === 'production') {
 console.log('Verificando variables de entorno...');
 console.log('Ambiente:', process.env.NODE_ENV || 'development');
 
-const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGIN'];
+const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS'];
 requiredEnvVars.forEach(varName => {
     if (!process.env[varName]) {
         console.error(`Error: La variable de entorno ${varName} no está definida`);
@@ -30,8 +30,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true
+    origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
