@@ -1,11 +1,19 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
 const mongoose = require('mongoose');
+
+// Cargar variables de entorno según el ambiente
+if (process.env.NODE_ENV === 'production') {
+    require('dotenv').config({ path: '.env.production' });
+} else {
+    require('dotenv').config();
+}
 
 // Verificar variables de entorno críticas
 console.log('Verificando variables de entorno...');
-const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS'];
+console.log('Ambiente:', process.env.NODE_ENV || 'development');
+
+const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGIN'];
 requiredEnvVars.forEach(varName => {
     if (!process.env[varName]) {
         console.error(`Error: La variable de entorno ${varName} no está definida`);
@@ -17,10 +25,14 @@ requiredEnvVars.forEach(varName => {
 const appointmentRoutes = require('./src/routes/appointmentRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
+const PORT = process.env.PORT || 3001;
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true
+}));
 app.use(express.json());
 
 // Conectar a MongoDB
@@ -54,7 +66,6 @@ app.use((req, res, next) => {
 // Manejo de errores
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
