@@ -18,6 +18,7 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongo:27017/consultorio
       - PORT=3001
+      - TZ=America/Argentina/Buenos_Aires
       # Otras variables de entorno...
     ports:
       - "3001:3001"
@@ -32,6 +33,7 @@ services:
       - MONGO_DB_URI=mongodb://mongo:27017
       - MONGO_DB_NAME=consultorio
       - PORT=3008
+      - TZ=America/Argentina/Buenos_Aires
       # Otras variables de entorno...
     ports:
       - "3008:3008"
