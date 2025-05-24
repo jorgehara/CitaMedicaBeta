@@ -3,14 +3,11 @@ FROM node:21-alpine3.18 as development
 
 WORKDIR /app
 
-# Habilitar pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
-# Copiar archivos de configuración
 COPY package*.json pnpm-lock.yaml ./
 
-# Instalar dependencias de desarrollo
 RUN apk add --no-cache --virtual .gyp \
     python3 \
     make \
@@ -19,10 +16,8 @@ RUN apk add --no-cache --virtual .gyp \
     && pnpm install \
     && apk del .gyp
 
-# Copiar el código fuente
 COPY . .
 
-# Puerto por defecto para desarrollo
 ENV PORT=3008
 EXPOSE ${PORT}
 
@@ -58,12 +53,11 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
-# Copiar solo los archivos necesarios desde la etapa de construcción
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/assets ./assets
+# Si en el futuro usas assets, descomenta la línea siguiente:
+# COPY --from=builder /app/assets ./assets
 COPY --from=builder /app/package*.json /app/pnpm-lock.yaml ./
 
-# Instalar solo dependencias de producción
 RUN pnpm install --prod --ignore-scripts \
     && addgroup -g 1001 -S nodejs \
     && adduser -S -u 1001 nodejs \
