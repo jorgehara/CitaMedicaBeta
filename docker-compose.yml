@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    restart: always
+    container_name: mongo
+    environment:
+      MONGO_INITDB_DATABASE: consultorio
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/consultorio
+      - PORT=3001
+      # Agrega aquí otras variables necesarias como CALENDAR_ID, GOOGLE_APPLICATION_CREDENTIALS, etc.
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  chatbot:
+    build: ./base-ts-baileys-memory
+    container_name: chatbot
+    environment:
+      - MONGO_DB_URI=mongodb://mongo:27017
+      - MONGO_DB_NAME=consultorio
+      - PORT=3008
+      # Agrega aquí otras variables necesarias para el bot
+    ports:
+      - "3008:3008"
+    depends_on:
+      - mongo
