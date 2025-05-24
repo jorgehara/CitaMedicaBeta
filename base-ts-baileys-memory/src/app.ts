@@ -26,7 +26,11 @@ export const adapterDB = new MongoAdapter({
 })
 
 const PORT = process.env.PORT ?? 3008
-const API_URL = process.env.API_URL || 'http://localhost:3001/api'
+const API_URL =
+  process.env.API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3001/api'
+    : 'http://backend:3001/api');
 
 interface Patient {
     name: string;

@@ -28,6 +28,7 @@ services:
     build: ./base-ts-baileys-memory
     container_name: chatbot
     environment:
+      - NODE_ENV=production
       - MONGO_DB_URI=mongodb://mongo:27017
       - MONGO_DB_NAME=consultorio
       - PORT=3008
