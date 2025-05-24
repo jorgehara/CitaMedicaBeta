@@ -6,7 +6,8 @@ const QRCode: React.FC = () => {
 
   const fetchQR = async () => {
     try {
-      const response = await fetch('http://localhost:3008');
+      // Usa ruta relativa para funcionar en cualquier entorno
+      const response = await fetch('/qr');
       if (response.ok) {
         const blob = await response.blob();
         const imageUrl = URL.createObjectURL(blob);
@@ -16,6 +17,7 @@ const QRCode: React.FC = () => {
       console.error('Error al obtener el QR:', error);
     }
   };
+
 
   useEffect(() => {
     fetchQR();
