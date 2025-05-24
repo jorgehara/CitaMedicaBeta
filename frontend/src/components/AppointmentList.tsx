@@ -14,11 +14,9 @@ import {
   Alert,
   TextField,
   MenuItem,
-  Paper,
   Drawer,
   Tooltip,
   Pagination,
-  Grid as MuiGrid,
   Switch,
   FormControlLabel,
   type ChipProps,
@@ -26,24 +24,18 @@ import {
   InputAdornment
 } from '@mui/material';
 import {
-  AccessTime as AccessTimeIcon,
   ViewList as ViewListIcon,
   GridView as GridViewIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
   Close as CloseIcon,
-  AccountCircle as AccountCircleIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
   Search as SearchIcon,
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { format, isToday } from 'date-fns';
-import type { ChangeEvent, MouseEvent } from 'react';
+import { format } from 'date-fns';
+import type { ChangeEvent } from 'react';
 import type { Appointment, AppointmentStatus, SocialWork } from '../types/appointment';
 import { appointmentService } from '../services/appointmentService';
 

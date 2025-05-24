@@ -1,10 +1,6 @@
-import { Box, Grid, Paper, Typography, Card, CardContent } from '@mui/material';
+import { Box, Paper, Typography, Card, CardContent } from '@mui/material';
 import {
   EventNote as EventNoteIcon,
-  Person as PersonIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon,
-  Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import AppointmentList from '../components/AppointmentList';
 
