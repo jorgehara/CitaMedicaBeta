@@ -19,7 +19,6 @@ import {
   People as PeopleIcon,
   History as HistoryIcon,
   Settings as SettingsIcon,
-  QrCode as QrCodeIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
@@ -38,12 +37,12 @@ const Layout = ({ children }: LayoutProps) => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
   const menuItems = [
     { text: 'Inicio', icon: <HomeIcon />, path: '/' },
     { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios' },
     { text: 'Pacientes', icon: <PeopleIcon />, path: '/pacientes' },
     { text: 'Historial', icon: <HistoryIcon />, path: '/historial' },
-    { text: 'QR WhatsApp', icon: <QrCodeIcon />, path: '/qr' },
     { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion' },
   ];
 
