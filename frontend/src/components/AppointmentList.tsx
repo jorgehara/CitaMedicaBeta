@@ -116,16 +116,27 @@ const AppointmentList: React.FC = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Manejador para realizar la búsqueda con todos los filtros
+  const handleSearch = () => {
+    setIsSearching(true);
+    setPage(1); // Resetear a la primera página
+  };
 
   // Manejadores de eventos para filtros
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
-    setPage(1); // Reset a la primera página cuando se busca
+    if (!isSearching) {
+      setIsSearching(false);
+    }
   };
 
   const handleDateFilterChange = (event: ChangeEvent<HTMLInputElement>) => {
     setDateFilter(event.target.value);
-    setPage(1); // Reset a la primera página cuando se filtra
+    if (!isSearching) {
+      setIsSearching(false);
+    }
   };
 
   const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
@@ -140,6 +151,8 @@ const AppointmentList: React.FC = () => {
   const filteredAppointments = useMemo(() => {
     return appointments
       .filter(appointment => {
+        if (!isSearching) return true;
+        
         const matchesSearch = !searchQuery || 
           appointment.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           appointment.phone.includes(searchQuery);
@@ -152,7 +165,7 @@ const AppointmentList: React.FC = () => {
         // Ordenar por fecha más reciente primero
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
-  }, [appointments, searchQuery, dateFilter]);
+  }, [appointments, searchQuery, dateFilter, isSearching]);
 
   // Calcular el número total de páginas
   const totalPages = Math.ceil(filteredAppointments.length / ITEMS_PER_PAGE);
@@ -432,36 +445,46 @@ const AppointmentList: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Controles de filtrado */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
-        <TextField
-          size="small"
-          label="Buscar por nombre o teléfono"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ minWidth: 250 }}
-        />
-        <TextField
-          size="small"
-          type="date"
-          label="Filtrar por fecha"
-          value={dateFilter}
-          onChange={handleDateFilterChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <CalendarIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ minWidth: 200 }}
-          InputLabelProps={{ shrink: true }}
-        />
+        <Box sx={{ display: 'flex', gap: 2, flexGrow: 1 }}>
+          <TextField
+            size="small"
+            label="Buscar por nombre o teléfono"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ minWidth: 250 }}
+          />
+          <TextField
+            size="small"
+            type="date"
+            label="Filtrar por fecha"
+            value={dateFilter}
+            onChange={handleDateFilterChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarIcon />
+                </InputAdornment>
+              )
+            }}
+            sx={{ minWidth: 200 }}
+            InputLabelProps={{ shrink: true }}
+          />
+          
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            startIcon={<SearchIcon />}
+          >
+            Buscar
+          </Button>
+        </Box>
 
         <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
           <Tooltip title={viewMode === 'grid' ? 'Ver como lista' : 'Ver como grid'}>
