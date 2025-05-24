@@ -18,19 +18,11 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongo:27017/consultorio
       - PORT=3001
-      # Agrega aquí otras variables necesarias como CALENDAR_ID, GOOGLE_APPLICATION_CREDENTIALS, etc.
+      # Otras variables de entorno...
     ports:
       - "3001:3001"
     depends_on:
       - mongo
-
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
 
   chatbot:
     build: ./base-ts-baileys-memory
@@ -39,7 +31,7 @@ services:
       - MONGO_DB_URI=mongodb://mongo:27017
       - MONGO_DB_NAME=consultorio
       - PORT=3008
-      # Agrega aquí otras variables necesarias para el bot
+      # Otras variables de entorno...
     ports:
       - "3008:3008"
     depends_on:
