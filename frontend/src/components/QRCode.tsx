@@ -6,8 +6,17 @@ const QRCode: React.FC = () => {
 
   const fetchQR = async () => {
     try {
-      // Usa ruta relativa para funcionar en cualquier entorno
-      const response = await fetch('/qr');
+      const urlFetch = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3008'
+        : 'https://micitamedica.me/qr';
+      const response = await fetch(`${urlFetch}/qr`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Agrega otros headers si es necesario
+        },
+      }
+      );
       if (response.ok) {
         const blob = await response.blob();
         const imageUrl = URL.createObjectURL(blob);
@@ -17,7 +26,6 @@ const QRCode: React.FC = () => {
       console.error('Error al obtener el QR:', error);
     }
   };
-
 
   useEffect(() => {
     fetchQR();
