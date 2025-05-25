@@ -4,7 +4,7 @@ const Appointment = require('../models/appointment');
 const resetDatabase = async () => {
   try {
     // Conectar a la base de datos
-    await mongoose.connect(process.env.MONGO_DB_URI || 'mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin');
     
     // Eliminar todas las citas
     await Appointment.deleteMany({});

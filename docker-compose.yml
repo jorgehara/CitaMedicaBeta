@@ -16,10 +16,9 @@ services:
 
   backend:
     build: ./backend
-    container_name: backend
+    container_name: backend    
     environment:
-      - MONGO_DB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
-      - MONGO_DB_NAME=consultorio
+      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=*
@@ -31,14 +30,12 @@ services:
 
   chatbot:
     build: ./base-ts-baileys-memory
-    container_name: chatbot
+    container_name: chatbot    
     environment:
       - NODE_ENV=production
-      - MONGO_DB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
-      - MONGO_DB_NAME=consultorio
+      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017?authSource=admin
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
-      # Agrega aquí las demás variables que necesites
     ports:
       - "3008:3008"
     depends_on:

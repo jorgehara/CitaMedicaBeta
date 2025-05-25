@@ -21,8 +21,8 @@ app.use(express.json())
 
 // Configuración de MongoDB
 export const adapterDB = new MongoAdapter({
-    dbUri: process.env.MONGO_DB_URI || 'mongodb://localhost:27017',
-    dbName: process.env.MONGO_DB_NAME || 'consultorio',
+    dbUri: process.env.MONGODB_URI || 'mongodb://admin:Consultorio2025@mongo:27017?authSource=admin',
+    dbName: 'consultorio',
 })
 
 const PORT = process.env.PORT ?? 3008

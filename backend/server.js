@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === 'production') {
 console.log('Verificando variables de entorno...');
 console.log('Ambiente:', process.env.NODE_ENV || 'development');
 
-const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS'];
+const requiredEnvVars = ['MONGO_DB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS'];
 requiredEnvVars.forEach(varName => {
     if (!process.env[varName]) {
         console.error(`Error: La variable de entorno ${varName} no está definida`);
@@ -38,7 +38,7 @@ app.use(cors({
 app.use(express.json());
 
 // Conectar a MongoDB
-mongoose.connect(process.env.MONGO_DB_URI || 'mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
