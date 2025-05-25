@@ -7,7 +7,7 @@ services:
     container_name: mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: Consultorio*2025*
+      MONGO_INITDB_ROOT_PASSWORD: Consultorio2025
       MONGO_INITDB_DATABASE: consultorio
     ports:
       - "27017:27017"
@@ -18,11 +18,11 @@ services:
     build: ./backend
     container_name: backend
     environment:
-      - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio?authSource=admin
+      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
-      - CORS_ORIGINS=https://micitamedica.me
-      # Otras variables de entorno...
+      - CORS_ORIGINS=*
+      # Agrega aquí las demás variables que necesites
     ports:
       - "3001:3001"
     depends_on:
@@ -32,14 +32,12 @@ services:
     build: ./base-ts-baileys-memory
     container_name: chatbot
     environment:
-      - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio?authSource=admin
       - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
-      # Otras variables de entorno...
+      # Agrega aquí las demás variables que necesites
     ports:
       - "3008:3008"
     depends_on:
       - mongo
-
-  
