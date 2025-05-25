@@ -18,7 +18,8 @@ services:
     build: ./backend
     container_name: backend
     environment:
-      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
+      - MONGO_DB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
+      - MONGO_DB_NAME=consultorio
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=*
@@ -33,7 +34,8 @@ services:
     container_name: chatbot
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
+      - MONGO_DB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
+      - MONGO_DB_NAME=consultorio
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
       # Agrega aquí las demás variables que necesites
