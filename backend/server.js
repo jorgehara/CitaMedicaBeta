@@ -38,7 +38,7 @@ app.use(cors({
 app.use(express.json());
 
 // Conectar a MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/consultorio', {
+mongoose.connect(process.env.MONGO_DB_URI || 'mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
