@@ -21,6 +21,7 @@ services:
       - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
+      - CORS_ORIGINS=https://micitamedica.me
       # Otras variables de entorno...
     ports:
       - "3001:3001"
