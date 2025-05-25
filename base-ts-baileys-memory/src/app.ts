@@ -415,22 +415,14 @@ let provider: Provider | null = null;
 app.get('/qr', async (req, res) => {
     try {
         if (!globalQR) {
-            // Devuelve un PNG transparente o una imagen de "no disponible" en vez de JSON
-            res.status(404);
-            res.type('png');
-            // PNG de 1x1 pixel transparente
-            const emptyPng = Buffer.from(
-              "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4z8DwHwAFgwJ/l7sW+AAAAABJRU5ErkJggg==",
-              "base64"
-            );
-            return res.send(emptyPng);
+            return res.status(404).json({ error: 'QR no disponible aún' });
         }
         const qrBuffer = await qrcode.toBuffer(globalQR);
         res.type('png');
         res.send(qrBuffer);
     } catch (error) {
         console.error('Error al generar QR:', error);
-        res.status(500).type('png').send(/* mismo emptyPng */);
+        res.status(500).json({ error: 'Error al generar QR' });
     }
 });
 
