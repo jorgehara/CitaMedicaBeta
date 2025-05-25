@@ -43,9 +43,6 @@ services:
   frontend:
     build: ./frontend
     container_name: frontend
-    # Asume que tu build de React genera los archivos en /usr/share/nginx/html
-    # y que usas nginx para servir los archivos estáticos del frontend (sólo React/Vite)
-    # Si usas otra imagen o método, adáptalo.
     expose:
       - "80"
     depends_on:
