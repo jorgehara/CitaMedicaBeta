@@ -37,6 +37,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
+const qrRoutes = require('./routes/qrRoutes');
+// Middleware para manejar el QR
+app.use('/api', qrRoutes);
+
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin', {
     useNewUrlParser: true,

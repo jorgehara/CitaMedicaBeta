@@ -9,9 +9,9 @@ const QRCode: React.FC = () => {
     try {
       setError('');
       const baseUrl = import.meta.env.PROD 
-        ? 'https://micitamedica.me'
-        : '';
-        
+        ? 'https://micitamedica.me/api' 
+        : 'http://localhost:3008/api';
+
       const response = await fetch(`${baseUrl}/qr`, {
         headers: {
           'Accept': 'image/png',
