@@ -4,22 +4,18 @@ import { Box, Typography, Paper } from '@mui/material';
 const QRCode: React.FC = () => {
   const [qrImage, setQrImage] = useState<string>('');
 
-  const fetchQR = async () => {
-    try {
-      const response = await fetch(
-        (window.location.hostname === 'localhost'
-          ? 'http://localhost:3008'
-          : 'https://backend:3008') + '/api/qr'
-      );
-      if (response.ok) {
-        const blob = await response.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        setQrImage(imageUrl);
-      }
-    } catch (error) {
-      console.error('Error al obtener el QR:', error);
+ const fetchQR = async () => {
+  try {
+    const response = await fetch('/qr');
+    if (response.ok) {
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
+      setQrImage(imageUrl);
     }
-  };
+  } catch (error) {
+    console.error('Error al obtener el QR:', error);
+  }
+};
 
   useEffect(() => {
     fetchQR();
