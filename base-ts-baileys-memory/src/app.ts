@@ -440,17 +440,9 @@ const main = async () => {
     const adapterProvider = createProvider(Provider)
     provider = adapterProvider;
 
-    adapterProvider.on('qr', async (qr) => {
+     adapterProvider.on('qr', (qr) => {
         globalQR = qr;
         console.log('Nuevo QR generado');
-
-        try {
-            // Enviar QR al backend como base64 o string
-            await axios.post('http://backend:3008/api/qr', { qr });
-            console.log('QR enviado al backend');
-        } catch (error) {
-            console.error('Error enviando QR al backend:', error);
-        }
     });
 
     adapterProvider.on('ready', () => {
