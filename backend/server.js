@@ -37,7 +37,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const qrRoutes = require('./routes/qrRoutes');
+const qrRoutes = require('./src/routes/qrRoutes');
 // Middleware para manejar el QR
 app.use('/api', qrRoutes);
 

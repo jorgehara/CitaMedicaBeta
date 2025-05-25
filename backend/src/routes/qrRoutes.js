@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const qrcode = require('qrcode');
+
 
 let latestQR = null;
 
