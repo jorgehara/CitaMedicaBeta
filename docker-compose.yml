@@ -18,7 +18,7 @@ services:
     build: ./backend
     container_name: backend
     environment:
-      - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio
+      - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio?authSource=admin
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=https://micitamedica.me
@@ -32,7 +32,7 @@ services:
     build: ./base-ts-baileys-memory
     container_name: chatbot
     environment:
-      - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio
+      - MONGODB_URI=mongodb://admin:Consultorio*2025*@mongo:27017/consultorio?authSource=admin
       - NODE_ENV=production
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
