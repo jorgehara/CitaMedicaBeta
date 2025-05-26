@@ -1,7 +1,7 @@
 import type { Appointment } from '../types/appointment';
 
-// DATOS DE PRUEBA - COMENTAR O ELIMINAR EN PRODUCCIÓN
-export const mockAppointments: Appointment[] = [
+// DATOS DE PRUEBA - COMENTADOS PARA PRODUCCIÓN
+/* export const mockAppointments: Appointment[] = [
   {
     _id: 'mock-1',
     clientName: 'Juan Pérez',
@@ -239,7 +239,9 @@ export const mockAppointments: Appointment[] = [
     socialWork: 'CONSULTA PARTICULAR',
     phone: '3704678901',
     email: 'victoria.romero@email.com',
-    description: 'Primera consulta',
-    attended: false
+    description: 'Primera consulta',    attended: false
   }
-];
+]; */
+
+// Exportar un arreglo vacío para producción
+export const mockAppointments: Appointment[] = [];

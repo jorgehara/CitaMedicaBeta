@@ -4,7 +4,7 @@ import { mockAppointments } from '../mockData/appointments';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Flag para usar datos mock - ESTABLECER A FALSE EN PRODUCCIÓN
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Servicio de citas con datos mock para desarrollo
 class MockAppointmentService {
