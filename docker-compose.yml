@@ -37,6 +37,8 @@ services:
       - TZ=America/Argentina/Buenos_Aires
     expose:
       - "3008"
+    volumes:
+      - ./data/bot_sessions:/app/bot_sessions
     depends_on:
       - mongo
 
