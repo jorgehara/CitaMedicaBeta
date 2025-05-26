@@ -38,6 +38,7 @@ const Layout = ({ children }: LayoutProps) => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
   const menuItems = [
     { text: 'Inicio', icon: <HomeIcon />, path: '/' },
     { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios' },
@@ -48,39 +49,96 @@ const Layout = ({ children }: LayoutProps) => {
   ];
 
   const drawer = (
-    <Box sx={{ bgcolor: 'background.paper', height: '100%' }}>      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>        <Avatar sx={{ bgcolor: 'primary.main', width: 50, height: 50 }}>
-          <FaUserDoctor size={30} />
+    <Box sx={{ 
+      bgcolor: 'background.paper', 
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <Box sx={{ 
+        p: 3, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        gap: 1,
+        borderBottom: 1,
+        borderColor: 'divider'
+      }}>
+        <Avatar sx={{ 
+          bgcolor: 'primary.main', 
+          width: 60, 
+          height: 60,
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            transform: 'scale(1.05)'
+          }
+        }}>
+          <FaUserDoctor size={35} />
         </Avatar>
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', letterSpacing: 0.5 }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontWeight: 'bold', 
+            letterSpacing: 0.5,
+            fontSize: { xs: '1rem', sm: '1.25rem' }
+          }}
+        >
           Cita Médica
         </Typography>
       </Box>
-      <List>
+
+      <List sx={{ flex: 1, px: 1 }}>
         {menuItems.map((item) => (
           <ListItemButton
             key={item.text}
-            onClick={() => navigate(item.path)}
-            sx={{
-              '&:hover': {
-                bgcolor: 'rgba(33, 150, 243, 0.1)',
-              },
+            onClick={() => {
+              navigate(item.path);
+              setMobileOpen(false); // Cerrar drawer en móvil al seleccionar
             }}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              '&:hover': {
+                bgcolor: 'primary.main',
+                '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+                  color: 'common.white'
+                }
+              },
+              '&.Mui-selected': {
+                bgcolor: 'primary.main',
+                '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+                  color: 'common.white'
+                }
+              }
+            }}
+            selected={window.location.pathname === item.path}
           >
-            <ListItemIcon sx={{ color: 'primary.main' }}>
+            <ListItemIcon sx={{ 
+              color: 'primary.main',
+              minWidth: { xs: 40, sm: 45 }
+            }}>
               {item.icon}
             </ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemText 
+              primary={item.text} 
+              sx={{
+                '& .MuiListItemText-primary': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }
+              }}
+            />
           </ListItemButton>
         ))}
       </List>
     </Box>
   );
+
   return (
     <Box sx={{ 
       display: 'flex', 
       bgcolor: 'background.default', 
       minHeight: '100vh',
-      width: '100vw',
+      width: '100%',
       overflow: 'hidden'
     }}>
       <AppBar
@@ -90,7 +148,8 @@ const Layout = ({ children }: LayoutProps) => {
           ml: { sm: `${drawerWidth}px` },
           bgcolor: 'background.paper',
           boxShadow: 'none',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+          borderBottom: 1,
+          borderColor: 'divider',
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -99,11 +158,24 @@ const Layout = ({ children }: LayoutProps) => {
               color="inherit"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: 'none' } }}
+              sx={{ 
+                mr: 2, 
+                display: { sm: 'none' },
+                '&:hover': {
+                  bgcolor: 'rgba(0, 0, 0, 0.04)'
+                }
+              }}
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap component="div">
+            <Typography 
+              variant="h6" 
+              noWrap 
+              component="div"
+              sx={{
+                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+              }}
+            >
               Dr. Daniel Kulinka
             </Typography>
           </Box>
@@ -113,7 +185,10 @@ const Layout = ({ children }: LayoutProps) => {
 
       <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ 
+          width: { sm: drawerWidth }, 
+          flexShrink: { sm: 0 }
+        }}
       >
         <Drawer
           variant="temporary"
@@ -128,6 +203,8 @@ const Layout = ({ children }: LayoutProps) => {
               boxSizing: 'border-box',
               width: drawerWidth,
               bgcolor: 'background.paper',
+              borderRight: 1,
+              borderColor: 'divider'
             },
           }}
         >
@@ -141,24 +218,24 @@ const Layout = ({ children }: LayoutProps) => {
               boxSizing: 'border-box',
               width: drawerWidth,
               bgcolor: 'background.paper',
-              borderRight: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRight: 1,
+              borderColor: 'divider'
             },
           }}
           open
         >
           {drawer}
         </Drawer>
-      </Box>      <Box 
+      </Box>
+
+      <Box 
         component="main"
         sx={{
           flexGrow: 1,
-          p: 0,
-          width: { 
-            xs: '100%',
-            sm: `calc(100% - ${drawerWidth}px)` 
-          },
-          mt: 8,
-          height: 'calc(100vh - 64px)', // 64px es la altura del AppBar
+          p: { xs: 1, sm: 2, md: 3 },
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          mt: '64px',
+          height: 'calc(100vh - 64px)',
           overflow: 'auto'
         }}
       >
