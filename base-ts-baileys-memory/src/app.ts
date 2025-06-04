@@ -11,6 +11,8 @@ import { connectDB } from './database/connection'
 import { MongoAdapter } from '@builderbot/database-mongo'
 import axios from 'axios'
 import qrcode from 'qrcode'
+import * as fs from 'fs'
+import * as path from 'path'
 
 dotenv.config()
 
@@ -424,6 +426,37 @@ app.get('/qr', async (req, res) => {
         console.error('Error al generar QR:', error);
         res.status(500).json({ error: 'Error al generar QR' });
     }
+});
+
+// Endpoint para eliminar las sesiones de WhatsApp
+app.delete('/api/bot/sessions', async (req, res) => {
+  try {
+    const botSessionsPath = path.join(process.cwd(), 'bot_sessions');
+    
+    if (fs.existsSync(botSessionsPath)) {
+      // Leer todos los archivos en el directorio
+      const files = fs.readdirSync(botSessionsPath);
+      
+      // Eliminar cada archivo dentro de la carpeta
+      for (const file of files) {
+        const filePath = path.join(botSessionsPath, file);
+        try {
+          // Verificar si es un archivo y eliminarlo
+          const stat = fs.statSync(filePath);
+          if (stat.isFile()) {
+            fs.unlinkSync(filePath);
+          }
+        } catch (err) {
+          console.error(`Error al eliminar el archivo ${file}:`, err);
+        }
+      }
+    }
+    
+    res.json({ success: true, message: 'Sesiones eliminadas correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar las sesiones:', error);
+    res.status(500).json({ success: false, message: 'Error al eliminar las sesiones' });
+  }
 });
 
 // Función principal para iniciar el bot

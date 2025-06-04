@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import QRCode from './components/QRCode';
+import Settings from './pages/Settings';
 import { ColorModeContext } from './context/ColorModeContext';
 
 const App = () => {
@@ -67,6 +68,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/qr" element={<QRCode />} />
+                <Route path="/configuracion" element={<Settings />} />
               </Routes>
             </Box>
           </Layout>
