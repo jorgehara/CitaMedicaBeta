@@ -24,7 +24,6 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
-import type { Theme } from '@mui/material';
 import {
   ViewList as ViewListIcon,
   GridView as GridViewIcon,
@@ -228,8 +227,7 @@ const AppointmentList: React.FC = () => {
   };
 
   const handleEditClick = (appointment: Appointment) => {
-    setEditingAppointment(appointment);
-    setFormData({
+    setEditingAppointment(appointment);    setFormData({
       clientName: appointment.clientName,
       date: appointment.date,
       time: appointment.time,
@@ -237,7 +235,8 @@ const AppointmentList: React.FC = () => {
       socialWork: appointment.socialWork,
       phone: appointment.phone,
       email: appointment.email || '',
-      description: appointment.description || ''
+      description: appointment.description || '',
+      attended: appointment.attended || false
     });
     setOpenDialog(true);
   };
