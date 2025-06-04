@@ -129,14 +129,9 @@ const AppointmentList: React.FC = () => {
     setSearchQuery(event.target.value);
     setPage(1);
   };
-
   const handleDateFilterChange = (event: ChangeEvent<HTMLInputElement>) => {
     setDateFilter(event.target.value);
     setPage(1);
-  };
-
-  const handlePageChange = (_: unknown, newPage: number) => {
-    setPage(newPage);
   };
 
   const handleViewModeChange = () => {
@@ -759,8 +754,7 @@ const AppointmentList: React.FC = () => {
                 <NavigateNextIcon />
               </IconButton>
             </Box>
-          ) : (
-            <Pagination
+          ) : (            <Pagination
               count={totalPages}
               page={page}
               onChange={(_, newPage) => setPage(newPage)}
