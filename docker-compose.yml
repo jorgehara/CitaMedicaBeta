@@ -13,7 +13,6 @@ services:
       - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
-
   backend:
     build: ./backend
     container_name: backend    

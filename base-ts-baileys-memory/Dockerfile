@@ -73,12 +73,15 @@ RUN pnpm install --prod --ignore-scripts \
     && chown -R nodejs:nodejs /app \
     && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
 
-# Crear el directorio bot_sessions y establecer permisos
+# Crear directorios necesarios y establecer permisos
 RUN mkdir -p /app/bot_sessions && \
-    chown -R node:node /app/bot_sessions && \
-    chmod -R 755 /app/bot_sessions
+    touch /app/core.class.log && \
+    touch /app/queue.class.log && \
+    touch /app/baileys.log && \
+    chown -R nodejs:nodejs /app && \
+    chmod -R 755 /app
 
-USER node
+USER nodejs
 
 ARG PORT=3008
 ENV PORT=${PORT}
