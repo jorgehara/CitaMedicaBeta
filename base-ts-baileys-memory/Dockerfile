@@ -6,11 +6,6 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
-# Crear directorio bot_sessions y establecer permisos
-RUN mkdir -p /app/bot_sessions && \
-    chown -R node:node /app/bot_sessions && \
-    chmod -R 755 /app/bot_sessions
-
 COPY package*.json pnpm-lock.yaml ./
 
 RUN apk add --no-cache --virtual .gyp \
@@ -22,10 +17,6 @@ RUN apk add --no-cache --virtual .gyp \
     && apk del .gyp
 
 COPY . .
-RUN chown -R node:node /app
-
-# Cambiar al usuario node
-USER node
 
 ENV PORT=3008
 EXPOSE ${PORT}
@@ -72,14 +63,6 @@ RUN pnpm install --prod --ignore-scripts \
     && adduser -S -u 1001 nodejs \
     && chown -R nodejs:nodejs /app \
     && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
-
-# Crear directorios necesarios y establecer permisos
-RUN mkdir -p /app/bot_sessions && \
-    touch /app/core.class.log && \
-    touch /app/queue.class.log && \
-    touch /app/baileys.log && \
-    chown -R nodejs:nodejs /app && \
-    chmod -R 755 /app
 
 USER nodejs
 
