@@ -35,9 +35,9 @@ services:
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
     expose:
-      - "3008"    
-    volumes:
+      - "3008"      volumes:
       - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
+    user: "1001:1001"  # Usar el mismo UID/GID que nodejs en el contenedor
     depends_on:
       - mongo
 

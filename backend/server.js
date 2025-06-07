@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === 'production') {
 console.log('Verificando variables de entorno...');
 console.log('Ambiente:', process.env.NODE_ENV || 'development');
 
-const requiredEnvVars = ['MONGO_DB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS'];
+const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS'];
 requiredEnvVars.forEach(varName => {
     if (!process.env[varName]) {
         console.error(`Error: La variable de entorno ${varName} no está definida`);
