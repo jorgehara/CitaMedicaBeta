@@ -10,4 +10,7 @@ router.post('/appointments', appointmentController.createAppointment);
 router.put('/appointments/:id', appointmentController.updateAppointment);
 router.delete('/appointments/:id', appointmentController.deleteAppointment);
 
+// Ruta para obtener horarios disponibles
+router.get('/appointments/available-times', appointmentController.getAvailableTimes);
+
 module.exports = router;

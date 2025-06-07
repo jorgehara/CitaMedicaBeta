@@ -88,7 +88,10 @@ const initialFormState = {
   attended: false
 };
 
-const AppointmentList: React.FC = () => {
+const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({ 
+  showHistory = false,
+  title = showHistory ? 'Historial de Turnos' : 'Próximos Turnos'
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isExtraSmall = useMediaQuery('(max-width:500px)');
@@ -479,6 +482,21 @@ const AppointmentList: React.FC = () => {
       </CardContent>
     </Card>
   );
+
+  if (appointments.length === 0) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {title}
+        </Typography>
+        <Typography>
+          {showHistory 
+            ? 'No hay turnos en el historial de la última semana' 
+            : 'No hay turnos próximos programados'}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>

@@ -8,30 +8,48 @@ const googleCalendar = new GoogleCalendarService();
 // Función auxiliar para validar ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+// Horarios posibles de consulta
+const AVAILABLE_TIMES = [
+  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+  '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+  '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'
+];
+
 exports.getAllAppointments = async (req, res) => {
   try {
-    const { date } = req.query;
-    console.log('1. Backend - getAllAppointments - fecha solicitada:', date);
+    const { date, showHistory } = req.query;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let query = {};
     
-    let appointments;
-    if (date) {
-      console.log('2. Backend - Buscando citas para la fecha específica');
-      appointments = await Appointment.find({ date }).sort({ time: 1 });
+    if (showHistory === 'true') {
+      // Para el historial, mostrar la semana anterior
+      const oneWeekAgo = new Date(today);
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      query = {
+        date: {
+          $gte: oneWeekAgo.toISOString().split('T')[0],
+          $lt: today.toISOString().split('T')[0]
+        }
+      };
+    } else if (date) {
+      // Para una fecha específica
+      query = { date };
     } else {
-      console.log('2. Backend - Buscando todas las citas');
-      appointments = await Appointment.find().sort({ date: 1, time: 1 });
+      // Para turnos futuros (incluyendo hoy)
+      query = {
+        date: {
+          $gte: today.toISOString().split('T')[0]
+        }
+      };
     }
 
-    console.log('3. Backend - Citas encontradas:', appointments.length);
+    const appointments = await Appointment.find(query).sort({ date: 1, time: 1 });
     res.json(appointments);
-    
   } catch (error) {
-    console.error('Error en getAllAppointments:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Error al obtener las citas', 
-      error: error.message 
-    });
+    console.error('Error al obtener las citas:', error);
+    res.status(500).json({ message: 'Error al obtener las citas' });
   }
 };
 
@@ -313,5 +331,29 @@ exports.deleteAppointment = async (req, res) => {
       message: 'Error al eliminar la cita', 
       error: error.message 
     });
+  }
+};
+
+exports.getAvailableTimes = async (req, res) => {
+  try {
+    const { date } = req.query;
+    
+    if (!date) {
+      return res.status(400).json({ message: 'Se requiere una fecha' });
+    }
+
+    // Obtener todas las citas para la fecha seleccionada
+    const appointments = await Appointment.find({ date });
+    
+    // Obtener los horarios ya ocupados
+    const occupiedTimes = appointments.map(appointment => appointment.time);
+    
+    // Filtrar los horarios disponibles
+    const availableTimes = AVAILABLE_TIMES.filter(time => !occupiedTimes.includes(time));
+    
+    res.json(availableTimes);
+  } catch (error) {
+    console.error('Error al obtener horarios disponibles:', error);
+    res.status(500).json({ message: 'Error al obtener horarios disponibles' });
   }
 };

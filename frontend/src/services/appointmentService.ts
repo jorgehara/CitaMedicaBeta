@@ -1,5 +1,6 @@
 import type { Appointment, BaseAppointment } from '../types/appointment';
 import { mockAppointments } from '../mockData/appointments';
+import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -136,3 +137,27 @@ class RealAppointmentService {
 export const appointmentService = USE_MOCK_DATA 
   ? new MockAppointmentService()
   : new RealAppointmentService();
+
+export const getAvailableTimes = async (date: string): Promise<string[]> => {
+  try {
+    const response = await axios.get(`${API_URL}/appointments/available-times`, {
+      params: { date }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener horarios disponibles:', error);
+    throw error;
+  }
+};
+
+export const getAppointments = async (showHistory: boolean = false) => {
+  try {
+    const response = await axios.get(`${API_URL}/appointments`, {
+      params: { showHistory }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener las citas:', error);
+    throw error;
+  }
+};

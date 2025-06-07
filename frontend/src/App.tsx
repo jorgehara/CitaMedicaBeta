@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import QRCode from './components/QRCode';
 import Settings from './pages/Settings';
+import History from './pages/History';
 import { ColorModeContext } from './context/ColorModeContext';
 
 const App = () => {
@@ -69,6 +70,7 @@ const App = () => {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/qr" element={<QRCode />} />
                 <Route path="/configuracion" element={<Settings />} />
+                <Route path="/historial" element={<History />} />
               </Routes>
             </Box>
           </Layout>
