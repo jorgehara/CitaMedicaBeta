@@ -158,16 +158,16 @@ const Dashboard = () => {
           )}
       </Box>
 
-      <Box>
+      {/* <Box>
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
       
       {/* Mostrar solo turnos futuros */}
-      <AppointmentList showHistory={false} />
+      {/* <AppointmentList showHistory={false} />
 
       {/* Formulario de creación de turno */}
-      <Paper sx={{ p: 2, mt: 2 }}>
+      {/* <Paper sx={{ p: 2, mt: 2 }}>
         <Typography variant="h6" gutterBottom>
           Crear nuevo turno
         </Typography>
@@ -236,9 +236,10 @@ const Dashboard = () => {
           )}
 
           {/* Resto del formulario */}
-        </Box>
+        {/* </Box>
       </Paper>
-    </Box>
+    </Box>  */} 
+
     </Box>
 </>
   );
