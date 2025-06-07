@@ -9,11 +9,15 @@ const googleCalendar = new GoogleCalendarService();
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // Horarios posibles de consulta
-const AVAILABLE_TIMES = [
-  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-  '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-  '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'
-];
+const MORNING_HOURS = ['08:00', '08:15', '08:30', '08:45', 
+                      '09:00', '09:15', '09:30', '09:45',
+                      '10:00', '10:15', '10:30', '10:45', 
+                      '11:00', '11:15', '11:30', '11:45'];
+
+const AFTERNOON_HOURS = ['16:00', '16:15', '16:30', '16:45',
+                        '17:00', '17:15', '17:30', '17:45',
+                        '18:00', '18:15', '18:30', '18:45',
+                        '19:00', '19:15', '19:30', '19:45'];
 
 exports.getAllAppointments = async (req, res) => {
   try {
@@ -342,18 +346,62 @@ exports.getAvailableTimes = async (req, res) => {
       return res.status(400).json({ message: 'Se requiere una fecha' });
     }
 
+    const now = new Date();
+    const requestedDate = new Date(date);
+    requestedDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     // Obtener todas las citas para la fecha seleccionada
-    const appointments = await Appointment.find({ date });
+    const appointments = await Appointment.find({ 
+      date,
+      status: { $ne: 'cancelled' }
+    });
     
     // Obtener los horarios ya ocupados
     const occupiedTimes = appointments.map(appointment => appointment.time);
     
-    // Filtrar los horarios disponibles
-    const availableTimes = AVAILABLE_TIMES.filter(time => !occupiedTimes.includes(time));
-    
-    res.json(availableTimes);
+    // Función para verificar si un horario está disponible considerando la hora actual
+    const isTimeAvailable = (time) => {
+      if (requestedDate.getTime() === today.getTime()) {
+        const [hours, minutes] = time.split(':').map(Number);
+        const slotTime = new Date(now);
+        slotTime.setHours(hours, minutes, 0, 0);
+        return slotTime > now;
+      }
+      return true;
+    };
+
+    // Filtrar horarios disponibles
+    const availableMorning = MORNING_HOURS
+      .filter(time => !occupiedTimes.includes(time) && isTimeAvailable(time))
+      .map(time => ({
+        displayTime: time,
+        time: time,
+        period: 'morning'
+      }));
+
+    const availableAfternoon = AFTERNOON_HOURS
+      .filter(time => !occupiedTimes.includes(time) && isTimeAvailable(time))
+      .map(time => ({
+        displayTime: time,
+        time: time,
+        period: 'afternoon'
+      }));
+
+    res.json({
+      success: true,
+      data: {
+        date,
+        morning: availableMorning,
+        afternoon: availableAfternoon
+      }
+    });
   } catch (error) {
     console.error('Error al obtener horarios disponibles:', error);
-    res.status(500).json({ message: 'Error al obtener horarios disponibles' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Error al obtener horarios disponibles' 
+    });
   }
 };

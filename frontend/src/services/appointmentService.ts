@@ -148,9 +148,24 @@ export const appointmentService = USE_MOCK_DATA
   ? new MockAppointmentService()
   : new RealAppointmentService();
 
-export const getAvailableTimes = async (date: string): Promise<string[]> => {
+interface TimeSlot {
+  displayTime: string;
+  time: string;
+  period: 'morning' | 'afternoon';
+}
+
+interface AvailableTimesResponse {
+  success: boolean;
+  data: {
+    date: string;
+    morning: TimeSlot[];
+    afternoon: TimeSlot[];
+  };
+}
+
+export const getAvailableTimes = async (date: string): Promise<AvailableTimesResponse> => {
   try {
-    const response = await axios.get(`${API_URL}/appointments/available-times`, {
+    const response = await axios.get<AvailableTimesResponse>(`${API_URL}/appointments/available-times`, {
       params: { date }
     });
     return response.data;
