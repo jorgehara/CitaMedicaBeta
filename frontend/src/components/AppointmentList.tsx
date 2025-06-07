@@ -40,7 +40,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { format } from 'date-fns';
 import type { ChangeEvent } from 'react';
 import type { Appointment, AppointmentStatus, SocialWork } from '../types/appointment';
-import { appointmentService } from '../services/appointmentService';
+import { appointmentService, getAvailableTimes } from '../services/appointmentService';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -88,6 +88,12 @@ const initialFormState = {
   attended: false
 };
 
+interface TimeSlot {
+  displayTime: string;
+  time: string;
+  period: 'morning' | 'afternoon';
+}
+
 const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({ 
   showHistory = false,
   title = showHistory ? 'Historial de Turnos' : 'Próximos Turnos'
@@ -116,6 +122,14 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
     open: false,
     message: '',
     severity: 'success'
+  });
+  const [selectedDate, setSelectedDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState<{
+    morning: TimeSlot[];
+    afternoon: TimeSlot[];
+  }>({
+    morning: [],
+    afternoon: []
   });
 
   const handleCloseSnackbar = () => {
@@ -183,13 +197,13 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
     loadAppointments();
   }, [loadAppointments]);
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -482,6 +496,28 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
       </CardContent>
     </Card>
   );
+
+  const handleDateChange = async (date: string) => {
+    setSelectedDate(date);
+    if (date) {
+      try {
+        const response = await getAvailableTimes(date);
+        if (response.success) {
+          setAvailableSlots({
+            morning: response.data.morning,
+            afternoon: response.data.afternoon
+          });
+        } else {
+          setAvailableSlots({ morning: [], afternoon: [] });
+        }
+      } catch (error) {
+        console.error('Error al obtener horarios:', error);
+        setAvailableSlots({ morning: [], afternoon: [] });
+      }
+    } else {
+      setAvailableSlots({ morning: [], afternoon: [] });
+    }
+  };
 
   if (appointments.length === 0) {
     return (
@@ -1100,13 +1136,15 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
                 display: 'flex', 
                 flexDirection: { xs: 'column', sm: 'row' }, 
                 gap: 2 
-              }}>
-                <TextField
+              }}>                <TextField
                   label="Fecha"
                   name="date"
                   type="date"
                   value={formData.date}
-                  onChange={handleFormChange}
+                  onChange={(e) => {
+                    handleFormChange(e);
+                    handleDateChange(e.target.value);
+                  }}
                   fullWidth
                   required
                   InputLabelProps={{ shrink: true }}
@@ -1116,21 +1154,58 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
                     }
                   }}
                 />
-                <TextField
-                  label="Hora"
-                  name="time"
-                  type="time"
-                  value={formData.time}
-                  onChange={handleFormChange}
-                  fullWidth
-                  required
-                  InputLabelProps={{ shrink: true }}
-                  sx={{
-                    '& .MuiInputBase-root': {
-                      borderRadius: 1
-                    }
-                  }}
-                />
+
+                {selectedDate && (
+                  <>
+                    {availableSlots.morning.length > 0 && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
+                          Horarios disponibles - Mañana
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 1 }}>
+                          {availableSlots.morning.map((slot) => (
+                            <Button
+                              key={slot.time}
+                              variant={formData.time === slot.time ? "contained" : "outlined"}
+                              onClick={() => setFormData(prev => ({ ...prev, time: slot.time }))}
+                              size="small"
+                              sx={{ minWidth: '80px' }}
+                            >
+                              {slot.displayTime}
+                            </Button>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {availableSlots.afternoon.length > 0 && (
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
+                          Horarios disponibles - Tarde
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 1 }}>
+                          {availableSlots.afternoon.map((slot) => (
+                            <Button
+                              key={slot.time}
+                              variant={formData.time === slot.time ? "contained" : "outlined"}
+                              onClick={() => setFormData(prev => ({ ...prev, time: slot.time }))}
+                              size="small"
+                              sx={{ minWidth: '80px' }}
+                            >
+                              {slot.displayTime}
+                            </Button>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {availableSlots.morning.length === 0 && availableSlots.afternoon.length === 0 && (
+                      <Typography color="error" sx={{ mt: 2 }}>
+                        No hay horarios disponibles para la fecha seleccionada
+                      </Typography>
+                    )}
+                  </>
+                )}
               </Box>
 
               <TextField
