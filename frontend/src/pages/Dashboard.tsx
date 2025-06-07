@@ -4,7 +4,7 @@ import {
 } from '@mui/icons-material';
 import AppointmentList from '../components/AppointmentList';
 import { useState, useEffect } from 'react';
-import { createAppointment, getAvailableTimes } from '../services/appointmentService';
+import { getAvailableTimes } from '../services/appointmentService';
 
 const Dashboard = () => {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);

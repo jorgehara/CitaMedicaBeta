@@ -4,6 +4,16 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+export const createAppointment = async (appointmentData: BaseAppointment): Promise<Appointment> => {
+  try {
+    const response = await axios.post(`${API_URL}/appointments`, appointmentData);
+    return response.data;
+  } catch (error) {
+    console.error('Error al crear la cita:', error);
+    throw error;
+  }
+};
+
 // Flag para usar datos mock - ESTABLECER A FALSE EN PRODUCCIÓN
 const USE_MOCK_DATA = false;
 
