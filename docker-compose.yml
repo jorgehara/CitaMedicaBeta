@@ -33,9 +33,9 @@ services:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017?authSource=admin
       - PORT=3008
-      - TZ=America/Argentina/Buenos_Aires
-    expose:
-      - "3008"      volumes:
+      - TZ=America/Argentina/Buenos_Aires    expose:
+      - "3008"
+    volumes:
       - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
     user: "1001:1001"  # Usar el mismo UID/GID que nodejs en el contenedor
     depends_on:
