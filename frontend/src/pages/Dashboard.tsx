@@ -1,4 +1,4 @@
-import { Box, Paper, Typography, Card, CardContent, TextField, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
+import { Box, Paper, Typography, Card, CardContent, TextField, Button } from '@mui/material';
 import {
   EventNote as EventNoteIcon,
 } from '@mui/icons-material';
@@ -48,6 +48,7 @@ const Dashboard = () => {
   };
 
   return (
+    <>
     <Box sx={{ 
       height: '100vh',
       overflow: 'auto',
@@ -91,7 +92,7 @@ const Dashboard = () => {
           }}>
           <Box sx={{ flex: 1, overflow: 'hidden' }}>
               <AppointmentList showHistory={false} />
-            </Box>
+          </Box>
           </Paper>
         </Box>
       </Box>
@@ -238,7 +239,8 @@ const Dashboard = () => {
         </Box>
       </Paper>
     </Box>
+    </Box>
+</>
   );
-};
-
+}
 export default Dashboard;
