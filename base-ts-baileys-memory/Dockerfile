@@ -50,6 +50,11 @@ FROM node:21-alpine3.18 as production
 
 WORKDIR /app
 
+# Crear directorio y establecer permisos
+RUN mkdir -p /app && \
+    chown -R node:node /app && \
+    chmod -R 755 /app
+
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
