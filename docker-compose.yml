@@ -25,7 +25,6 @@ services:
       - "3001"
     depends_on:
       - mongo
-
   chatbot:
     build: ./base-ts-baileys-memory
     container_name: chatbot    
@@ -38,7 +37,7 @@ services:
       - "3008"
     volumes:
       - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
-    user: "1001:1001"  # Usar el mismo UID/GID que nodejs en el contenedor
+    user: "1001:1001"
     depends_on:
       - mongo
 

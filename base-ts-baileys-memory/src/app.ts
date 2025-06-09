@@ -419,19 +419,12 @@ app.get('/qr', async (req, res) => {
         if (!globalQR) {
             return res.status(404).json({ error: 'QR no disponible aún' });
         }
-        
-        // Generar el QR directamente como buffer y enviarlo
-        try {
-            const qrBuffer = await qrcode.toBuffer(globalQR);
-            res.type('png');
-            res.send(qrBuffer);
-        } catch (qrError) {
-            console.error('Error al generar buffer QR:', qrError);
-            res.status(500).json({ error: 'Error al generar buffer QR' });
-        }
+        const qrBuffer = await qrcode.toBuffer(globalQR);
+        res.type('png');
+        res.send(qrBuffer);
     } catch (error) {
-        console.error('Error al manejar la solicitud QR:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        console.error('Error al generar QR:', error);
+        res.status(500).json({ error: 'Error al generar QR' });
     }
 });
 

@@ -18,6 +18,9 @@ RUN apk add --no-cache --virtual .gyp \
 
 COPY . .
 
+RUN mkdir -p /app/bot_sessions && \
+    chmod -R 777 /app/bot_sessions
+
 ENV PORT=3008
 EXPOSE ${PORT}
 
@@ -50,10 +53,14 @@ FROM node:21-alpine3.18 as production
 
 WORKDIR /app
 
-# Crear directorio y establecer permisos
-RUN mkdir -p /app && \
-    chown -R node:node /app && \
-    chmod -R 755 /app
+# Crear directorios necesarios y establecer permisos
+RUN mkdir -p /app/bot_sessions && \
+    addgroup -g 1001 -S nodejs && \
+    adduser -S -u 1001 nodejs && \
+    chown -R nodejs:nodejs /app && \
+    chown -R nodejs:nodejs /app/bot_sessions && \
+    chmod -R 755 /app && \
+    chmod -R 755 /app/bot_sessions
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
