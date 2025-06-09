@@ -12,11 +12,13 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./data/mongo:/data/db
+      - ./data/mongo:/data/db  
+    build: ./backend
   backend:
     build: ./backend
-    container_name: backend    
+    container_name: backend
     environment:
+      - NODE_ENV=production
       - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
@@ -34,9 +36,10 @@ services:
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
     expose:
-      - "3008"
+      - "3008"    
     volumes:
       - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
+      - /tmp:/app/tmp
     user: "1001:1001"
     depends_on:
       - mongo

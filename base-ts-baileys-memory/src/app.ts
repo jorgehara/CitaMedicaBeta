@@ -419,12 +419,18 @@ app.get('/qr', async (req, res) => {
         if (!globalQR) {
             return res.status(404).json({ error: 'QR no disponible aún' });
         }
-        const qrBuffer = await qrcode.toBuffer(globalQR);
-        res.type('png');
-        res.send(qrBuffer);
+        try {
+            // Intentar generar el QR directamente como una URL de datos
+            const qrDataUrl = await qrcode.toDataURL(globalQR);
+            res.json({ qr: qrDataUrl });
+        } catch (qrError) {
+            console.error('Error al generar QR:', qrError);
+            // Si falla, enviar el QR como texto
+            res.json({ qr: globalQR });
+        }
     } catch (error) {
-        console.error('Error al generar QR:', error);
-        res.status(500).json({ error: 'Error al generar QR' });
+        console.error('Error al manejar la solicitud QR:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
@@ -468,12 +474,17 @@ const main = async () => {
         availableSlotsFlow,
         bookAppointmentFlow,
         goodbyeFlow
-    ])
-
-    const adapterProvider = createProvider(Provider)
+    ])    const adapterProvider = createProvider(Provider, {
+        qr: {
+            store: (qr) => {
+                globalQR = qr;
+                console.log('Nuevo QR generado');
+            }
+        }
+    });
     provider = adapterProvider;
 
-     adapterProvider.on('qr', (qr) => {
+    adapterProvider.on('qr', (qr) => {
         globalQR = qr;
         console.log('Nuevo QR generado');
     });
