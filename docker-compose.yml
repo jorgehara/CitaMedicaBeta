@@ -94,35 +94,26 @@ services:
       - chatbot
 
   nginx:
-    image: nginx:alpine
+    image: nginx:latest
     container_name: nginx
-    restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"    
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./frontend/dist:/usr/share/nginx/html:ro
       - /etc/letsencrypt/live/micitamedica.me/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/micitamedica.me/privkey.pem:/etc/ssl/private/privkey.pem:ro
-      - ./base-ts-baileys-memory/bot.qr.png:/usr/share/nginx/qr/bot.qr.png:ro
-    networks:
-      - app-network
     depends_on:
       - frontend
       - backend
       - chatbot
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
-networks:
-  app-network:
-    driver: bridge
+  networks:
+    app-network:
+      driver: bridge
 
-volumes:
-  mongodb_data:
-  chatbot_sessions:
-  chatbot_tmp:
+  volumes:
+    mongodb_data:
+    chatbot_sessions:
+    chatbot_tmp:
