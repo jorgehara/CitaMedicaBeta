@@ -8,7 +8,14 @@ if not exist "%USERPROFILE%\Desktop\QR" mkdir "%USERPROFILE%\Desktop\QR"
 :loop
 echo.
 echo Descargando QR... %date% %time%
-ssh root@srv838272.hstgr.cloud "cd /root/CitaMedicaBeta/base-ts-baileys-memory && ls bot.qr.png && cat bot.qr.png" > "%USERPROFILE%\Desktop\QR\qr.png"
+scp -P 22 "root@srv838272.hstgr.cloud:/root/CitaMedicaBeta/base-ts-baileys-memory/bot.qr.png" "%USERPROFILE%\Desktop\QR\qr.png"
+
+if %ERRORLEVEL% NEQ 0 (
+    echo Error al descargar el QR. Verificando archivo...
+    ssh root@srv838272.hstgr.cloud "ls -l /root/CitaMedicaBeta/base-ts-baileys-memory/bot.qr.png"
+) else (
+    echo QR descargado correctamente
+)
 echo QR actualizado! Esperando 30 segundos...
 echo El QR se encuentra en la carpeta QR de tu escritorio
 timeout /t 30
