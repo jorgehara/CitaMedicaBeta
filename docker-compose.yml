@@ -13,6 +13,7 @@ services:
       - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
+
   backend:
     build: ./backend
     container_name: backend
@@ -26,16 +27,18 @@ services:
       - "3001"
     depends_on:
       - mongo
+    command: ["/wait-for-it.sh", "mongo:27017", "--timeout=30", "--strict", "--", "npm", "start"]
+
   chatbot:
     build: ./base-ts-baileys-memory
-    container_name: chatbot    
+    container_name: chatbot
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017?authSource=admin
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
     expose:
-      - "3008"    
+      - "3008"
     volumes:
       - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
       - ./base-ts-baileys-memory/bot_sessions/tmp:/app/tmp
