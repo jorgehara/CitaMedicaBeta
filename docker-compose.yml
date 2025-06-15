@@ -11,7 +11,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./data/mongodb:/data/db
+      - mongodb_data:/data/db
     networks:
       - app-network
     healthcheck:
@@ -61,8 +61,8 @@ services:
     expose:
       - "3008"
     volumes:
-      - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
-      - ./base-ts-baileys-memory/bot_sessions/tmp:/app/tmp
+      - chatbot_sessions:/app/bot_sessions
+      - chatbot_tmp:/app/tmp
     networks:
       - app-network
     depends_on:
@@ -118,4 +118,8 @@ networks:
 
 volumes:
   mongodb_data:
+    driver: local
+  chatbot_sessions:
+    driver: local
+  chatbot_tmp:
     driver: local

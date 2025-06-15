@@ -69,9 +69,10 @@ RUN apk add --no-cache --virtual .gyp \
     && pnpm install --prod \
     && apk del .gyp
 
+# Copiar los archivos construidos
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/bot_sessions ./bot_sessions
 
+# Crear el directorio bot_sessions
 RUN mkdir -p /app/bot_sessions && \
     chmod -R 777 /app/bot_sessions
 
@@ -79,4 +80,4 @@ ENV PORT=3008
 ENV NODE_ENV=production
 EXPOSE ${PORT}
 
-CMD ["pnpm", "start"]
+CMD ["node", "dist/app.js"]
