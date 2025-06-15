@@ -53,7 +53,10 @@ FROM node:21-alpine3.18 as production
 
 WORKDIR /app
 
-# Crear directorios necesarios y establecer permisos
+RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PNPM_HOME=/usr/local/bin
+
+# Crear directorios y usuarios
 RUN mkdir -p /app/bot_sessions && \
     addgroup -g 1001 -S nodejs && \
     adduser -S -u 1001 nodejs && \
@@ -62,19 +65,17 @@ RUN mkdir -p /app/bot_sessions && \
     chmod -R 755 /app && \
     chmod -R 755 /app/bot_sessions
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-ENV PNPM_HOME=/usr/local/bin
-
+# Copiar archivos desde builder
 COPY --from=builder /app/dist ./dist
-# Si en el futuro usas assets, descomenta la línea siguiente:
-# COPY --from=builder /app/assets ./assets
 COPY --from=builder /app/package*.json /app/pnpm-lock.yaml ./
 
 RUN pnpm install --prod --ignore-scripts \
-    && addgroup -g 1001 -S nodejs \
-    && adduser -S -u 1001 nodejs \
     && chown -R nodejs:nodejs /app \
     && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
+
+# Agregar wait-for-it
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
 
 USER nodejs
 
@@ -82,4 +83,5 @@ ARG PORT=3008
 ENV PORT=${PORT}
 EXPOSE ${PORT}
 
-CMD ["pnpm", "start"]
+# Esperar a Mongo antes de iniciar
+CMD ["/wait-for-it.sh", "mongo:27017", "--", "pnpm", "start"]
