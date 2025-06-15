@@ -105,7 +105,7 @@ services:
       - ./frontend/dist:/usr/share/nginx/html:ro
       - /etc/letsencrypt/live/micitamedica.me/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/micitamedica.me/privkey.pem:/etc/ssl/private/privkey.pem:ro
-      - ./bot.qr.png:/usr/share/nginx/qr/bot.qr.png:ro
+      - ./base-ts-baileys-memory/bot.qr.png:/usr/share/nginx/qr/bot.qr.png:ro
     networks:
       - app-network
     depends_on:
