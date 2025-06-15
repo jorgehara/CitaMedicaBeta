@@ -90,4 +90,4 @@ ENV PORT=${PORT}
 EXPOSE ${PORT}
 
 # Esperar a Mongo antes de iniciar
-CMD ["/wait-for-it.sh", "mongo:27017", "--", "pnpm", "start"]
+CMD ["/wait-for-it.sh", "mongo:27017", "-t", "60", "--", "pnpm", "start"]
