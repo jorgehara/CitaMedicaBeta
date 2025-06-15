@@ -10,10 +10,11 @@ services:
     volumes:
       - ./data/mongo:/data/db
     healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   backend:
     build: ./backend
@@ -27,8 +28,9 @@ services:
     expose:
       - "3001"
     depends_on:
-      - mongo
-    command: ["/wait-for-it.sh", "mongo:27017", "--timeout=60", "--strict", "--", "npm", "start"]
+      mongo:
+        condition: service_healthy
+    command: ["npm", "start"]
 
   chatbot:
     build: ./base-ts-baileys-memory
@@ -45,8 +47,9 @@ services:
       - ./base-ts-baileys-memory/bot_sessions/tmp:/app/tmp
     user: "1001:1001"
     depends_on:
-      - mongo
-    command: ["/wait-for-it.sh", "mongo:27017", "--timeout=60", "--strict", "--", "pnpm", "start"]
+      mongo:
+        condition: service_healthy
+    command: ["pnpm", "start"]
 
   frontend:
     build: ./frontend
