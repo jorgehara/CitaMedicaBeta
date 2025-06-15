@@ -35,6 +35,10 @@ services:
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=*
+      - GOOGLE_CALENDAR_ID=${CALENDAR_ID}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+    volumes:
+      - ./backend/credentials.json:/app/credentials.json:ro
     expose:
       - "3001"
     networks:
