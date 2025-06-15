@@ -6,20 +6,23 @@ services:
     restart: always
     container_name: mongo
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: Consultorio2025
       MONGO_INITDB_DATABASE: consultorio
     ports:
       - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend
     container_name: backend
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin
+      - MONGODB_URI=mongodb://mongo:27017/consultorio
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=*
@@ -27,14 +30,14 @@ services:
       - "3001"
     depends_on:
       - mongo
-    command: ["/wait-for-it.sh", "mongo:27017", "--timeout=30", "--strict", "--", "npm", "start"]
+    command: ["/wait-for-it.sh", "mongo:27017", "--timeout=60", "--strict", "--", "npm", "start"]
 
   chatbot:
     build: ./base-ts-baileys-memory
     container_name: chatbot
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:Consultorio2025@mongo:27017?authSource=admin
+      - MONGODB_URI=mongodb://mongo:27017
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
     expose:
@@ -45,6 +48,7 @@ services:
     user: "1001:1001"
     depends_on:
       - mongo
+    command: ["/wait-for-it.sh", "mongo:27017", "--timeout=60", "--strict", "--", "pnpm", "start"]
 
   frontend:
     build: ./frontend
