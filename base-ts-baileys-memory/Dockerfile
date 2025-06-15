@@ -48,7 +48,7 @@ RUN apk add --no-cache --virtual .gyp \
 
 COPY . .
 
-RUN pnpm run build
+RUN pnpm build
 
 # Etapa de producción
 FROM node:21-alpine3.18 as production
@@ -58,36 +58,25 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
-# Instalar bash para wait-for-it.sh
-RUN apk add --no-cache bash
+COPY package*.json pnpm-lock.yaml ./
 
-# Crear usuario y permisos
-RUN mkdir -p /app/bot_sessions && \
-    addgroup -g 1001 -S nodejs && \
-    adduser -S -u 1001 nodejs && \
-    chown -R nodejs:nodejs /app && \
-    chown -R nodejs:nodejs /app/bot_sessions && \
-    chmod -R 755 /app && \
-    chmod -R 755 /app/bot_sessions
+RUN apk add --no-cache --virtual .gyp \
+    python3 \
+    make \
+    g++ \
+    git \
+    bash \
+    && pnpm install --prod \
+    && apk del .gyp
 
-# Copiar archivos desde builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json /app/pnpm-lock.yaml ./
+COPY --from=builder /app/bot_sessions ./bot_sessions
 
-# Instalar dependencias en producción
-RUN pnpm install --prod --ignore-scripts \
-    && chown -R nodejs:nodejs /app \
-    && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
+RUN mkdir -p /app/bot_sessions && \
+    chmod -R 777 /app/bot_sessions
 
-# Agregar wait-for-it
-COPY wait-for-it.sh /wait-for-it.sh
-RUN chmod +x /wait-for-it.sh
-
-USER nodejs
-
-ARG PORT=3008
-ENV PORT=${PORT}
+ENV PORT=3008
+ENV NODE_ENV=production
 EXPOSE ${PORT}
 
-# Esperar a Mongo antes de iniciar
-CMD ["/wait-for-it.sh", "mongo:27017", "-t", "60", "--", "pnpm", "start"]
+CMD ["pnpm", "start"]

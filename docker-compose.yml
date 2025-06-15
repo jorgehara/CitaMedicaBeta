@@ -1,48 +1,61 @@
 version: '3.8'
 
 services:
-  mongo:
-    image: mongo:6
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
     restart: always
-    container_name: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=Consultorio2025
     ports:
       - "27017:27017"
     volumes:
-      - ./data/mongo:/data/db
-    environment:
-      - MONGODB_INITDB_ROOT_USERNAME=root
-      - MONGODB_INITDB_ROOT_PASSWORD=example
+      - ./data/mongodb:/data/db
+    networks:
+      - app-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      test: echo 'db.runCommand("ping").ok' | mongosh -u root -p Consultorio2025 --quiet
       interval: 10s
       timeout: 10s
       retries: 5
-      start_period: 40s
+      start_period: 20s
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://root:example@mongo:27017/consultorio?authSource=admin
+      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=*
     expose:
       - "3001"
+    networks:
+      - app-network
     depends_on:
-      mongo:
+      mongodb:
         condition: service_healthy
-    command: sh -c "sleep 10 && npm start"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   chatbot:
-    build: ./base-ts-baileys-memory
+    build: 
+      context: ./base-ts-baileys-memory
+      dockerfile: Dockerfile
+      target: production
     container_name: chatbot
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://root:example@mongo:27017?authSource=admin
+      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
     expose:
@@ -50,16 +63,25 @@ services:
     volumes:
       - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
       - ./base-ts-baileys-memory/bot_sessions/tmp:/app/tmp
-    user: "1001:1001"
+    networks:
+      - app-network
     depends_on:
-      mongo:
+      mongodb:
         condition: service_healthy
-    command: sh -c "sleep 15 && pnpm start"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: frontend
     restart: unless-stopped
+    networks:
+      - app-network
     expose:
       - "80"
     depends_on:
@@ -67,7 +89,7 @@ services:
       - chatbot
 
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
     container_name: nginx
     restart: unless-stopped
     ports:
@@ -78,7 +100,22 @@ services:
       - ./frontend/dist:/usr/share/nginx/html:ro
       - /etc/letsencrypt/live/micitamedica.me/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/micitamedica.me/privkey.pem:/etc/ssl/private/privkey.pem:ro
+    networks:
+      - app-network
     depends_on:
       - frontend
       - backend
       - chatbot
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
