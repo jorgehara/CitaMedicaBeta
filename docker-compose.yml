@@ -5,8 +5,6 @@ services:
     image: mongo:6
     restart: always
     container_name: mongo
-    environment:
-      MONGO_INITDB_DATABASE: consultorio
     ports:
       - "27017:27017"
     volumes:
