@@ -9,19 +9,24 @@ services:
       - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=example
+    command: ["mongod", "--bind_ip_all"]
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
       retries: 5
-      start_period: 10s
+      start_period: 40s
 
   backend:
     build: ./backend
     container_name: backend
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongo:27017/consultorio
+      - MONGODB_URI=mongodb://root:example@mongo:27017/consultorio?authSource=admin
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=*
@@ -30,14 +35,15 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    command: ["npm", "start"]
+    command: sh -c "sleep 10 && npm start"
 
   chatbot:
     build: ./base-ts-baileys-memory
     container_name: chatbot
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongo:27017
+      - MONGODB_URI=mongodb://root:example@mongo:27017?authSource=admin
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
     expose:
@@ -49,11 +55,12 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    command: ["pnpm", "start"]
+    command: sh -c "sleep 15 && pnpm start"
 
   frontend:
     build: ./frontend
     container_name: frontend
+    restart: unless-stopped
     expose:
       - "80"
     depends_on:
@@ -63,6 +70,7 @@ services:
   nginx:
     image: nginx:latest
     container_name: nginx
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
