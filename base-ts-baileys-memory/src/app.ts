@@ -474,7 +474,9 @@ const main = async () => {
         availableSlotsFlow,
         bookAppointmentFlow,
         goodbyeFlow
-    ])    const adapterProvider = createProvider(Provider, {
+    ]);
+
+    const adapterProvider = createProvider(Provider, {
         qr: {
             store: (qr) => {
                 globalQR = qr;
