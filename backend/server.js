@@ -1,17 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+import dotenv from 'dotenv';
 
-// Cargar variables de entorno según el ambiente
-if (process.env.NODE_ENV === 'production') {
-    require('dotenv').config({ path: '.env.production' });
-} else {
-    require('dotenv').config();
-}
+dotenv.config();
 
 // Verificar variables de entorno críticas
 console.log('Verificando variables de entorno...');
-console.log('Ambiente:', process.env.NODE_ENV || 'development');
+console.log('Ambiente:', process.env.NODE_ENV || 'desarrollo');
 
 const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS'];
 requiredEnvVars.forEach(varName => {
@@ -42,7 +38,7 @@ const qrRoutes = require('./src/routes/qrRoutes');
 app.use('/api', qrRoutes);
 
 // Conectar a MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://admin:Consultorio2025@mongo:27017/consultorio?authSource=admin', {
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
