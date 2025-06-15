@@ -63,8 +63,8 @@ services:
       MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
       PORT: 3008
       TZ: America/Argentina/Buenos_Aires
-    expose:
-      - "3008"
+    ports:
+      - "3008:3008"
     volumes:
       - chatbot_sessions:/app/bot_sessions
       - chatbot_tmp:/app/tmp
