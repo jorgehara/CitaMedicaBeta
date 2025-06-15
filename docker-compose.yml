@@ -7,9 +7,9 @@ services:
     restart: always
     command: mongod --auth --bind_ip_all
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: Consultorio2025
-      MONGODB_DATABASE: consultorio
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=Consultorio2025
+      - MONGODB_DATABASE=consultorio
     ports:
       - "27017:27017"
     volumes:
@@ -17,7 +17,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: mongosh --quiet --eval 'db.runCommand("ping").ok' mongodb://root:Consultorio2025@localhost:27017/admin
+      test: echo 'db.runCommand("ping").ok' | mongosh mongodb://root:Consultorio2025@localhost:27017/admin --quiet
       interval: 10s
       timeout: 10s
       retries: 5
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin&directConnection=true
+      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
       - PORT=3001
       - TZ=America/Argentina/Buenos_Aires
       - CORS_ORIGINS=*
@@ -52,12 +52,11 @@ services:
     build: 
       context: ./base-ts-baileys-memory
       dockerfile: Dockerfile
-      target: production
     container_name: chatbot
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin&directConnection=true
+      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
       - PORT=3008
       - TZ=America/Argentina/Buenos_Aires
     expose:
