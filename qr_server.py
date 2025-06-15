@@ -80,15 +80,18 @@ class QRHandler(SimpleHTTPRequestHandler):
                 self.send_error(404, "QR Code not found")
 
 def run(port=8000):
-    server_address = ('', port)
+    server_address = ('0.0.0.0', port)
     httpd = HTTPServer(server_address, QRHandler)
-    print(f'Servidor iniciado en puerto {port}')
+    print(f'Servidor iniciado en 0.0.0.0:{port}')
+    print(f'Ruta del QR: /root/CitaMedicaBeta/base-ts-baileys-memory/bot.qr.png')
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print('\nServidor detenido.')
         httpd.server_close()
         sys.exit(0)
+    except Exception as e:
+        print(f'Error: {e}')
 
 if __name__ == '__main__':
     run(8000)
