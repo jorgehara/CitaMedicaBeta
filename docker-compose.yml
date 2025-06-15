@@ -39,7 +39,7 @@ services:
       - "3008"    
     volumes:
       - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
-      - /tmp:/app/tmp
+      - ./base-ts-baileys-memory/bot_sessions/tmp:/app/tmp
     user: "1001:1001"
     depends_on:
       - mongo
