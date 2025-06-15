@@ -7,9 +7,9 @@ services:
     restart: always
     command: mongod --auth --bind_ip_all
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=Consultorio2025
-      - MONGODB_DATABASE=consultorio
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: Consultorio2025
+      MONGODB_DATABASE: consultorio
     ports:
       - "27017:27017"
     volumes:
@@ -30,13 +30,13 @@ services:
     container_name: backend
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
-      - PORT=3001
-      - TZ=America/Argentina/Buenos_Aires
-      - CORS_ORIGINS=*
-      - GOOGLE_CALENDAR_ID=drdanielkulinka2025@gmail.com
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      NODE_ENV: production
+      MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
+      PORT: 3001
+      TZ: America/Argentina/Buenos_Aires
+      CORS_ORIGINS: '*'
+      GOOGLE_CALENDAR_ID: drdanielkulinka2025@gmail.com
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials.json
     volumes:
       - ./backend/credentials.json:/app/credentials.json:ro
     expose:
@@ -59,10 +59,10 @@ services:
     container_name: chatbot
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
-      - PORT=3008
-      - TZ=America/Argentina/Buenos_Aires
+      NODE_ENV: production
+      MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
+      PORT: 3008
+      TZ: America/Argentina/Buenos_Aires
     expose:
       - "3008"
     volumes:
@@ -108,12 +108,14 @@ services:
       - frontend
       - backend
       - chatbot
+    networks:
+      - app-network
 
-  networks:
-    app-network:
-      driver: bridge
+networks:
+  app-network:
+    driver: bridge
 
-  volumes:
-    mongodb_data:
-    chatbot_sessions:
-    chatbot_tmp:
+volumes:
+  mongodb_data:
+  chatbot_sessions:
+  chatbot_tmp:
