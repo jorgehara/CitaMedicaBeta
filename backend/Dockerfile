@@ -16,4 +16,4 @@ ENV PORT=3001
 EXPOSE 3001
 
 # Esperar a Mongo antes de iniciar
-CMD ["/wait-for-it.sh", "mongo:27017", "--", "npm", "start"]
+CMD ["/wait-for-it.sh", "mongo:27017", "--strict", "--timeout=30", "--", "npm", "start"]

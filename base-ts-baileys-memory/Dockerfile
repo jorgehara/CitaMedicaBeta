@@ -13,6 +13,7 @@ RUN apk add --no-cache --virtual .gyp \
     make \
     g++ \
     git \
+    bash \
     && pnpm install \
     && apk del .gyp
 
@@ -41,6 +42,7 @@ RUN apk add --no-cache --virtual .gyp \
     make \
     g++ \
     git \
+    bash \
     && pnpm install \
     && apk del .gyp
 
@@ -56,7 +58,10 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/bin
 
-# Crear directorios y usuarios
+# Instalar bash para wait-for-it.sh
+RUN apk add --no-cache bash
+
+# Crear usuario y permisos
 RUN mkdir -p /app/bot_sessions && \
     addgroup -g 1001 -S nodejs && \
     adduser -S -u 1001 nodejs && \
@@ -69,6 +74,7 @@ RUN mkdir -p /app/bot_sessions && \
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json /app/pnpm-lock.yaml ./
 
+# Instalar dependencias en producción
 RUN pnpm install --prod --ignore-scripts \
     && chown -R nodejs:nodejs /app \
     && rm -rf $PNPM_HOME/.npm $PNPM_HOME/.node-gyp
