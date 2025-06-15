@@ -2,6 +2,7 @@
 node_modules
 dist
 dist/*
+qr_updater_windows/
 
 # Environment variables
 .env
