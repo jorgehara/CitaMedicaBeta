@@ -484,7 +484,7 @@ const main = async () => {
         qr: {
             store: (qr) => {
                 globalQR = qr;
-                console.log('QR listo');
+                console.log('QR listo!');
             }
         }
     });
