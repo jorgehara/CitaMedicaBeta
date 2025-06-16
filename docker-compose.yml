@@ -111,10 +111,10 @@ services:
       - backend
       - chatbot
 
+networks:
+  app-network:
+
 volumes:
   mongodb_data:
   chatbot_sessions:
   chatbot_tmp:
-
-networks:
-  app-network:
