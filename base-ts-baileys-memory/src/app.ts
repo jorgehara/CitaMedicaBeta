@@ -424,37 +424,9 @@ app.get('/qr', async (req, res) => {
     }
 });
 
-// Endpoint para eliminar las sesiones de WhatsApp
-app.delete('/api/bot/sessions', async (req, res) => {
-  try {
-    const botSessionsPath = path.join(process.cwd(), 'bot_sessions');
-    
-    if (fs.existsSync(botSessionsPath)) {
-      // Leer todos los archivos en el directorio
-      const files = fs.readdirSync(botSessionsPath);
-      
-      // Eliminar cada archivo dentro de la carpeta
-      for (const file of files) {
-        const filePath = path.join(botSessionsPath, file);
-        try {
-          // Verificar si es un archivo y eliminarlo
-          const stat = fs.statSync(filePath);
-          if (stat.isFile()) {
-            fs.unlinkSync(filePath);
-          }
-        } catch (err) {
-          console.error(`Error al eliminar el archivo ${file}:`, err);
-        }
-      }
-    }
-    
-    res.json({ success: true, message: 'Sesiones eliminadas correctamente' });
-  } catch (error) {
-    console.error('Error al eliminar las sesiones:', error);
-    res.status(500).json({ success: false, message: 'Error al eliminar las sesiones' });
-  }
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor del chatbot escuchando en puerto ${PORT}`);
 });
-
 // Función principal para iniciar el bot
 const main = async () => {
     //conexion a la base de datos

@@ -2,25 +2,27 @@ import { useEffect, useState } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 
 const QRCode: React.FC = () => {
-  const [qrImage, setQrImage] = useState<string>('');
-  
-  const fetchQR = async () => {
+  const [qrImage, setQrImage] = useState<string | null>(null);
+  const [QrMessage, setQrMessage] = useState<string>("Cargando código QR...");
+
+ const fetchQR = async () => {
   try {
     const timestamp = new Date().getTime();
     const response = await fetch(`/qr?t=${timestamp}`);
+    
     if (response.ok) {
       const data = await response.json();
-      if (data && data.qr) {
-        // Usar directamente la URL de datos de la respuesta
-        setQrImage(data.qr);
-      } else {
-        console.warn('QR recibido está vacío');
-      }
+      setQrImage(data.qr);
+    } else if (response.status === 404) {
+      // Mostrar mensaje específico para 404
+      setQrImage(null);
+      setQrMessage("WhatsApp ya está conectado o aún no ha generado un código QR");
     } else {
-      console.warn('Error al obtener QR:', response.status);
+      setQrMessage("Error al cargar el código QR");
     }
   } catch (error) {
     console.error('Error al obtener el QR:', error);
+    setQrMessage("Error de conexión al servidor");
   }
 };
 
