@@ -3,15 +3,16 @@ import { Box, Typography, Paper } from '@mui/material';
 
 const QRCode: React.FC = () => {
   const [qrImage, setQrImage] = useState<string>('');
- const fetchQR = async () => {
+  
+  const fetchQR = async () => {
   try {
     const timestamp = new Date().getTime();
     const response = await fetch(`/qr?t=${timestamp}`);
     if (response.ok) {
-      const blob = await response.blob();
-      if (blob.size > 0) {
-        const imageUrl = URL.createObjectURL(blob);
-        setQrImage(imageUrl);
+      const data = await response.json();
+      if (data && data.qr) {
+        // Usar directamente la URL de datos de la respuesta
+        setQrImage(data.qr);
       } else {
         console.warn('QR recibido está vacío');
       }

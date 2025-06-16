@@ -416,18 +416,8 @@ let provider: Provider | null = null;
 // Endpoint para servir el código QR
 app.get('/qr', async (req, res) => {
     try {
-        if (!globalQR) {
-            return res.status(404).json({ error: 'QR no disponible aún' });
-        }
-        try {
-            // Intentar generar el QR directamente como una URL de datos
-            const qrDataUrl = await qrcode.toDataURL(globalQR);
-            res.json({ qr: qrDataUrl });
-        } catch (qrError) {
-            console.error('Error al generar QR:', qrError);
-            // Si falla, enviar el QR como texto
-            res.json({ qr: globalQR });
-        }
+        // Para depurar, devuelve un texto simple
+        res.status(200).json({ qr: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", status: "testing" });
     } catch (error) {
         console.error('Error al manejar la solicitud QR:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
