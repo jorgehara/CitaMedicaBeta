@@ -17,7 +17,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh mongodb://root:Consultorio2025@localhost:27017/admin --quiet
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh mongodb://root:Consultorio2025@localhost:27017/admin --quiet"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -105,7 +105,7 @@ services:
       - ./frontend/dist:/usr/share/nginx/html:ro
       - ./logs/nginx:/var/log/nginx
     environment:
-      - TZ=America/Argentina/Buenos_Aires
+      TZ: America/Argentina/Buenos_Aires
     depends_on:
       - frontend
       - backend
@@ -117,3 +117,6 @@ volumes:
   mongodb_data:
   chatbot_sessions:
   chatbot_tmp:
+
+networks:
+  app-network:
