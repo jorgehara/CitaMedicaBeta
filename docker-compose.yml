@@ -52,6 +52,26 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./logs/nginx:/var/log/nginx
+    environment:
+      TZ: America/Argentina/Buenos_Aires
+    depends_on:
+      - frontend
+      - backend
+      - chatbot
+    networks:
+      - app-network
+
   chatbot:
     build: 
       context: ./base-ts-baileys-memory
@@ -90,24 +110,6 @@ services:
     expose:
       - "80"
     depends_on:
-      - backend
-      - chatbot
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./frontend/dist:/usr/share/nginx/html:ro
-      - ./logs/nginx:/var/log/nginx
-    environment:
-      TZ: America/Argentina/Buenos_Aires
-    depends_on:
-      - frontend
       - backend
       - chatbot
 
