@@ -96,21 +96,28 @@ services:
   nginx:
     image: nginx:latest
     container_name: nginx
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./frontend/dist:/usr/share/nginx/html:ro
       - /etc/letsencrypt/live/micitamedica.me/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
       - /etc/letsencrypt/live/micitamedica.me/privkey.pem:/etc/ssl/private/privkey.pem:ro
+    environment:
+      - TZ=America/Argentina/Buenos_Aires
     depends_on:
       - frontend
       - backend
       - chatbot
     networks:
       - app-network
-
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 networks:
   app-network:
     driver: bridge

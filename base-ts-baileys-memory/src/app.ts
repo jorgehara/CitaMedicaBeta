@@ -465,9 +465,12 @@ app.delete('/api/bot/sessions', async (req, res) => {
   }
 });
 
+// Función principal para iniciar el bot
 const main = async () => {
+    //conexion a la base de datos
     await connectDB();
 
+    //Inicia los flujos de conversaciones
     const adapterFlow = createFlow([
         welcomeFlow,
         availableSlotsFlow,
@@ -475,28 +478,29 @@ const main = async () => {
         goodbyeFlow
     ]);
 
-    const adapterProvider = createProvider(Provider);
+    //Configuracion QR 
+    // Crear el proveedor con configuración básica
+    const adapterProvider = createProvider(Provider, {
+        qr: {
+            store: (qr) => {
+                globalQR = qr;
+                console.log('QR listo');
+            }
+        }
+    });
+
+    // Asignar y configurar eventos
     provider = adapterProvider;
+    adapterProvider.on('ready', () => globalQR = null);
 
-    adapterProvider.on('qr', (qr) => {
-        globalQR = qr;
-        console.log('Nuevo QR generado');
-    });
-
-    adapterProvider.on('ready', () => {
-        console.log('Bot está listo');
-        globalQR = null;
-    });
-
+    //Creacion CHATBOT
     const { handleCtx, httpServer } = await createBot({
         flow: adapterFlow,
         provider: adapterProvider,
         database: adapterDB
-    });
+    })
 
-    app.listen(PORT, () => {
-        console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    });
-};
+    httpServer(+PORT)
+}
 
-main();
+main()
