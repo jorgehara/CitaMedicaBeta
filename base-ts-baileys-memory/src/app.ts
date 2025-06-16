@@ -465,7 +465,6 @@ app.delete('/api/bot/sessions', async (req, res) => {
   }
 });
 
-// Función principal para iniciar el bot
 const main = async () => {
     await connectDB();
 
@@ -476,14 +475,7 @@ const main = async () => {
         goodbyeFlow
     ]);
 
-    const adapterProvider = createProvider(Provider, {
-        qr: {
-            store: (qr) => {
-                globalQR = qr;
-                console.log('Nuevo QR generado');
-            }
-        }
-    });
+    const adapterProvider = createProvider(Provider);
     provider = adapterProvider;
 
     adapterProvider.on('qr', (qr) => {
@@ -493,16 +485,18 @@ const main = async () => {
 
     adapterProvider.on('ready', () => {
         console.log('Bot está listo');
-        globalQR = null; // Limpiar QR cuando el bot está conectado
+        globalQR = null;
     });
 
     const { handleCtx, httpServer } = await createBot({
         flow: adapterFlow,
         provider: adapterProvider,
         database: adapterDB
-    })
+    });
 
-    httpServer(+PORT)
-}
+    app.listen(PORT, () => {
+        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    });
+};
 
-main()
+main();
