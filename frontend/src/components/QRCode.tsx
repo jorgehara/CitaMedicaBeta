@@ -57,7 +57,7 @@ const QRCode: React.FC = () => {
           />
         ) : (
           <Typography color="text.secondary">
-            Cargando código QR...
+            {QrMessage}
           </Typography>
         )}
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
