@@ -417,17 +417,17 @@ let provider: Provider | null = null;
 app.get('/qr', async (req, res) => {
     try {
         if (!globalQR) {
-            return res.status(404).json({ error: 'QR no disponible aún', status: "unavailable" });
+            return res.status(404).json({ error: 'QR no disponible aún' });
         }
-        
-        // Generar la imagen del QR
-        const qrImage = await QRCode.toDataURL(globalQR);
-        res.status(200).json({ qr: qrImage, status: "available" });
+        const qrBuffer = await QRCode.toBuffer(globalQR);
+        res.type('png');
+        res.send(qrBuffer);
     } catch (error) {
-        console.error('Error al manejar la solicitud QR:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        console.error('Error al generar QR:', error);
+        res.status(500).json({ error: 'Error al generar QR' });
     }
 });
+
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor del chatbot escuchando en puerto ${PORT}`);
@@ -445,30 +445,19 @@ const main = async () => {
         goodbyeFlow
     ]);
 
-    //Configuracion QR 
-    // Crear el proveedor con configuración básica
-    const adapterProvider = createProvider(Provider, {
-    qr: {
-        store: async (qr) => {
-            try {
-                globalQR = qr;
-                console.log('Nuevo código QR generado');
-                // Generar imagen QR usando qrcode
-                const qrImage = await QRCode.toBuffer(qr);
-                // Guardar en archivo dentro de bot_sessions para evitar conflictos de permisos y persistencia
-                fs.writeFileSync(path.join(__dirname, '../bot_sessions/bot.qr.png'), qrImage);
-            } catch (error) {
-                console.error('Error al guardar QR:', error);
-            }
-        }
-    }
-});
-
-    // Asignar y configurar eventos
+    const adapterProvider = createProvider(Provider)
     provider = adapterProvider;
-    adapterProvider.on('ready', () => globalQR = null);
 
-    //Creacion CHATBOT
+    adapterProvider.on('qr', (qr) => {
+        globalQR = qr;
+        console.log('Nuevo QR generado');
+    });
+
+    adapterProvider.on('ready', () => {
+        console.log('Bot está listo');
+        globalQR = null; // Limpiar QR cuando el bot está conectado
+    });
+
     const { handleCtx, httpServer } = await createBot({
         flow: adapterFlow,
         provider: adapterProvider,
