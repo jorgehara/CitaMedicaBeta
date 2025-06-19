@@ -84,8 +84,7 @@ services:
       - "3008:3008"
     volumes:
       - ./bot.qr.png:/app/bot.qr.png
-      - chatbot_sessions:/app/bot_sessions
-      - chatbot_tmp:/app/tmp
+      - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
     networks:
       - app-network
     depends_on:
