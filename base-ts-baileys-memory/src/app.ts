@@ -10,9 +10,9 @@ import dotenv from 'dotenv'
 import { connectDB } from './database/connection'
 import { MongoAdapter } from '@builderbot/database-mongo'
 import axios from 'axios'
-import qrcode from 'qrcode'
-import * as fs from 'fs'
 import * as path from 'path'
+import QRCode from 'qrcode';
+import fs from 'fs';
 
 dotenv.config()
 
@@ -416,8 +416,13 @@ let provider: Provider | null = null;
 // Endpoint para servir el código QR
 app.get('/qr', async (req, res) => {
     try {
-        // Para depurar, devuelve un texto simple
-        res.status(200).json({ qr: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", status: "testing" });
+        if (!globalQR) {
+            return res.status(404).json({ error: 'QR no disponible aún', status: "unavailable" });
+        }
+        
+        // Generar la imagen del QR
+        const qrImage = await QRCode.toDataURL(globalQR);
+        res.status(200).json({ qr: qrImage, status: "available" });
     } catch (error) {
         console.error('Error al manejar la solicitud QR:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
@@ -443,13 +448,21 @@ const main = async () => {
     //Configuracion QR 
     // Crear el proveedor con configuración básica
     const adapterProvider = createProvider(Provider, {
-        qr: {
-            store: (qr) => {
+    qr: {
+        store: async (qr) => {
+            try {
                 globalQR = qr;
-                console.log('QR listo!');
+                console.log('Nuevo código QR generado');
+                // Generar imagen QR usando qrcode
+                const qrImage = await QRCode.toBuffer(qr);
+                // Guardar en archivo dentro de bot_sessions para evitar conflictos de permisos y persistencia
+                fs.writeFileSync(path.join(__dirname, '../bot_sessions/bot.qr.png'), qrImage);
+            } catch (error) {
+                console.error('Error al guardar QR:', error);
             }
         }
-    });
+    }
+});
 
     // Asignar y configurar eventos
     provider = adapterProvider;
