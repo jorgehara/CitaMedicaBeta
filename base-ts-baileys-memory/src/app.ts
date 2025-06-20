@@ -104,7 +104,7 @@ function formatearFechaEspanol(fecha: string): string {
         toZonedTime(new Date(fecha), timeZone) :
         toZonedTime(new Date(fecha + 'T00:00:00'), timeZone);
         
-    console.log('8. Formateando fecha:', date);
+    console.log('8. Formateando fechaa:', date);
     const nombreDia = format(date, 'EEEE', { locale: es });
     const diaDelMes = format(date, 'dd');
     console.log('7. Día del mes:', diaDelMes);
