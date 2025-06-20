@@ -1,6 +1,5 @@
-import { createBot, createProvider, createFlow, addKeyword, MemoryDB } from '@builderbot/bot'
+import { createBot, createProvider, createFlow, addKeyword} from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
-import fetch from 'node-fetch'
 import { format } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
 import { es } from 'date-fns/locale'
@@ -10,9 +9,8 @@ import dotenv from 'dotenv'
 import { connectDB } from './database/connection'
 import { MongoAdapter } from '@builderbot/database-mongo'
 import axios from 'axios'
-import * as path from 'path'
-import QRCode from 'qrcode';
-import fs from 'fs';
+import { MongoAdapter as Database } from '@builderbot/database-mongo'
+
 
 dotenv.config()
 
@@ -23,7 +21,7 @@ app.use(express.json())
 
 // Configuración de MongoDB
 export const adapterDB = new MongoAdapter({
-    dbUri: process.env.MONGODB_URI || 'mongodb://admin:Consultorio2025@mongo:27017?authSource=admin',
+    dbUri: process.env.MONGODB_URI || 'mongodb://root:Consultorio2025@micitamedica.me:27017/consultorio?authSource=admin',
     dbName: 'consultorio',
 })
 
@@ -31,8 +29,8 @@ const PORT = process.env.PORT ?? 3008
 const API_URL =
   process.env.API_URL ||
   (process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3001/api'
-    : 'http://backend:3001/api');
+    ? 'https://micitamedica.me/api'
+    : 'https://micitamedica.me/api');
 
 interface Patient {
     name: string;
@@ -409,59 +407,20 @@ const welcomeFlow = addKeyword<Provider, IDBDatabase>(['hi', 'hello', 'hola'])
         ].join('\n')
     );
 
-// Variable global para almacenar el QR y el estado del bot
-let globalQR: string | null = null;
-let provider: Provider | null = null;
 
-// Endpoint para servir el código QR
-app.get('/qr', async (req, res) => {
-    try {
-        if (!globalQR) {
-            return res.status(404).json({ error: 'QR no disponible aún' });
-        }
-        const qrBuffer = await QRCode.toBuffer(globalQR);
-        res.type('png');
-        res.send(qrBuffer);
-    } catch (error) {
-        console.error('Error al generar QR:', error);
-        res.status(500).json({ error: 'Error al generar QR' });
-    }
-});
-
-
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor del chatbot escuchando en puerto ${PORT}`);
-});
-// Función principal para iniciar el bot
 const main = async () => {
-    //conexion a la base de datos
-    await connectDB();
-
-    //Inicia los flujos de conversaciones
-    const adapterFlow = createFlow([
-        welcomeFlow,
-        availableSlotsFlow,
-        bookAppointmentFlow,
-        goodbyeFlow
-    ]);
-
+    const adapterFlow = createFlow([welcomeFlow ])
+    
     const adapterProvider = createProvider(Provider)
-    provider = adapterProvider;
-
-    adapterProvider.on('qr', (qr) => {
-        globalQR = qr;
-        console.log('Nuevo QR generado');
-    });
-
-    adapterProvider.on('ready', () => {
-        console.log('Bot está listo');
-        globalQR = null; // Limpiar QR cuando el bot está conectado
-    });
+        const adapterDB = new Database({
+        dbUri: process.env.MONGODB_URI,
+        dbName: process.env.MONGODB_NAME,
+    })
 
     const { handleCtx, httpServer } = await createBot({
         flow: adapterFlow,
         provider: adapterProvider,
-        database: adapterDB
+        database: adapterDB,
     })
 
     httpServer(+PORT)
