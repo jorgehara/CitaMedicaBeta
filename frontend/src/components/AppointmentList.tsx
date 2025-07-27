@@ -444,6 +444,21 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
           >
             {format(new Date(`${appointment.date}T00:00:00`), 'dd/MM/yyyy')} - {appointment.time}
           </Typography>
+          <Typography 
+            color="text.secondary"
+            variant={viewMode === 'grid' ? 'body2' : 'body2'}
+            sx={{ 
+              fontSize: { 
+                xs: '0.8rem', 
+                sm: '0.85rem',
+                md: '0.9rem' 
+              },
+              opacity: 0.8,
+              mt: 0.5
+            }}
+          >
+            Obra Social: {appointment.socialWork}
+          </Typography>
         </Box>
 
         <Box sx={{ 
