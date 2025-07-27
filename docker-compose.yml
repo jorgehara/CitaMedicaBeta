@@ -81,6 +81,8 @@ services:
       TZ: America/Argentina/Buenos_Aires
     ports:
       - "3008:3008"
+    volumes:
+      - bot_sessions:/app/bot_sessions
     networks:
       - app-network
 
@@ -102,3 +104,4 @@ networks:
 
 volumes:
   mongodb_data:
+  bot_sessions:
