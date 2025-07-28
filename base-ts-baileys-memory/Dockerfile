@@ -1,72 +1,33 @@
-# Etapa de desarrollo
-FROM node:18-alpine as development
-
-WORKDIR /app
-
-# Instalar dependencias necesarias
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git \
-    bash \
-    curl
-
-# Instalar pnpm de manera segura
-RUN curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
-
-# Copiar archivos de dependencias
-COPY package*.json pnpm-lock.yaml ./
-
-# Instalar dependencias
-RUN pnpm install --frozen-lockfile
-
-# Copiar el resto de los archivos
-COPY . .
-
-# Crear y configurar el directorio de sesiones
-RUN mkdir -p /app/bot_sessions && \
-    chmod -R 777 /app/bot_sessions
-
-ENV PORT=3008
-EXPOSE ${PORT}
-
-# Comando para desarrollo
-CMD ["pnpm", "dev"]
-
 # Etapa de construcción
-FROM node:16-alpine3.16 as builder
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# Instalar dependencias necesarias y pnpm
+# Instalar dependencias y construir en una sola capa
 RUN apk add --no-cache python3 make g++ git bash curl && \
-    curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
+    curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm && \
+    rm -rf /var/cache/apk/*
 
 COPY package*.json pnpm-lock.yaml ./
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile && \
+    pnpm store prune
 
 COPY . .
 
-RUN pnpm build
+RUN pnpm build && \
+    pnpm prune --prod && \
+    rm -rf /root/.cache /root/.npm /root/.pnpm-store
 
 # Etapa de producción
-FROM node:16-alpine3.16 as production
+FROM node:18-alpine as production
 
 WORKDIR /app
 
-# Instalar dependencias necesarias y pnpm
-RUN apk add --no-cache python3 make g++ git bash curl && \
-    curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
-
-COPY package*.json pnpm-lock.yaml ./
-
-# Instalar solo dependencias de producción
-RUN pnpm install --prod
-
-# Copiar los archivos construidos
+# Copiar solo los archivos necesarios de la etapa de construcción
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
+COPY --from=builder /app/node_modules ./node_modules
 
 # Crear el directorio bot_sessions
 RUN mkdir -p /app/bot_sessions && \
