@@ -81,7 +81,7 @@ services:
              rm -rf /app/*.log &&
              mkdir -p /app/baileys_data &&
              export BAILEYS_DATA_PATH=/app/baileys_data &&
-             node build/app.js"
+             node dist/app.js"
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
