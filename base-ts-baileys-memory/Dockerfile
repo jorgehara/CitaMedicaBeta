@@ -34,11 +34,12 @@ COPY --from=builder /app/start.sh ./start.sh
 RUN mkdir -p /app/bot_sessions /app/baileys_data && \
     chmod -R 777 /app/bot_sessions /app/baileys_data && \
     chmod +x /app/start.sh && \
-    apk add --no-cache bash curl && \
-    curl -sSL https://downloads.mongodb.com/compass/mongosh-1.10.1-linux-x64.tgz | tar xz -C /tmp && \
-    mv /tmp/mongosh-1.10.1-linux-x64/bin/mongosh /usr/local/bin/ && \
-    rm -rf /tmp/mongosh* && \
-    chmod +x /usr/local/bin/mongosh
+    apk add --no-cache bash mongodb && \
+    ln -s $(which mongo) /usr/local/bin/mongosh
+
+# Agregar un script de limpieza
+RUN printf '#!/bin/sh\nif [ -d "/app/baileys_data" ]; then\n  find /app/baileys_data -mindepth 1 -delete || true\nfi\n' > /usr/local/bin/cleanup.sh && \
+    chmod +x /usr/local/bin/cleanup.sh
 
 ENV PORT=3008
 ENV NODE_ENV=production
