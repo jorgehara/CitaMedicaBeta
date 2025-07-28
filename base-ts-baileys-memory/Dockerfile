@@ -30,11 +30,15 @@ COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/start.sh ./start.sh
 
-# Crear el directorio bot_sessions y configurar permisos
-RUN mkdir -p /app/bot_sessions && \
-    chmod -R 777 /app/bot_sessions && \
+# Crear directorios necesarios y configurar permisos
+RUN mkdir -p /app/bot_sessions /app/baileys_data && \
+    chmod -R 777 /app/bot_sessions /app/baileys_data && \
     chmod +x /app/start.sh && \
-    apk add --no-cache bash
+    apk add --no-cache bash curl && \
+    curl -sSL https://downloads.mongodb.com/compass/mongosh-1.10.1-linux-x64.tgz | tar xz -C /tmp && \
+    mv /tmp/mongosh-1.10.1-linux-x64/bin/mongosh /usr/local/bin/ && \
+    rm -rf /tmp/mongosh* && \
+    chmod +x /usr/local/bin/mongosh
 
 ENV PORT=3008
 ENV NODE_ENV=production
