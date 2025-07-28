@@ -28,13 +28,16 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/start.sh ./start.sh
 
-# Crear el directorio bot_sessions
+# Crear el directorio bot_sessions y configurar permisos
 RUN mkdir -p /app/bot_sessions && \
-    chmod -R 777 /app/bot_sessions
+    chmod -R 777 /app/bot_sessions && \
+    chmod +x /app/start.sh && \
+    apk add --no-cache bash
 
 ENV PORT=3008
 ENV NODE_ENV=production
 EXPOSE ${PORT}
 
-CMD ["node", "dist/app.js"]
+ENTRYPOINT ["/app/start.sh"]
