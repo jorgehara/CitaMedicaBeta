@@ -8,7 +8,8 @@ function getApiUrl() {
 
   // Si estás en desarrollo local (NODE_ENV=development o sin definir)
   if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3001/api';
+    // URL del dominio
+    return 'https://micitamedica.me/api';
   }
 
   // Si estás en producción (ej: Docker Compose)
