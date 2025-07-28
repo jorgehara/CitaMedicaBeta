@@ -113,3 +113,6 @@ networks:
 
 volumes:
   mongodb_data:
+    driver: local
+  bot_sessions:
+    driver: local
