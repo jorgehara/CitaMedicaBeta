@@ -1,73 +1,69 @@
 # Etapa de desarrollo
-FROM node:21-alpine3.18 as development
+FROM node:16-alpine3.16 as development
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-ENV PNPM_HOME=/usr/local/bin
-
-COPY package*.json pnpm-lock.yaml ./
-
-RUN apk add --no-cache --virtual .gyp \
+# Instalar dependencias necesarias
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     git \
     bash \
-    && pnpm install \
-    && apk del .gyp
+    curl
 
+# Instalar pnpm de manera segura
+RUN curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
+
+# Copiar archivos de dependencias
+COPY package*.json pnpm-lock.yaml ./
+
+# Instalar dependencias
+RUN pnpm install --frozen-lockfile
+
+# Copiar el resto de los archivos
 COPY . .
 
+# Crear y configurar el directorio de sesiones
 RUN mkdir -p /app/bot_sessions && \
     chmod -R 777 /app/bot_sessions
 
 ENV PORT=3008
 EXPOSE ${PORT}
 
+# Comando para desarrollo
 CMD ["pnpm", "dev"]
 
 # Etapa de construcción
-FROM node:21-alpine3.18 as builder
+FROM node:16-alpine3.16 as builder
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-ENV PNPM_HOME=/usr/local/bin
+# Instalar dependencias necesarias y pnpm
+RUN apk add --no-cache python3 make g++ git bash curl && \
+    curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
 
 COPY package*.json pnpm-lock.yaml ./
 
-RUN apk add --no-cache --virtual .gyp \
-    python3 \
-    make \
-    g++ \
-    git \
-    bash \
-    && pnpm install \
-    && apk del .gyp
+RUN pnpm install
 
 COPY . .
 
 RUN pnpm build
 
 # Etapa de producción
-FROM node:21-alpine3.18 as production
+FROM node:16-alpine3.16 as production
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-ENV PNPM_HOME=/usr/local/bin
+# Instalar dependencias necesarias y pnpm
+RUN apk add --no-cache python3 make g++ git bash curl && \
+    curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm
 
 COPY package*.json pnpm-lock.yaml ./
 
-RUN apk add --no-cache --virtual .gyp \
-    python3 \
-    make \
-    g++ \
-    git \
-    bash \
-    && pnpm install --prod \
-    && apk del .gyp
+# Instalar solo dependencias de producción
+RUN pnpm install --prod
 
 # Copiar los archivos construidos
 COPY --from=builder /app/dist ./dist
