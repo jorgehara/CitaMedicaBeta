@@ -1,5 +1,5 @@
 # Etapa de desarrollo
-FROM node:16-alpine3.16 as development
+FROM node:18-alpine as development
 
 WORKDIR /app
 

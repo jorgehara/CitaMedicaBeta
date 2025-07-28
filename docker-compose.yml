@@ -83,7 +83,9 @@ services:
       - "3008:3008"
     networks:
       - app-network
-
+    depends_on:
+      mongodb:
+        condition: service_healthy
   frontend:
     build: 
       context: ./frontend
