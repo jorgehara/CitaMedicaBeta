@@ -88,6 +88,13 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
   frontend:
     build: 
       context: ./frontend
