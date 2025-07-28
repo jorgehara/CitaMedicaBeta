@@ -81,6 +81,8 @@ services:
       TZ: America/Argentina/Buenos_Aires
     ports:
       - "3008:3008"
+    volumes:
+      - chatbot_sessions:/app/bot_sessions
     networks:
       - app-network
     depends_on:
@@ -104,3 +106,4 @@ networks:
 
 volumes:
   mongodb_data:
+  chatbot_sessions:
