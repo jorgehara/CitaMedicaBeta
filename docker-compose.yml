@@ -5,11 +5,13 @@ services:
     image: mongo:6.0
     container_name: mongodb
     restart: always
-    command: mongod --auth --bind_ip_all
+    command: mongod --auth --bind_ip_all --port 27017 --bind_ip 0.0.0.0
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: Consultorio2025
       MONGODB_DATABASE: consultorio
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
