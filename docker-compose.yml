@@ -74,7 +74,6 @@ services:
       context: ./base-ts-baileys-memory
       dockerfile: Dockerfile
     container_name: chatbot
-    restart: unless-stopped
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
@@ -82,18 +81,8 @@ services:
       TZ: America/Argentina/Buenos_Aires
     ports:
       - "3008:3008"
-    volumes:
-      - bot_sessions:/app/bot_sessions
     networks:
       - app-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   frontend:
     build: 
@@ -113,6 +102,3 @@ networks:
 
 volumes:
   mongodb_data:
-    driver: local
-  bot_sessions:
-    driver: local
