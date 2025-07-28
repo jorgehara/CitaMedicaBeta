@@ -75,12 +75,12 @@ services:
       dockerfile: Dockerfile
     container_name: chatbot
     command: >
-      sh -c "rm -rf /app/bot_sessions/* && 
-             rm -rf /app/.baileys* && 
-             rm -rf /app/baileys_store_multi.json && 
-             rm -rf /app/*.log &&
+      sh -c "find /app -name '.baileys*' -type f -delete &&
+             find /app -name 'baileys_store_multi.json' -type f -delete &&
+             find /app -name '*.log' -type f -delete &&
+             rm -rf /app/bot_sessions/* &&
              mkdir -p /app/baileys_data &&
-             export BAILEYS_DATA_PATH=/app/baileys_data &&
+             chmod -R 777 /app/bot_sessions /app/baileys_data &&
              node dist/app.js"
     environment:
       NODE_ENV: production
