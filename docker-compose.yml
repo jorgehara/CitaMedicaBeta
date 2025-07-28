@@ -74,14 +74,7 @@ services:
       context: ./base-ts-baileys-memory
       dockerfile: Dockerfile
     container_name: chatbot
-    command: >
-      sh -c "find /app -name '.baileys*' -type f -delete &&
-             find /app -name 'baileys_store_multi.json' -type f -delete &&
-             find /app -name '*.log' -type f -delete &&
-             rm -rf /app/bot_sessions/* &&
-             mkdir -p /app/baileys_data &&
-             chmod -R 777 /app/bot_sessions /app/baileys_data &&
-             node dist/app.js"
+    entrypoint: ["/app/start.sh"]
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
