@@ -74,6 +74,8 @@ services:
       context: ./base-ts-baileys-memory
       dockerfile: Dockerfile
     container_name: chatbot
+    command: >
+      sh -c "rm -rf /app/bot_sessions/* && node build/app.js"
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
