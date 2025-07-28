@@ -82,7 +82,7 @@ services:
     ports:
       - "3008:3008"
     volumes:
-      - bot_sessions:/app/bot_sessions
+      - bot_sessions:/bot_sessions
     networks:
       - app-network
 
