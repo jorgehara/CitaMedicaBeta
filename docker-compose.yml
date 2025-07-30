@@ -73,6 +73,7 @@ services:
     build: 
       context: ./base-ts-baileys-memory
       dockerfile: Dockerfile
+      target: production
     container_name: chatbot
     environment:
       NODE_ENV: production
