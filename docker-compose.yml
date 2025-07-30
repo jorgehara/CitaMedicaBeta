@@ -79,10 +79,14 @@ services:
       MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
       PORT: 3008
       TZ: America/Argentina/Buenos_Aires
+    volumes:
+      - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
+      - ./base-ts-baileys-memory/bot_data:/app
     ports:
       - "3008:3008"
     networks:
       - app-network
+    restart: unless-stopped
 
   frontend:
     build: 
