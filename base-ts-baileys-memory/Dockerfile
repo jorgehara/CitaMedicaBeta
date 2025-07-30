@@ -48,7 +48,14 @@ RUN apk add --no-cache --virtual .gyp \
 
 COPY . .
 
+# Asegurarse de que los directorios existen
+RUN mkdir -p dist bot_sessions
+
+# Construir el proyecto
 RUN pnpm build
+
+# Verificar que el archivo se construyó
+RUN test -f dist/app.js || exit 1
 
 # Etapa de producción
 FROM node:21-alpine3.18 as production
