@@ -5,10 +5,10 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "start": "node ./dist/app.js",
+    "start": "ts-node --esm ./src/app.ts",
     "lint": "eslint . --no-ignore",
     "dev": "nodemon ./src/app.ts",
-    "build": "npx rollup -c"
+    "build": "npx rollup -c && cp -r src/bot_sessions dist/ || true"
   },
   "keywords": [],
   "dependencies": {

@@ -76,15 +76,20 @@ RUN apk add --no-cache --virtual .gyp \
     && pnpm install --prod \
     && apk del .gyp
 
-# Copiar los archivos construidos
+# Copiar los archivos construidos y asegurarse de que existan
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src ./src
 
-# Crear el directorio bot_sessions
-RUN mkdir -p /app/bot_sessions && \
-    chmod -R 777 /app/bot_sessions
+# Crear directorios necesarios y establecer permisos
+RUN mkdir -p /app/bot_sessions /app/bot_data && \
+    chmod -R 777 /app/bot_sessions /app/bot_data && \
+    ls -la /app/dist && \
+    echo "Contenido de /app/dist:" && \
+    ls -la /app/dist
 
 ENV PORT=3008
 ENV NODE_ENV=production
 EXPOSE ${PORT}
 
-CMD ["node", "dist/app.js"]
+# Cambiar el comando para usar ts-node en producción
+CMD ["pnpm", "start"]
