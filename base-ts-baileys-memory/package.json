@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "start": "ts-node --esm src/app.ts",
+    "start": "nodemon src/app.ts",
     "dev": "nodemon -e ts,json --exec ts-node src/app.ts",
     "build": "rollup -c",
     "lint": "eslint . --no-ignore"
@@ -32,7 +32,8 @@
     "mongoose": "^8.14.2",
     "node-fetch": "^3.3.2",
     "qrcode": "^1.5.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",
