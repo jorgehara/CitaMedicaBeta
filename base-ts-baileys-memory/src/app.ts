@@ -10,6 +10,9 @@ import { connectDB } from './database/connection'
 import { MongoAdapter } from '@builderbot/database-mongo'
 import axios from 'axios'
 import { MongoAdapter as Database } from '@builderbot/database-mongo'
+import QRCode from 'qrcode'
+import fs from 'fs'
+import path from 'path'
 
 
 dotenv.config()
@@ -407,6 +410,9 @@ const welcomeFlow = addKeyword<Provider, IDBDatabase>(['hi', 'hello', 'hola'])
         ].join('\n')
     );
 
+// Variables para almacenar el QR
+let qrString = '';
+let isConnected = false;
 
 const main = async () => {
     const adapterFlow = createFlow([
@@ -416,8 +422,11 @@ const main = async () => {
         goodbyeFlow 
     ])
     
-    const adapterProvider = createProvider(Provider)
-        const adapterDB = new Database({
+    const adapterProvider = createProvider(Provider, {
+        writeMyself: 'host'
+    })
+    
+    const adapterDB = new Database({
         dbUri: process.env.MONGODB_URI,
         dbName: process.env.MONGODB_NAME,
     })
@@ -427,6 +436,86 @@ const main = async () => {
         provider: adapterProvider,
         database: adapterDB,
     })
+
+    // Configurar eventos del proveedor para el QR
+    adapterProvider.on('qr', (qr) => {
+        console.log('QR generado:', qr);
+        qrString = qr;
+        isConnected = false;
+    });
+
+    adapterProvider.on('ready', () => {
+        console.log('WhatsApp conectado exitosamente');
+        qrString = '';
+        isConnected = true;
+    });
+
+    adapterProvider.on('auth_failure', () => {
+        console.log('Fallo de autenticación');
+        qrString = '';
+        isConnected = false;
+    });
+
+    // Configurar rutas de Express para el QR
+    const expressApp = express();
+    expressApp.use(cors());
+    expressApp.use(express.json());
+
+    // Endpoint para obtener el QR
+    expressApp.get('/qr', async (req, res) => {
+        try {
+            if (isConnected) {
+                return res.status(200).json({ 
+                    status: 'connected',
+                    message: 'WhatsApp ya está conectado' 
+                });
+            }
+
+            if (!qrString) {
+                return res.status(404).json({ 
+                    status: 'waiting',
+                    message: 'Esperando código QR...' 
+                });
+            }
+
+            // Generar QR como imagen base64
+            const qrImageBuffer = await QRCode.toBuffer(qrString, {
+                type: 'png',
+                width: 512,
+                margin: 2,
+            });
+
+            const qrBase64 = qrImageBuffer.toString('base64');
+            const qrDataUrl = `data:image/png;base64,${qrBase64}`;
+
+            res.status(200).json({
+                status: 'qr_ready',
+                qr: qrDataUrl,
+                message: 'Escanea el código QR con WhatsApp'
+            });
+
+        } catch (error) {
+            console.error('Error generando QR:', error);
+            res.status(500).json({ 
+                status: 'error',
+                message: 'Error al generar el código QR' 
+            });
+        }
+    });
+
+    // Endpoint para verificar el estado de la conexión
+    expressApp.get('/status', (req, res) => {
+        res.json({
+            connected: isConnected,
+            hasQR: !!qrString
+        });
+    });
+
+    // Iniciar servidor Express
+    const expressPort = process.env.PORT || 3008;
+    expressApp.listen(expressPort, () => {
+        console.log(`Servidor Express ejecutándose en puerto ${expressPort}`);
+    });
 
     httpServer(+PORT)
 }
