@@ -1,31 +1,41 @@
-# Etapa de desarrollo
-FROM node:21-alpine3.18 as development
+# Etapa única combinada
+FROM node:21-alpine3.18
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-ENV PNPM_HOME=/usr/local/bin
-
-COPY package*.json pnpm-lock.yaml ./
-
-RUN apk add --no-cache --virtual .gyp \
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     git \
-    bash \
-    && pnpm install \
-    && apk del .gyp
+    bash
 
+# Configurar pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PNPM_HOME=/usr/local/bin
+
+# Copiar archivos de configuración primero
+COPY package.json pnpm-lock.yaml ./
+COPY tsconfig.json rollup.config.js ./
+
+# Instalar dependencias
+RUN pnpm install
+
+# Copiar el resto del código
 COPY . .
 
-RUN mkdir -p /app/bot_sessions && \
-    chmod -R 777 /app/bot_sessions
+# Crear directorios necesarios y establecer permisos
+RUN mkdir -p /app/bot_sessions /app/bot_data && \
+    chmod -R 777 /app/bot_sessions /app/bot_data
 
 ENV PORT=3008
+ENV NODE_ENV=production
+
 EXPOSE ${PORT}
 
-CMD ["pnpm", "dev"]
+# Iniciar la aplicación
+CMD ["pnpm", "start"]
 
 # Etapa de construcción
 FROM node:21-alpine3.18 as builder

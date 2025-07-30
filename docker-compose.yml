@@ -73,7 +73,6 @@ services:
     build: 
       context: ./base-ts-baileys-memory
       dockerfile: Dockerfile
-      target: production
     container_name: chatbot
     environment:
       NODE_ENV: production
@@ -81,8 +80,8 @@ services:
       PORT: 3008
       TZ: America/Argentina/Buenos_Aires
     volumes:
-      - ./base-ts-baileys-memory/bot_sessions:/app/bot_sessions
-      - ./base-ts-baileys-memory/bot_data:/app
+      - ./base-ts-baileys-memory:/app
+      - /app/node_modules
     ports:
       - "3008:3008"
     networks:
