@@ -5,7 +5,7 @@ services:
     image: mongo:6.0
     container_name: mongodb
     restart: always
-    command: mongod --auth --bind_ip_all --port 27017 --bind_ip 0.0.0.0
+    command: mongod --auth --bind_ip_all
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: Consultorio2025
@@ -34,7 +34,7 @@ services:
       MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
       PORT: 3001
       TZ: America/Argentina/Buenos_Aires
-      CORS_ORIGINS: 'https://micitamedica.me'
+      CORS_ORIGINS: '*'
       GOOGLE_CALENDAR_ID: drdanielkulinka2025@gmail.com
       GOOGLE_APPLICATION_CREDENTIALS: /app/credentials.json
     volumes:
@@ -53,32 +53,37 @@ services:
         max-file: "3"
 
   nginx:
-    image: nginx:alpine
+    image: nginx:latest
     container_name: nginx
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./certbot/conf:/etc/letsencrypt:ro
-      - ./certbot/www:/var/www/certbot:ro
-      - ./logs/nginx:/var/log/nginx:rw
+    - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    - /etc/letsencrypt:/etc/letsencrypt:ro
+    - ./frontend/dist:/usr/share/nginx/html:ro
+    - ./logs/nginx:/var/log/nginx
     environment:
       TZ: America/Argentina/Buenos_Aires
     networks:
       - app-network
-    depends_on:
-      - backend
-      - frontend
 
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt:rw
-      - ./certbot/www:/var/www/certbot:rw
-    command: certonly --webroot --webroot-path=/var/www/certbot --email tu-email@example.com --agree-tos --no-eff-email -d micitamedica.me
+  chatbot:
+    build: 
+      context: ./base-ts-baileys-memory
+      dockerfile: Dockerfile
+    container_name: chatbot
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
+      PORT: 3008
+      TZ: America/Argentina/Buenos_Aires
+    ports:
+      - "3008:3008"
+    networks:
+      - app-network
+
   frontend:
     build: 
       context: ./frontend
@@ -97,4 +102,3 @@ networks:
 
 volumes:
   mongodb_data:
-  baileys_temp:

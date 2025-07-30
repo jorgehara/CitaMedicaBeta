@@ -1,30 +1,18 @@
-# Etapa de construcción
-FROM node:18-alpine as builder
+# Backend Dockerfile
+FROM node:18
 
 WORKDIR /app
 
 COPY package*.json ./
+RUN npm install
 
-# Instalar dependencias y limpiar caché en la misma capa
-RUN npm install --production && \
-    npm cache clean --force
-
-# Etapa de producción
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Copiar solo los archivos necesarios
-COPY --from=builder /app/node_modules ./node_modules
-COPY package*.json ./
+# Agregar wait-for-it
 COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
 COPY . .
 
-RUN chmod +x /wait-for-it.sh && \
-    rm -rf /root/.npm
-
 ENV PORT=3001
-ENV NODE_ENV=production
 EXPOSE 3001
 
 # Esperar a MongoDB antes de iniciar

@@ -409,7 +409,12 @@ const welcomeFlow = addKeyword<Provider, IDBDatabase>(['hi', 'hello', 'hola'])
 
 
 const main = async () => {
-    const adapterFlow = createFlow([welcomeFlow ])
+    const adapterFlow = createFlow([
+        welcomeFlow,
+        availableSlotsFlow,
+        bookAppointmentFlow,
+        goodbyeFlow 
+    ])
     
     const adapterProvider = createProvider(Provider)
         const adapterDB = new Database({

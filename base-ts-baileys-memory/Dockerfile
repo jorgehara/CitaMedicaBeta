@@ -1,48 +1,83 @@
-# Etapa de construcción
-FROM node:18-alpine as builder
+# Etapa de desarrollo
+FROM node:21-alpine3.18 as development
 
 WORKDIR /app
 
-# Instalar dependencias y construir en una sola capa
-RUN apk add --no-cache python3 make g++ git bash curl && \
-    curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm && \
-    rm -rf /var/cache/apk/*
+RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PNPM_HOME=/usr/local/bin
 
 COPY package*.json pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile && \
-    pnpm store prune
+RUN apk add --no-cache --virtual .gyp \
+    python3 \
+    make \
+    g++ \
+    git \
+    bash \
+    && pnpm install \
+    && apk del .gyp
 
 COPY . .
 
-RUN pnpm build && \
-    pnpm prune --prod && \
-    rm -rf /root/.cache /root/.npm /root/.pnpm-store
+RUN mkdir -p /app/bot_sessions && \
+    chmod -R 777 /app/bot_sessions
 
-# Etapa de producción
-FROM node:18-alpine as production
+ENV PORT=3008
+EXPOSE ${PORT}
+
+CMD ["pnpm", "dev"]
+
+# Etapa de construcción
+FROM node:21-alpine3.18 as builder
 
 WORKDIR /app
 
-# Copiar solo los archivos necesarios de la etapa de construcción
+RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PNPM_HOME=/usr/local/bin
+
+COPY package*.json pnpm-lock.yaml ./
+
+RUN apk add --no-cache --virtual .gyp \
+    python3 \
+    make \
+    g++ \
+    git \
+    bash \
+    && pnpm install \
+    && apk del .gyp
+
+COPY . .
+
+RUN pnpm build
+
+# Etapa de producción
+FROM node:21-alpine3.18 as production
+
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PNPM_HOME=/usr/local/bin
+
+COPY package*.json pnpm-lock.yaml ./
+
+RUN apk add --no-cache --virtual .gyp \
+    python3 \
+    make \
+    g++ \
+    git \
+    bash \
+    && pnpm install --prod \
+    && apk del .gyp
+
+# Copiar los archivos construidos
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/start.sh ./start.sh
 
-# Crear directorios necesarios y configurar permisos
-RUN mkdir -p /app/bot_sessions /app/baileys_data && \
-    chmod -R 777 /app/bot_sessions /app/baileys_data && \
-    chmod +x /app/start.sh && \
-    apk add --no-cache bash mongodb && \
-    ln -s $(which mongo) /usr/local/bin/mongosh
-
-# Agregar un script de limpieza
-RUN printf '#!/bin/sh\nif [ -d "/app/baileys_data" ]; then\n  find /app/baileys_data -mindepth 1 -delete || true\nfi\n' > /usr/local/bin/cleanup.sh && \
-    chmod +x /usr/local/bin/cleanup.sh
+# Crear el directorio bot_sessions
+RUN mkdir -p /app/bot_sessions && \
+    chmod -R 777 /app/bot_sessions
 
 ENV PORT=3008
 ENV NODE_ENV=production
 EXPOSE ${PORT}
 
-ENTRYPOINT ["/app/start.sh"]
+CMD ["node", "dist/app.js"]
