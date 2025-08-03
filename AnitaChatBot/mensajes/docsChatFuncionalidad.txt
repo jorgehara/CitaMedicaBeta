@@ -1,0 +1,54 @@
+/*
+.addAnswer(constA, constB, constC, constD)
+    constA: string o array de strings (único OBLIGATORIO)
+    constB: objeto { media (link+imagen), delay(cuanto tiempo espera para resp), capture(captura siguiente resp del usuario), buttons(sólo con META Y TWILIO)  }
+    constC: función async (ctx, ctxFn) => {} (opcional)
+      ctx: contexto =>ctx.pushname (nombre de la persona que esta escribiendo),
+                      ctx.from(numero desde el cual nos escriben), 
+                      ctx.body(el mensaje que nos envian al chatbot)
+      ctxFn: objeto =>ctxFn.flowDynamic('texto') (para cambiar el flujo del chatbot)
+                      ctxFn.fallBack('texto') (para manejar errores o situaciones imprevistas -error-)
+                      ctxFn.gotoFlow(flow) (para cambiar o redirigir a otro flujo del chatbot)
+                      ctxFn.endFlow() (para terminar el flujo de conversacion del chatbot)
+    constD: array de flujos hijos (opcional)
+
+  addAnswer('texto', { media: 'link', delay: 1000, capture: true}, async (ctx, ctxFn) => {}, [flowHijo])
+  addAnswer('texto', { media: 'link', delay: 1000, capture: true}, null, [flowHijo])
+
+cualquier logica o funcionalidad 
+    const flowAction = addKeyword("action")
+      .addAction (async (ctx, ctxFn) => {
+        console.log(ctx.body)
+        ctxFn.flowDynamic('hola despues de la action')
+      })
+*/
+
+//----regions Eventos posibles
+// EVENTS.WELCOME
+// const flowWelcome = addKeyword(EVENTS.WELCOME)
+// .addAnswer('Bienvenido a Bot Whatsapp')
+//comienza cuando no coincide con ninguna palabra clave
+// EVENTS.MEDIA
+// const flowMedia = addKeyword(EVENTS.MEDIA)
+// .addAnswer('📄 Aquí encontras las documentación recuerda que puedes mejorarla')
+//comienza cuando se recibe una imagen o video
+// EVENTS.LOCATION
+// const flowLocation = addKeyword(EVENTS.LOCATION)
+// .addAnswer('este es el flujo de location')
+//comienza cuando se recibe una ubicación
+// EVENTS.DOCUMENT
+// const flowDocument = addKeyword(EVENTS.DOCUMENT)
+// .addAnswer('este es el flujo de documentos')
+//comienza cuando se recibe un documento PDF, WORD
+// EVENTS.VOICE_NOTE
+// const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE)
+// .addAnswer('este es el flujo de notas de voz')
+//comienza cuando se recibe una nota de voz
+
+// EVENTS.ACTION ESPECIAL
+// const flowAction = addKeyword(EVENTS.ACTION)
+// .addAnswer('este es el flujo de acciones')
+//comienza cuando se recibe un evento especial porque no se activa por una acción directa del usuario,
+//sino que debe ser llamado explícitamente desde otra función dentro del código del bot
+
+//---endregions Eventos posibles
