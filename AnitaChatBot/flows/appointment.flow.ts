@@ -3,13 +3,26 @@ import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { es } from 'date-fns/locale';
 import axios from 'axios';
+import { APPOINTMENT_CONFIG } from '../config/appointment';
 
-const API_URL = process.env.API_URL || 
-    (process.env.NODE_ENV === 'development'
-        ? 'http://backend:3001/api'
-        : 'http://backend:3001/api');
+const { API_URL, TIMEZONE, MESSAGES, SOCIAL_WORKS } = APPOINTMENT_CONFIG;
 
 interface TimeSlot {
+    displayTime: string;
+    time: string;
+    status: 'available' | 'unavailable';
+}
+
+interface AppointmentResponse {
+    time: string;
+    [key: string]: any;
+}
+
+interface SocialWorkOption {
+    [key: string]: string;
+}
+
+type AvailableSlot = {
     displayTime: string;
     time: string;
     status: 'available' | 'unavailable';
@@ -32,7 +45,7 @@ async function getReservedAppointments(date: string): Promise<string[]> {
     try {
         const response = await axios.get(`${API_URL}/appointments/reserved/${date}`);
         if (response.data.success) {
-            return response.data.data.map(appointment => appointment.time);
+            return response.data.data.map((appointment: AppointmentResponse) => appointment.time);
         }
         return [];
     } catch (error) {
@@ -89,8 +102,8 @@ export const appointmentFlow = addKeyword(['1', 'turno', 'turnos', 'cita', 'cita
                 if (data.data.available.morning.length > 0) {
                     morningMessage = `*🌅 Horarios de mañana:*\n`;
                     data.data.available.morning
-                        .filter(slot => !reservedTimes.includes(slot.displayTime))
-                        .forEach((slot, index) => {
+                        .filter((slot: AvailableSlot) => !reservedTimes.includes(slot.displayTime))
+                        .forEach((slot: AvailableSlot) => {
                             slots.push(slot);
                             morningMessage += `${slots.length}. ⏰ ${slot.displayTime}\n`;
                         });
@@ -100,8 +113,8 @@ export const appointmentFlow = addKeyword(['1', 'turno', 'turnos', 'cita', 'cita
                 if (data.data.available.afternoon.length > 0) {
                     afternoonMessage = `*🌇 Horarios de tarde:*\n`;
                     data.data.available.afternoon
-                        .filter(slot => !reservedTimes.includes(slot.displayTime))
-                        .forEach((slot) => {
+                        .filter((slot: AvailableSlot) => !reservedTimes.includes(slot.displayTime))
+                        .forEach((slot: AvailableSlot) => {
                             slots.push(slot);
                             afternoonMessage += `${slots.length}. ⏰ ${slot.displayTime}\n`;
                         });
@@ -167,15 +180,7 @@ export const appointmentFlow = addKeyword(['1', 'turno', 'turnos', 'cita', 'cita
         { capture: true },
         async (ctx, { state }) => {
             const socialWorkOption = ctx.body.trim();
-            const socialWorks = {
-                '1': 'INSSSEP',
-                '2': 'Swiss Medical',
-                '3': 'OSDE',
-                '4': 'Galeno',
-                '5': 'CONSULTA PARTICULAR'
-            };
-
-            const socialWork = socialWorks[socialWorkOption] || 'CONSULTA PARTICULAR';
+            const socialWork = SOCIAL_WORKS[socialWorkOption as keyof typeof SOCIAL_WORKS] || 'CONSULTA PARTICULAR';
             await state.update({ socialWork });
         }
     )
