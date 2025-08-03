@@ -24,6 +24,16 @@ const errorHandler = require('./src/middleware/errorHandler');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        service: 'appointment-backend',
+        version: '1.0.0'
+    });
+});
+
 // Middleware
 app.use(cors({
     origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [],

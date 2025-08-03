@@ -54,7 +54,21 @@ async function getReservedAppointments(date: string): Promise<string[]> {
     }
 }
 
+import { verifyAppointmentSystem } from '../tests/appointment.test';
+
 export const appointmentFlow = addKeyword(['1', 'turno', 'turnos', 'cita', 'citas'])
+    .addAction(async (ctx, { flowDynamic }) => {
+        // Verificar que el sistema de citas esté funcionando
+        const isSystemWorking = await verifyAppointmentSystem();
+        if (!isSystemWorking) {
+            await flowDynamic([
+                '❌ Lo siento, el sistema de citas no está disponible en este momento.',
+                'Por favor, intenta más tarde o comunícate directamente con el consultorio.',
+                'Disculpa las molestias.'
+            ]);
+            return;
+        }
+    })
     .addAction(async (ctx, { flowDynamic, state }) => {
         try {
             const timeZone = 'America/Argentina/Buenos_Aires';
