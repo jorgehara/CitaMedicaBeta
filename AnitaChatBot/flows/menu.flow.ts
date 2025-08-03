@@ -37,6 +37,8 @@ import{
   flowAniversario97,
 } from "./aniversario97.flow";
 
+import { appointmentFlow } from "./appointment.flow";
+
 const pathMenuDesarrolloSocial = join(
   __dirname,
   "../mensajes",
@@ -86,6 +88,11 @@ const flow4 = addKeyword("4")
   .addAction(async (ctx, ctxFn) => {
     const menuFlow = await import("./menu.flow.js").then((mod) => mod.menuFlow);
     await ctxFn.gotoFlow(menuFlow);
+  });
+
+const flow10 = addKeyword(["10", "cita", "turno", "medico"])
+  .addAction(async (ctx, ctxFn) => {
+    await ctxFn.gotoFlow(appointmentFlow);
   });
 
 
@@ -342,10 +349,10 @@ const menuFlow = addKeyword(EVENTS.ACTION).addAnswer(
   menuText,
   { capture: true },
   async (ctx, ctxFn) => {
-    const opciones = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+    const opciones = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"];
     if (!opciones.includes(ctx.body)) {
       return ctxFn.fallBack(
-        "😥 No elegiste una opcion correcta. Elegi 1, 2, 3, 4, 5, 6, 7, 8, 9 o 0"
+        "😥 No elegiste una opcion correcta. Elegi 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 o 0"
       );
     }
     if (ctx.body === "0") {
@@ -357,6 +364,7 @@ const menuFlow = addKeyword(EVENTS.ACTION).addAnswer(
   [menuDesarolloSocial, menuRecaudacion, menuCatastro, flow4, flow5, flow6, flow7, 
     // menuAniversario97,
     // menuFiestaDelChivo
+    flow10
    ]
 );
 
