@@ -8,6 +8,12 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import { connectDB } from './database/connection'
 import { MongoAdapter } from '@builderbot/database-mongo'
+
+// Variables para almacenar el QR y estado de conexión
+let isConnected = false;
+let qrCode = '';
+const sessionActive = true;
+let botPhoneNumber = '';
 import axios from 'axios'
 import { MongoAdapter as Database } from '@builderbot/database-mongo'
 import QRCode from 'qrcode'
@@ -24,16 +30,15 @@ app.use(express.json())
 
 // Configuración de MongoDB
 export const adapterDB = new MongoAdapter({
-    dbUri: process.env.MONGODB_URI || 'mongodb://root:Consultorio2025@micitamedica.me:27017/consultorio?authSource=admin',
-    dbName: 'consultorio',
+    dbUri: process.env.MONGODB_URI || process.env.MONGO_DB_URI || 'mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin',
+    dbName: process.env.MONGODB_NAME || process.env.MONGO_DB_NAME || 'consultorio',
 })
 
 const PORT = process.env.PORT ?? 3008
-const API_URL =
-  process.env.API_URL ||
+const API_URL = process.env.API_URL || 
   (process.env.NODE_ENV === 'development'
-    ? 'https://micitamedica.me/api'
-    : 'https://micitamedica.me/api');
+    ? 'http://backend:3001/api'
+    : 'http://backend:3001/api');
 
 interface Patient {
     name: string;
@@ -392,9 +397,38 @@ export const goodbyeFlow = addKeyword(['bye', 'adiós', 'chao', 'chau'])
         `👋 *¡Hasta luego! Si necesitas más ayuda, no dudes en contactarnos nuevamente.*`,
         { delay: 1000 }
     )
-    .addAction(async (ctx, ctxFn 
-    ) => {
+    .addAction(async (ctx, ctxFn) => {
         await ctxFn.gotoFlow(welcomeFlow);
+    });
+
+// Flujo admin para gestionar la sesión
+const adminFlow = addKeyword(['!admin', '!help'])
+    .addAction(async (ctx, { flowDynamic, state }) => {
+        if (ctx.from !== process.env.ADMIN_NUMBER) {
+            return;
+        }
+
+        if (ctx.body.toLowerCase() === '!help') {
+            await flowDynamic(
+                "Comandos disponibles:\n" +
+                "!disconnect - Desconecta la sesión de WhatsApp\n" +
+                "!status - Muestra el estado actual del bot"
+            );
+            return;
+        }
+
+        if (ctx.body.toLowerCase() === '!disconnect') {
+            isConnected = false;
+            qrCode = '';
+            await state.clear();
+            await flowDynamic("Sesión desconectada. Escanea el código QR para reconectar.");
+            return;
+        }
+
+        if (ctx.body.toLowerCase() === '!status') {
+            await flowDynamic(`Estado del bot: ${isConnected ? 'Conectado' : 'Desconectado'}`);
+            return;
+        }
     });
 
 // Flujo de bienvenida
@@ -410,114 +444,179 @@ const welcomeFlow = addKeyword<Provider, IDBDatabase>(['hi', 'hello', 'hola'])
         ].join('\n')
     );
 
-// Variables para almacenar el QR
-let qrString = '';
-let isConnected = false;
-
 const main = async () => {
-    const adapterFlow = createFlow([
-        welcomeFlow,
-        availableSlotsFlow,
-        bookAppointmentFlow,
-        goodbyeFlow 
-    ])
-    
-    const adapterProvider = createProvider(Provider, {
-        writeMyself: 'host'
-    })
-    
-    const adapterDB = new Database({
-        dbUri: process.env.MONGODB_URI,
-        dbName: process.env.MONGODB_NAME,
-    })
+    try {
+        const PORT = Number(process.env.PORT) || 3009;
+        
+        const adapterFlow = createFlow([
+            welcomeFlow,
+            availableSlotsFlow,
+            bookAppointmentFlow,
+            goodbyeFlow,
+            adminFlow
+        ]);
 
-    const { handleCtx, httpServer } = await createBot({
-        flow: adapterFlow,
-        provider: adapterProvider,
-        database: adapterDB,
-    })
+        const adapterProvider = createProvider(Provider, {
+            port: PORT
+        });
+        
+        const adapterDB = new Database({
+            dbUri: process.env.MONGO_DB_URI || 'mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin',
+            dbName: process.env.MONGO_DB_NAME || 'consultorio',
+        });
+
+        const { handleCtx, httpServer } = await createBot({
+            flow: adapterFlow,
+            provider: adapterProvider,
+            database: adapterDB,
+        });
+
+        // Configurar eventos del bot
+        adapterProvider.on('qr', qr => {
+            console.log('Nuevo QR generado');
+            qrCode = qr;
+            isConnected = false;
+        });
+
+        adapterProvider.on('ready', async () => {
+            // Asegúrate de que getInstance() retorna el tipo correcto
+            const instance = adapterProvider.getInstance() as { user?: { id?: string } };
+            let botNumber = '';
+            if (instance && instance.user && instance.user.id) {
+                botNumber = instance.user.id;
+            } else {
+                botNumber = 'Desconocido';
+            }
+            console.log('Bot conectado exitosamente');
+            console.log('Número del bot:', botNumber);
+            qrCode = '';
+            isConnected = true;
+            botPhoneNumber = botNumber;
+        });
+
+        adapterProvider.on('auth_failure', () => {
+            console.log('Error de autenticación');
+            qrCode = '';
+            isConnected = false;
+        });
+
+        // Configurar rutas del bot
+        adapterProvider.server.get('/qr', (_, res) => {
+            if (isConnected) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    status: 'connected',
+                    message: 'WhatsApp ya está conectado'
+                }));
+                return;
+            }
+
+            if (!qrCode) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    status: 'waiting',
+                    message: 'Esperando código QR...'
+                }));
+                return;
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+                status: 'qr_ready',
+                qr: qrCode
+            }));
+        });
 
     // Configurar eventos del proveedor para el QR
-    adapterProvider.on('qr', (qr) => {
-        console.log('QR generado:', qr);
-        qrString = qr;
-        isConnected = false;
+    const app = adapterProvider.server;
+    
+    app.get('/status', (_, res) => {
+        res.send({ 
+            qr: qrCode,
+            connected: isConnected,
+            botNumber: botPhoneNumber
+        });
     });
 
-    adapterProvider.on('ready', () => {
-        console.log('WhatsApp conectado exitosamente');
-        qrString = '';
-        isConnected = true;
-    });
-
-    adapterProvider.on('auth_failure', () => {
-        console.log('Fallo de autenticación');
-        qrString = '';
-        isConnected = false;
-    });
-
-    // Configurar rutas de Express para el QR
-    const expressApp = express();
-    expressApp.use(cors());
-    expressApp.use(express.json());
-
-    // Endpoint para obtener el QR
-    expressApp.get('/qr', async (req, res) => {
+    // Endpoint para desconectar la sesión
+    app.post('/disconnect', async (_, res) => {
         try {
             if (isConnected) {
-                return res.status(200).json({ 
-                    status: 'connected',
-                    message: 'WhatsApp ya está conectado' 
+                const client = adapterProvider.getInstance() as { logout?: () => Promise<void>; end?: () => Promise<void> };
+                if (typeof client.logout === 'function') {
+                    await client.logout();
+                }
+                if (typeof client.end === 'function') {
+                    await client.end();
+                }
+                
+                isConnected = false;
+                qrCode = '';
+                botPhoneNumber = '';
+
+                res.status(200).json({ 
+                    success: true, 
+                    message: 'Sesión desconectada exitosamente' 
+                });
+            } else {
+                res.status(400).json({ 
+                    success: false, 
+                    message: 'No hay sesión activa para desconectar' 
                 });
             }
-
-            if (!qrString) {
-                return res.status(404).json({ 
-                    status: 'waiting',
-                    message: 'Esperando código QR...' 
-                });
-            }
-
-            // Generar QR como imagen base64
-            const qrImageBuffer = await QRCode.toBuffer(qrString, {
-                type: 'png',
-                width: 512,
-                margin: 2,
-            });
-
-            const qrBase64 = qrImageBuffer.toString('base64');
-            const qrDataUrl = `data:image/png;base64,${qrBase64}`;
-
-            res.status(200).json({
-                status: 'qr_ready',
-                qr: qrDataUrl,
-                message: 'Escanea el código QR con WhatsApp'
-            });
-
         } catch (error) {
-            console.error('Error generando QR:', error);
+            console.error('Error al desconectar:', error);
             res.status(500).json({ 
-                status: 'error',
-                message: 'Error al generar el código QR' 
+                success: false, 
+                message: 'Error al desconectar la sesión' 
             });
         }
     });
 
-    // Endpoint para verificar el estado de la conexión
-    expressApp.get('/status', (req, res) => {
-        res.json({
-            connected: isConnected,
-            hasQR: !!qrString
-        });
-    });
+    adapterProvider.server.post(
+        '/v1/messages',
+        handleCtx(async (bot, req, res) => {
+            const { number, message, urlMedia } = req.body;
+            await bot.sendMessage(number, message, { media: urlMedia ?? null });
+            res.end('sended');
+        })
+    );
 
-    // Iniciar servidor Express
-    const expressPort = process.env.PORT || 3008;
-    expressApp.listen(expressPort, () => {
-        console.log(`Servidor Express ejecutándose en puerto ${expressPort}`);
-    });
+    adapterProvider.server.post(
+        '/v1/register',
+        handleCtx(async (bot, req, res) => {
+            const { number, name } = req.body;
+            await bot.dispatch('REGISTER_FLOW', { from: number, name });
+            res.end('trigger');
+        })
+    );
 
-    httpServer(+PORT)
+    adapterProvider.server.post(
+        '/v1/samples',
+        handleCtx(async (bot, req, res) => {
+            const { number, name } = req.body;
+            await bot.dispatch('SAMPLES', { from: number, name });
+            res.end('trigger');
+        })
+    );
+
+    adapterProvider.server.post(
+        '/v1/blacklist',
+        handleCtx(async (bot, req, res) => {
+            const { number, intent } = req.body;
+            if (intent === 'remove') bot.blacklist.remove(number);
+            if (intent === 'add') bot.blacklist.add(number);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ status: 'ok', number, intent }));
+        })
+    );
+
+    httpServer(+PORT);
+    } catch (error) {
+        console.error('Error al iniciar el bot:', error);
+        process.exit(1);
+    }
 }
 
 main()

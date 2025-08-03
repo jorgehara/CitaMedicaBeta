@@ -28,9 +28,12 @@ const app = express();
 app.use(cors({
     origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Ruta base
+app.get('/', (req, res) => {
+    res.json({ message: 'API del Consultorio Médico' });
+});
 app.use(express.json());
 
 const qrRoutes = require('./src/routes/qrRoutes');

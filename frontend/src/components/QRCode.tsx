@@ -1,34 +1,62 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper, Button } from '@mui/material';
 
 const QRCode: React.FC = () => {
   const [qrImage, setQrImage] = useState<string | null>(null);
-  const [QrMessage, setQrMessage] = useState<string>("Cargando código QR...");
+  const [qrMessage, setQrMessage] = useState<string>("Cargando código QR...");
+  const [isConnected, setIsConnected] = useState<boolean>(false);
 
- const fetchQR = async () => {
+ const fetchStatus = async () => {
   try {
-    const timestamp = new Date().getTime();
-    const response = await fetch(`/qr?t=${timestamp}`);
+    const response = await fetch('/status');
     
     if (response.ok) {
       const data = await response.json();
-      setQrImage(data.qr);
-    } else if (response.status === 404) {
-      // Mostrar mensaje específico para 404
-      setQrImage(null);
-      setQrMessage("WhatsApp ya está conectado o aún no ha generado un código QR");
+      setIsConnected(data.connected);
+      
+      if (data.connected) {
+        setQrImage(null);
+        setQrMessage(`WhatsApp conectado${data.botNumber ? ` al número: ${data.botNumber}` : ''}`);
+      } else if (data.qr) {
+        setQrImage(data.qr);
+        setQrMessage("Escanea el código QR con WhatsApp");
+      } else {
+        setQrImage(null);
+        setQrMessage("Esperando código QR...");
+      }
     } else {
-      setQrMessage("Error al cargar el código QR");
+      setQrMessage("Error al obtener el estado");
+      setQrImage(null);
     }
   } catch (error) {
-    console.error('Error al obtener el QR:', error);
+    console.error('Error al obtener el estado:', error);
     setQrMessage("Error de conexión al servidor");
   }
 };
 
+  const handleDisconnect = async () => {
+    try {
+      const response = await fetch('/disconnect', {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        setIsConnected(false);
+        setQrImage(null);
+        setQrMessage('Desconectado. Esperando nuevo código QR...');
+      } else {
+        const data = await response.json();
+        setQrMessage(data.message || 'Error al desconectar');
+      }
+    } catch (error) {
+      console.error('Error al desconectar:', error);
+      setQrMessage('Error al desconectar');
+    }
+  };
+
   useEffect(() => {
-    fetchQR();
-    const interval = setInterval(fetchQR, 60000); // Actualizar cada minuto
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 5000); // Actualizar cada 5 segundos
 
     return () => clearInterval(interval);
   }, []);
@@ -57,11 +85,21 @@ const QRCode: React.FC = () => {
           />
         ) : (
           <Typography color="text.secondary">
-            {QrMessage}
+            {qrMessage}
           </Typography>
         )}
+        {isConnected && (
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDisconnect}
+            sx={{ mt: 2 }}
+          >
+            Desconectar WhatsApp
+          </Button>
+        )}
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Este código se actualiza automáticamente cada minuto
+          {isConnected ? 'Conectado a WhatsApp' : 'El código QR se actualiza automáticamente cada 5 segundos'}
         </Typography>
       </Paper>
     </Box>

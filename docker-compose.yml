@@ -1,4 +1,4 @@
-version: '3.9'
+#version: '3.9'
 
 services:
   mongodb:
@@ -30,17 +30,20 @@ services:
     container_name: backend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
-      PORT: 3001
-      TZ: America/Argentina/Buenos_Aires
-      CORS_ORIGINS: '*'
-      GOOGLE_CALENDAR_ID: drdanielkulinka2025@gmail.com
-      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials.json
+      NODE_ENV: development
+      MONGODB_URI: ${MONGODB_URI}
+      PORT: ${PORT_BACKEND}
+      TZ: ${TZ}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
     volumes:
       - ./backend/credentials.json:/app/credentials.json:ro
+      - ./backend/src:/app/src
     expose:
-      - "3001"
+      - "${PORT_BACKEND}"
+    ports:
+      - "${PORT_BACKEND}:${PORT_BACKEND}"
     networks:
       - app-network
     depends_on:
@@ -75,18 +78,17 @@ services:
       dockerfile: Dockerfile
     container_name: chatbot
     environment:
-      NODE_ENV: production
-      MONGODB_URI: mongodb://root:Consultorio2025@mongodb:27017/consultorio?authSource=admin
-      PORT: 3008
-      TZ: America/Argentina/Buenos_Aires
-    volumes:
-      - ./base-ts-baileys-memory:/app
-      - /app/node_modules
+      - NODE_ENV=development
+      - PORT=${PORT_CHATBOT}
+      - MONGO_DB_URI=${MONGO_DB_URI}
     ports:
-      - "3008:3008"
+      - "3009:3009"
     networks:
       - app-network
     restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   frontend:
     build: 
