@@ -6,7 +6,6 @@ import { formFlow } from "./form.flow";
 // const { formFlow } = formTo;
 import { gptFlow }from "./gpt.flow";
 // const { gptFlow } = _default;
-import { flowRecaudacion1, flowRecaudacion2, flowRecaudacion3, flowRecaudacion4, flowRecaudacion5, flowRecaudacion6, flowRecaudacion7, flowRecaudacion8, flowRecaudacion9 } from "./recaudacion.flow";
 
 import {
   flowDesarrolloSocial1,
@@ -22,20 +21,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import { readFileSync } from "fs";
-import {
-  flowCatastro1, flowCatastro2, flowCatastro3, flowCatastro4, flowCatastro5, flowCatastro6,
-} from "./catastro.flow.js";
 
-import {
-  flowFiestaDelChivo1,
-  flowFiestaDelChivo2,
-  flowFiestaDelChivo3,
-  flowFiestaDelChivo4,
-} from "./fiestadelchivo.flow";
 
-import{
-  flowAniversario97,
-} from "./aniversario97.flow";
 
 import { appointmentFlow } from "./appointment.flow";
 
@@ -255,62 +242,7 @@ const flow7 = addKeyword("7")
   //   ]
   // );
 
-const menuCatastro = addKeyword("3") 
-  .addAnswer(
-    menuTextCatastro,
-    { capture: true },
-    async (ctx, ctxFn) => {
-      const opciones = ["1", "2", "3", "4", "5", "6", "0"];
-      if (!opciones.includes(ctx.body)) {
-        return ctxFn.fallBack(
-          "😥 No elegiste una opcion correcta. Elegi 1, 2, 3, 4, 5, 6 o 0"
-        );
-      }
-      if (ctx.body === "0") {
-        return ctxFn.endFlow(
-          "🔙 Volviendo al menu principal. Escribi *Menu* para volver a ver las opciones"
-        );
-      }
-    },
-    [
-      flowCatastro1,
-      flowCatastro2,
-      flowCatastro3,
-      flowCatastro4,
-      flowCatastro5,
-      flowCatastro6,
-    ]
-  );
 
-  const menuRecaudacion = addKeyword("2") 
-  .addAnswer(
-    menuTextRecaudacion,
-    { capture: true },
-    async (ctx, ctxFn) => {
-      const opciones = ["1", "2", "3", "4", "5", "6", "7", "8","9", "0"];
-      if (!opciones.includes(ctx.body)) {
-        return ctxFn.fallBack(
-          "😥 No elegiste una opcion correcta. Elegi 1, 2, 3, 4, 5, 6, 7, 8, 9 o 0"
-        );
-      }
-      if (ctx.body === "0") {
-        return ctxFn.endFlow(
-          "🔙 Volviendo al menu principal. Escribi *Menu* para volver a ver las opciones"
-        );
-      }
-    },
-    [
-      flowRecaudacion1,
-      flowRecaudacion2,
-      flowRecaudacion3,
-      flowRecaudacion4,
-      flowRecaudacion5,
-      flowRecaudacion6,
-      flowRecaudacion7,
-      flowRecaudacion8,
-      flowRecaudacion9,
-    ]
-  );
   const menuDesarolloSocial = addKeyword("1") 
   .addAnswer(
     menuTextDesarrolloSoial,
@@ -361,14 +293,14 @@ const menuFlow = addKeyword(EVENTS.ACTION).addAnswer(
       )
     }
   },
-  [menuDesarolloSocial, menuRecaudacion, menuCatastro, flow4, flow5, flow6, flow7, 
+  [menuDesarolloSocial, flow4, flow5, flow6, flow7, 
     // menuAniversario97,
     // menuFiestaDelChivo
     flow10
    ]
 );
 
-export { menuFlow, menuRecaudacion, menuCatastro, menuDesarolloSocial, 
+export { menuFlow, menuDesarolloSocial, 
   // menuFiestaDelChivo, 
   // menuAniversario97 
 };
