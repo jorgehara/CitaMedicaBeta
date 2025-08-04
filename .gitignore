@@ -4,6 +4,10 @@ dist
 dist/*
 qr_updater_windows/
 
+# Excluir carpeta completa de Anita
+AnitaChatBot/
+AnitaChatBot/**
+
 # Environment variables
 .env
 .env.*
