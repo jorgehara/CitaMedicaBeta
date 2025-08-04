@@ -8,16 +8,16 @@ services:
     command: mongod --auth --bind_ip_all
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: Consultorio2025
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGODB_DATABASE: consultorio
-    ports:
-      - "27017:27017"
+    # ports:  # Comentado en producción por seguridad
+    #   - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh mongodb://root:Consultorio2025@localhost:27017/admin --quiet"]
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh mongodb://root:${MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/admin --quiet"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -30,7 +30,7 @@ services:
     container_name: backend
     restart: unless-stopped
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV}
       MONGODB_URI: ${MONGODB_URI}
       PORT: ${PORT_BACKEND}
       TZ: ${TZ}
@@ -39,7 +39,6 @@ services:
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
     volumes:
       - ./backend/credentials.json:/app/credentials.json:ro
-      - ./backend/src:/app/src
     expose:
       - "${PORT_BACKEND}"
     ports:
@@ -49,6 +48,11 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT_BACKEND}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     logging:
       driver: "json-file"
       options:
@@ -63,32 +67,49 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-    - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    - /etc/letsencrypt:/etc/letsencrypt:ro
-    - ./frontend/dist:/usr/share/nginx/html:ro
-    - ./logs/nginx:/var/log/nginx
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./logs/nginx:/var/log/nginx
     environment:
-      TZ: America/Argentina/Buenos_Aires
+      TZ: ${TZ}
     networks:
       - app-network
+    depends_on:
+      - frontend
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   chatbot:
     build: 
-      context: ./base-ts-baileys-memory
+      context: ./AnitaChatBot
       dockerfile: Dockerfile
     container_name: chatbot
     environment:
-      - NODE_ENV=development
-      - PORT=${PORT_CHATBOT}
-      - MONGO_DB_URI=${MONGO_DB_URI}
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${CHATBOT_PORT}
+      MONGO_DB_URI: ${MONGO_DB_URI}
+      API_URL: ${API_URL}
+      GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+    volumes:
+      - ./AnitaChatBot/credentials.json:/app/credentials.json:ro
     ports:
-      - "3009:3009"
+      - "${CHATBOT_PORT}:${CHATBOT_PORT}"
     networks:
       - app-network
     restart: unless-stopped
     depends_on:
       mongodb:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${CHATBOT_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     build: 
@@ -96,15 +117,25 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      VITE_API_URL: ${VITE_API_URL}
     networks:
       - app-network
     expose:
       - "80"
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   app-network:
+    driver: bridge
 
 volumes:
   mongodb_data:
+    driver: local
