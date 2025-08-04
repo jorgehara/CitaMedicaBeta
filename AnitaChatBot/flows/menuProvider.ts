@@ -1,8 +1,8 @@
-import getTo from './menu.flow';
-const { menuFlow } = getTo;
+// import getTo from './menu.flow';
+// const { menuFlow } = getTo;
 
-function getMenuFlow() {
-return menuFlow;
-}
+// function getMenuFlow() {
+// return menuFlow;
+// }
 
-export default { getMenuFlow };
+// export default { getMenuFlow };

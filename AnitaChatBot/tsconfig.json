@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "strict": true,
     "target": "ES2022",
     "module": "ES2022",
     "declaration": false,
@@ -24,7 +22,7 @@
   "include": [
     "**/*.js",
     "**/*.ts"
-, "flows/admin.flow.ts"  ],
+  ],
   "exclude": [
     "node_modules",
     "dist",
