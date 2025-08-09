@@ -10,6 +10,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGODB_DATABASE: consultorio
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
