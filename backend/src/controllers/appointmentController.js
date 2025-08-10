@@ -26,6 +26,34 @@ exports.testCalendarConnection = async (req, res) => {
     }
 };
 
+// Función para crear un evento de prueba en Google Calendar
+exports.testCreateEvent = async (req, res) => {
+    try {
+        const testAppointment = {
+            clientName: "Paciente de Prueba",
+            socialWork: "Obra Social de Prueba",
+            phone: "123-456-7890",
+            email: "test@example.com",
+            description: "Esta es una cita de prueba",
+            date: new Date().toISOString().split('T')[0], // Fecha actual
+            time: "14:00", // 2 PM
+        };
+
+        const result = await googleCalendar.createCalendarEvent(testAppointment);
+        res.json({
+            status: 'success',
+            message: 'Evento de prueba creado exitosamente',
+            data: result
+        });
+    } catch (error) {
+        console.error('Error al crear evento de prueba:', error);
+        res.status(500).json({
+            status: 'error',
+            message: error.message
+        });
+    }
+};
+
 // Horarios posibles de consulta
 const MORNING_HOURS = ['08:00', '08:15', '08:30', '08:45', 
                       '09:00', '09:15', '09:30', '09:45',
