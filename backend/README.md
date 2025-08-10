@@ -1,46 +1,38 @@
-# API REST con Node.js y Express
+# CitaMedicaBeta Backend
 
-Esta es una API REST simple que implementa operaciones CRUD básicas.
+Este proyecto es la API backend para la gestión de citas médicas. Permite a los usuarios agendar, consultar y cancelar citas con profesionales de la salud.
+
+## Características
+
+- Registro y autenticación de usuarios
+- Gestión de citas médicas (crear, consultar, cancelar)
+- Administración de profesionales de la salud
+- API RESTful construida con Node.js y Express
 
 ## Instalación
 
-```bash
-npm install
-```
+1. Clona el repositorio:
+    ```bash
+    git clone https://github.com/tu-usuario/CitaMedicaBeta.git
+    ```
+2. Instala las dependencias:
+    ```bash
+    cd backend
+    npm install
+    ```
+3. Configura las variables de entorno en un archivo `.env`.
 
-## Configuración
+## Uso
 
-Crea un archivo `.env` en la raíz del proyecto (ya está creado con la configuración básica):
-
-```
-PORT=3000
-```
-
-## Ejecución
-
-Para desarrollo (con recarga automática):
+Inicia el servidor de desarrollo:
 ```bash
 npm run dev
 ```
 
-Para producción:
-```bash
-npm start
-```
+## Contribución
 
-## Endpoints
+Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request.
 
-- GET `/api/items` - Obtener todos los items
-- GET `/api/items/:id` - Obtener un item por ID
-- POST `/api/items` - Crear un nuevo item
-- PUT `/api/items/:id` - Actualizar un item existente
-- DELETE `/api/items/:id` - Eliminar un item
+## Licencia
 
-### Ejemplo de objeto item:
-```json
-{
-    "id": 1,
-    "nombre": "Ejemplo",
-    "descripcion": "Este es un item de ejemplo"
-}
-```
+Este proyecto está bajo la licencia MIT.
