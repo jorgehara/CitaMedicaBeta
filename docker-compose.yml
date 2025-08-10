@@ -17,10 +17,10 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh mongodb://root:${MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/admin --quiet"]
-      interval: 10s
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 40s
 
   backend:
@@ -37,6 +37,8 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+      MONGODB_CONNECT_TIMEOUT_MS: 60000
+      MONGODB_SOCKET_TIMEOUT_MS: 60000
     volumes:
       - ./backend/credentials.json:/app/credentials.json:ro
     ports:
