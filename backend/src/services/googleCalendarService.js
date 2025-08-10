@@ -87,6 +87,14 @@ Email: ${appointment.email}`,
     }
 }
 
-// Creamos y exportamos una única instancia
-const instance = new GoogleCalendarService();
-module.exports = instance;
+// Exportar el servicio como un singleton
+let instance = null;
+
+function getInstance() {
+    if (!instance) {
+        instance = new GoogleCalendarService();
+    }
+    return instance;
+}
+
+module.exports = getInstance();

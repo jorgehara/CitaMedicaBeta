@@ -1,6 +1,6 @@
 const Appointment = require('../models/appointment');
-const googleCalendar = require('../services/googleCalendarService');
 const mongoose = require('mongoose');
+const googleCalendarService = require('../services/googleCalendarService');
 
 // Función auxiliar para validar ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -8,7 +8,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 // Función para probar la conexión con Google Calendar
 exports.testCalendarConnection = async (req, res) => {
     try {
-        const result = await googleCalendar.testConnection();
+        const result = await googleCalendarService.testConnection();
         res.json({ 
             status: 'success', 
             message: 'Conexión con Google Calendar exitosa', 
@@ -36,7 +36,7 @@ exports.testCreateEvent = async (req, res) => {
             time: "14:00",
         };
 
-        const result = await googleCalendar.createCalendarEvent(testAppointment);
+        const result = await googleCalendarService.createCalendarEvent(testAppointment);
         res.json({
             status: 'success',
             message: 'Evento de prueba creado exitosamente',
@@ -229,7 +229,7 @@ exports.createAppointment = async (req, res) => {
 
     // Intentar crear el evento en Google Calendar
     try {
-      const eventId = await googleCalendar.createCalendarEvent(appointment);
+      const eventId = await googleCalendarService.createCalendarEvent(appointment);
       if (eventId) {
         appointment.googleEventId = eventId;
         await appointment.save();
@@ -317,7 +317,7 @@ exports.updateAppointment = async (req, res) => {
     // Actualizar en Google Calendar si es necesario
     try {
       if (appointment.googleEventId) {
-        await googleCalendar.updateEvent(appointment.googleEventId, updatedAppointment);
+        await googleCalendarService.updateEvent(appointment.googleEventId, updatedAppointment);
       }
     } catch (calendarError) {
       console.error('Error al actualizar evento en Google Calendar:', calendarError);
@@ -357,7 +357,7 @@ exports.deleteAppointment = async (req, res) => {
 
     try {
       if (appointment.googleEventId) {
-        await googleCalendar.deleteEvent(appointment.googleEventId);
+        await googleCalendarService.deleteEvent(appointment.googleEventId);
       }
     } catch (calendarError) {
       console.error('Error al eliminar evento de Google Calendar:', calendarError);
