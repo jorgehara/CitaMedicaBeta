@@ -1,27 +1,49 @@
 const { google } = require('googleapis');
-const config = require('../config/googleCalendar');
-const { auth } = require('../config/googleCalendar');
+const path = require('path');
 
 class GoogleCalendarService {
     constructor() {
-        this.calendar = google.calendar({ version: 'v3', auth });
+        this.auth = null;
+        this.calendar = null;
+    }
+
+    async ensureInitialized() {
+        try {
+            console.log('Iniciando ensureInitialized');
+            console.log('GOOGLE_APPLICATION_CREDENTIALS:', process.env.GOOGLE_APPLICATION_CREDENTIALS);
+            console.log('CALENDAR_ID:', process.env.CALENDAR_ID);
+            
+            if (!this.auth) {
+                this.auth = new google.auth.GoogleAuth({
+                    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+                    scopes: ['https://www.googleapis.com/auth/calendar']
+                });
+                console.log('Auth creada correctamente');
+                
+                this.calendar = google.calendar({ version: 'v3', auth: this.auth });
+                console.log('Cliente de calendar creado correctamente');
+            }
+            console.log('ensureInitialized completado');
+        } catch (error) {
+            console.error('Error en ensureInitialized:', error);
+            throw error;
+        }
     }
 
     async testConnection() {
         try {
-            // Intentar listar los próximos 1 evento para verificar la conexión
-            const response = await this.calendar.events.list({
-                calendarId: 'primary',
-                timeMin: (new Date()).toISOString(),
-                maxResults: 1,
+            await this.ensureInitialized();
+            const calendar = await this.calendar.calendars.get({
+                calendarId: process.env.CALENDAR_ID
             });
             return {
                 connected: true,
-                calendarId: 'primary',
-                nextEventsCount: response.data.items.length
+                calendarId: process.env.CALENDAR_ID,
+                nextEventsCount: 0
             };
         } catch (error) {
-            throw new Error(`Error al conectar con Google Calendar: ${error.message}`);
+            console.error('Error en testConnection:', error);
+            throw new Error(`Error conectando con Google Calendar: ${error.message}`);
         }
     }
 
@@ -68,7 +90,7 @@ ${appointment.description ? '\nNotas: ' + appointment.description : ''}`,
 
     calculateEndTime(date, startTime) {
         const startDateTime = new Date(`${date}T${startTime}`);
-        const endDateTime = new Date(startDateTime.getTime() + (60 * 60 * 1000)); // Suma 1 hora
+        const endDateTime = new Date(startDateTime.getTime() + (15 * 60 * 1000)); // Suma 15 minutos
         return endDateTime.toISOString().split('.')[0];
     }
 }

@@ -55,13 +55,10 @@ exports.testCreateEvent = async (req, res) => {
 };
 
 // Horarios posibles de consulta
-const MORNING_HOURS = ['08:00', '08:15', '08:30', '08:45', 
-                      '09:00', '09:15', '09:30', '09:45',
-                      '10:00', '10:15', '10:30', '10:45', 
+const MORNING_HOURS = ['10:00', '10:15', '10:30', '10:45', 
                       '11:00', '11:15', '11:30', '11:45'];
 
-const AFTERNOON_HOURS = ['16:00', '16:15', '16:30', '16:45',
-                        '17:00', '17:15', '17:30', '17:45',
+const AFTERNOON_HOURS = ['17:00', '17:15', '17:30', '17:45',
                         '18:00', '18:15', '18:30', '18:45',
                         '19:00', '19:15', '19:30', '19:45'];
 
@@ -111,19 +108,19 @@ exports.getAvailableAppointments = async (req, res) => {
         // Crear array con todos los horarios posibles
         const allPossibleSlots = [];
         
-        // Horarios de la mañana (8:00 a 11:45)
-        for (let hour = 8; hour < 12; hour++) {
+        // Horarios de la mañana (10:00 a 11:45)
+        for (let hour = 10; hour < 12; hour++) {
             for (let minute = 0; minute < 60; minute += 15) {
                 allPossibleSlots.push({
                     displayTime: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
                     time: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
-                    status: 'available'  // Cambiado de 'disponible' a 'available'
+                    status: 'available'
                 });
             }
         }
         
-        // Horarios de la tarde (16:00 a 19:45)
-        for (let hour = 16; hour < 20; hour++) {
+        // Horarios de la tarde (17:00 a 19:45)
+        for (let hour = 17; hour < 20; hour++) {
             for (let minute = 0; minute < 60; minute += 15) {
                 allPossibleSlots.push({
                     displayTime: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
