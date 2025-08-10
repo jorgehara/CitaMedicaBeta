@@ -232,10 +232,11 @@ exports.createAppointment = async (req, res) => {
 
     // Intentar crear el evento en Google Calendar
     try {
-      await googleCalendar.ensureInitialized();
-      const eventId = await googleCalendar.createEvent(appointment);
-      appointment.googleEventId = eventId;
-      await appointment.save();
+      const eventId = await googleCalendar.createCalendarEvent(appointment);
+      if (eventId) {
+        appointment.googleEventId = eventId;
+        await appointment.save();
+      }
     } catch (calendarError) {
       console.error('Error al crear evento en Google Calendar:', calendarError);
       // Continuamos con la creación de la cita aunque falle la sincronización con Google Calendar
