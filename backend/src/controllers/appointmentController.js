@@ -1,5 +1,5 @@
 const Appointment = require('../models/appointment');
-const GoogleCalendarService = require('../services/googleCalendarService');
+const googleCalendar = require('../services/googleCalendarService');
 const mongoose = require('mongoose');
 
 // Instancia singleton del servicio de Google Calendar

@@ -26,7 +26,7 @@ class GoogleCalendarService {
     }
 
     async createCalendarEvent(appointment) {
-        await this.ensureInitialized();
+        await this.init();
         try {
             const startTime = new Date(`${appointment.date}T${appointment.time}`);
             const endTime = new Date(startTime.getTime() + 15 * 60000); // 15 minutos
