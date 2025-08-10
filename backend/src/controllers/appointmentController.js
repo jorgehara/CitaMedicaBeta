@@ -35,8 +35,8 @@ exports.testCreateEvent = async (req, res) => {
             phone: "123-456-7890",
             email: "test@example.com",
             description: "Esta es una cita de prueba",
-            date: new Date().toISOString().split('T')[0], // Fecha actual
-            time: "14:00", // 2 PM
+            date: new Date().toISOString().split('T')[0],
+            time: "14:00",
         };
 
         const result = await googleCalendar.createCalendarEvent(testAppointment);
