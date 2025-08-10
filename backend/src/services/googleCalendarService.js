@@ -2,32 +2,34 @@ const { google } = require('googleapis');
 
 class GoogleCalendarService {
     constructor() {
-        this.auth = null;
-        this.calendar = null;
+        this.calendar = google.calendar({ version: 'v3' });
+        this.auth = new google.auth.GoogleAuth({
+            keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+            scopes: ['https://www.googleapis.com/auth/calendar'],
+        });
+        this.client = null;
+        this.initialized = false;
     }
 
     async ensureInitialized() {
-        try {
-            console.log('Iniciando ensureInitialized');
-            if (!this.auth) {
-                this.auth = new google.auth.GoogleAuth({
-                    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-                    scopes: ['https://www.googleapis.com/auth/calendar']
-                });
-                this.calendar = google.calendar({ version: 'v3', auth: this.auth });
+        if (!this.initialized) {
+            try {
+                this.client = await this.auth.getClient();
+                google.options({ auth: this.client });
+                this.initialized = true;
+                console.log('Servicio de Google Calendar inicializado correctamente');
+            } catch (error) {
+                console.error('Error al inicializar Google Calendar:', error);
+                throw error;
             }
-        } catch (error) {
-            console.error('Error en ensureInitialized:', error);
-            throw error;
         }
     }
 
     async createCalendarEvent(appointment) {
+        await this.ensureInitialized();
         try {
-            await this.ensureInitialized();
-            
             const startTime = new Date(`${appointment.date}T${appointment.time}`);
-            const endTime = new Date(startTime.getTime() + 15 * 60000); // 15 minutos después
+            const endTime = new Date(startTime.getTime() + 15 * 60000); // 15 minutos
 
             const event = {
                 summary: `Consulta médica - ${appointment.clientName}`,
@@ -37,38 +39,39 @@ Teléfono: ${appointment.phone}
 Email: ${appointment.email}`,
                 start: {
                     dateTime: startTime.toISOString(),
-                    timeZone: 'America/Argentina/Buenos_Aires',
+                    timeZone: 'America/Argentina/Buenos_Aires'
                 },
                 end: {
                     dateTime: endTime.toISOString(),
-                    timeZone: 'America/Argentina/Buenos_Aires',
+                    timeZone: 'America/Argentina/Buenos_Aires'
                 },
                 reminders: {
                     useDefault: false,
                     overrides: [
-                        { method: 'popup', minutes: 60 } // solo recordatorio popup
+                        { method: 'popup', minutes: 60 }
                     ]
                 }
             };
 
-            // No agregamos attendees para evitar el error de permisos
             const response = await this.calendar.events.insert({
                 calendarId: process.env.CALENDAR_ID,
-                resource: event,
-                sendUpdates: 'none' // No enviar actualizaciones
+                requestBody: event,
             });
 
-            console.log('Evento creado:', response.data);
+            console.log('Evento creado exitosamente:', response.data.id);
             return response.data.id;
         } catch (error) {
-            console.error('Error detallado al crear evento:', error.response?.data || error);
+            console.error('Error al crear evento:', error.message);
+            if (error.errors) {
+                console.error('Detalles del error:', error.errors);
+            }
             throw error;
         }
     }
 
     async testConnection() {
+        await this.ensureInitialized();
         try {
-            await this.ensureInitialized();
             const calendar = await this.calendar.calendars.get({
                 calendarId: process.env.CALENDAR_ID
             });
@@ -84,4 +87,4 @@ Email: ${appointment.email}`,
     }
 }
 
-module.exports = GoogleCalendarService;
+module.exports = new GoogleCalendarService();
