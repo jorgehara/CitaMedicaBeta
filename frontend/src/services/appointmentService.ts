@@ -81,8 +81,14 @@ class MockAppointmentService {
 
 // Servicio de citas real para producción
 class RealAppointmentService {
-  async getAll(): Promise<Appointment[]> {
-    const response = await fetch(`${API_URL}/appointments`);
+  async getAll(params?: { showHistory?: boolean }): Promise<Appointment[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.showHistory !== undefined) {
+      queryParams.append('showHistory', params.showHistory.toString());
+    }
+    
+    const url = `${API_URL}/appointments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error('Error al obtener las citas');
     }

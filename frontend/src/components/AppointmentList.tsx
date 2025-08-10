@@ -22,7 +22,8 @@ import {
   useMediaQuery,
   useTheme,
   Snackbar,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   ViewList as ViewListIcon,
@@ -98,12 +99,14 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
   showHistory = false,
   title = showHistory ? 'Historial de Turnos' : 'Próximos Turnos'
 }) => {
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isExtraSmall = useMediaQuery('(max-width:500px)');
 
   // Estados
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -162,13 +165,25 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
         const matchesSearch = appointment.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             appointment.phone.includes(searchQuery);
         const matchesDate = !dateFilter || appointment.date === dateFilter;
-        return matchesSearch && matchesDate;
+        
+        if (showHistory) {
+          // Para historial, mostrar todas las citas pasadas
+          return matchesSearch && matchesDate;
+        } else {
+          // Para citas vigentes, excluir las canceladas
+          return matchesSearch && matchesDate && appointment.status !== 'cancelled';
+        }
       })
       .sort((a, b) => {
-        // Ordenar por fecha más reciente primero
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        if (showHistory) {
+          // Para historial, mostrar primero las más recientes
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        } else {
+          // Para citas vigentes, mostrar primero las más próximas
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        }
       });
-  }, [appointments, searchQuery, dateFilter]);
+  }, [appointments, searchQuery, dateFilter, showHistory]);
 
   // Calcular el número total de páginas
   const totalPages = Math.ceil(filteredAppointments.length / ITEMS_PER_PAGE);
@@ -181,17 +196,33 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
 
   // Resto de la funcionalidad existente...
   const loadAppointments = useCallback(async () => {
+    setLoading(true);
     try {
-      const data = await appointmentService.getAll();
-      setAppointments(data);
-    } catch {
+      const data = await appointmentService.getAll({ showHistory });
+      setAppointments(data.filter(appointment => {
+        if (showHistory) {
+          // Para historial, mostrar citas pasadas
+          return new Date(appointment.date) < new Date();
+        } else {
+          // Para citas vigentes, mostrar citas futuras y de hoy
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const appointmentDate = new Date(appointment.date);
+          appointmentDate.setHours(0, 0, 0, 0);
+          return appointmentDate >= today && appointment.status !== 'cancelled';
+        }
+      }));
+    } catch (err) {
+      setError((err as Error).message);
       setSnackbar({
         open: true,
         message: 'Error al cargar las citas',
         severity: 'error'
       });
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [showHistory]);
 
   useEffect(() => {
     loadAppointments();
@@ -518,6 +549,24 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
       setAvailableSlots({ morning: [], afternoon: [] });
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">
+          Error al cargar las citas: {error}
+        </Alert>
+      </Box>
+    );
+  }
 
   if (appointments.length === 0) {
     return (
