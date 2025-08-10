@@ -2,9 +2,6 @@ const Appointment = require('../models/appointment');
 const googleCalendar = require('../services/googleCalendarService');
 const mongoose = require('mongoose');
 
-// Instancia singleton del servicio de Google Calendar
-const googleCalendar = new GoogleCalendarService();
-
 // Función auxiliar para validar ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
