@@ -1,4 +1,6 @@
 const { google } = require('googleapis');
+const Appointment = require('../models/appointment');
+const mongoose = require('mongoose');
 
 class GoogleCalendarService {
     constructor() {
@@ -87,4 +89,7 @@ Email: ${appointment.email}`,
     }
 }
 
-module.exports = new GoogleCalendarService();
+// Instancia singleton del servicio de Google Calendar
+const googleCalendar = new GoogleCalendarService();
+
+module.exports = googleCalendar;
