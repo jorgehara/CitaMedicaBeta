@@ -7,6 +7,24 @@ class GoogleCalendarService {
         this.calendar = google.calendar({ version: 'v3', auth });
     }
 
+    async testConnection() {
+        try {
+            // Intentar listar los próximos 1 evento para verificar la conexión
+            const response = await this.calendar.events.list({
+                calendarId: 'primary',
+                timeMin: (new Date()).toISOString(),
+                maxResults: 1,
+            });
+            return {
+                connected: true,
+                calendarId: 'primary',
+                nextEventsCount: response.data.items.length
+            };
+        } catch (error) {
+            throw new Error(`Error al conectar con Google Calendar: ${error.message}`);
+        }
+    }
+
     async createCalendarEvent(appointment) {
         try {
             // Crear el evento con los datos de la cita
