@@ -13,4 +13,7 @@ router.delete('/appointments/:id', appointmentController.deleteAppointment);
 // Ruta para obtener horarios disponibles
 router.get('/appointments/available-times', appointmentController.getAvailableTimes);
 
+// Ruta para probar la conexión con Google Calendar
+router.get('/test-calendar', appointmentController.testCalendarConnection);
+
 module.exports = router;

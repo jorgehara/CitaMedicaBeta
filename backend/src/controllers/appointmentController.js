@@ -8,6 +8,24 @@ const googleCalendar = new GoogleCalendarService();
 // Función auxiliar para validar ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+// Función para probar la conexión con Google Calendar
+exports.testCalendarConnection = async (req, res) => {
+    try {
+        const result = await googleCalendar.testConnection();
+        res.json({ 
+            status: 'success', 
+            message: 'Conexión con Google Calendar exitosa', 
+            data: result 
+        });
+    } catch (error) {
+        console.error('Error al probar Google Calendar:', error);
+        res.status(500).json({ 
+            status: 'error', 
+            message: error.message 
+        });
+    }
+};
+
 // Horarios posibles de consulta
 const MORNING_HOURS = ['08:00', '08:15', '08:30', '08:45', 
                       '09:00', '09:15', '09:30', '09:45',
