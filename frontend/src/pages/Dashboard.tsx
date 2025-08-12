@@ -1,10 +1,14 @@
-import { Box, Paper, Typography, Card, CardContent, TextField, Button } from '@mui/material';
+import { Box, Paper, Typography, Card, CardContent, TextField, Button, Grid, Chip } from '@mui/material';
 import {
   EventNote as EventNoteIcon,
+  Today as TodayIcon,
+  Schedule as ScheduleIcon,
+  AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
-import AppointmentList from '../components/AppointmentList';
+import SimpleAppointmentList from '../components/SimpleAppointmentList';
 import { useState, useEffect } from 'react';
 import { getAvailableTimes } from '../services/appointmentService';
+import { mockAppointments } from '../mockData/appointments';
 
 interface TimeSlot {
   displayTime: string;
@@ -13,12 +17,31 @@ interface TimeSlot {
 }
 
 const Dashboard = () => {
-  const [availableSlots, setAvailableSlots] = useState<{
-    morning: TimeSlot[];
-    afternoon: TimeSlot[];
-  }>({ morning: [], afternoon: [] });
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState('2025-08-11');
   const [appointmentData, setAppointmentData] = useState({ date: '', time: '' });
+
+  // Filtrar citas para hoy y próximas
+  const todayAppointments = mockAppointments.filter(
+    app => app.date === '2025-08-11'
+  );
+  
+  const upcomingAppointments = mockAppointments.filter(
+    app => app.status === 'confirmed' && !app.attended
+  );
+
+  // Horarios disponibles de ejemplo
+  const availableTimeSlots = {
+    morning: [
+      { time: '09:00', displayTime: '9:00 AM', period: 'morning' as const },
+      { time: '10:30', displayTime: '10:30 AM', period: 'morning' as const },
+      { time: '11:45', displayTime: '11:45 AM', period: 'morning' as const }
+    ],
+    afternoon: [
+      { time: '15:00', displayTime: '3:00 PM', period: 'afternoon' as const },
+      { time: '16:30', displayTime: '4:30 PM', period: 'afternoon' as const },
+      { time: '17:45', displayTime: '5:45 PM', period: 'afternoon' as const }
+    ]
+  };
 
   useEffect(() => {
     if (selectedDate) {
@@ -48,117 +71,87 @@ const Dashboard = () => {
   };
 
   return (
-    <>
-    <Box sx={{ 
-      height: '100vh',
-      overflow: 'auto',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      {/* Panel superior */} 
-      {/* este panel debe ocupar todo el ancho de la pantalla y ser responsive */} 
+    <Grid container spacing={3} sx={{ p: 3 }}>
+      {/* Panel de Citas de Hoy */}
+      <Grid item xs={12} md={6} lg={4}>
+        <Card elevation={3}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <TodayIcon sx={{ mr: 1 }} />
+              <Typography variant="h6">Citas Hoy</Typography>
+            </Box>
+            <SimpleAppointmentList appointments={todayAppointments} />
+          </CardContent>
+        </Card>
+      </Grid>
 
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        padding: 2, 
-        bgcolor: 'background.paper',
-        borderBottom: 1,
-        borderColor: 'divider'
-          }}>
-        {/* Panel izquierdo */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          overflow: 'hidden',
-          gap: 3
-        }}>
-          <Card sx={{ bgcolor: 'background.paper' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap:1, padding: 1 }}>
-                <EventNoteIcon color="primary" />
-                <Typography variant="h6">Citas Hoy</Typography>
+      {/* Panel de Próximas Citas */}
+      <Grid item xs={12} md={6} lg={4}>
+        <Card elevation={3}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <ScheduleIcon sx={{ mr: 1 }} />
+              <Typography variant="h6">Próximas Citas</Typography>
+            </Box>
+            <SimpleAppointmentList appointments={upcomingAppointments} />
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Panel de Horarios Disponibles */}
+      <Grid item xs={12} md={12} lg={4}>
+        <Card elevation={3}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <EventNoteIcon sx={{ mr: 1 }} />
+              <Typography variant="h6">Horarios Disponibles</Typography>
+            </Box>
+            <TextField
+              fullWidth
+              type="date"
+              value={selectedDate}
+              onChange={(e) => handleDateChange(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            {/* Mostrar horarios disponibles */}
+            {availableTimeSlots.morning.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>Mañana</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {availableTimeSlots.morning.map((slot) => (
+                    <Button
+                      key={slot.time}
+                      variant="outlined"
+                      size="small"
+                      onClick={() => setAppointmentData({ date: selectedDate, time: slot.time })}
+                    >
+                      {slot.displayTime}
+                    </Button>
+                  ))}
+                </Box>
               </Box>
-            </CardContent>
-          </Card>
-
-          <Paper sx={{ 
-            flex: 1,
-            bgcolor: 'background.paper',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-          <Box sx={{ flex: 1, overflow: 'hidden' }}>
-              <AppointmentList showHistory={false} />
-          </Box>
-          </Paper>
-        </Box>
-      </Box>
-      <Box sx={{ padding: 2 }}>
-        <TextField
-          type="date"
-          value={appointmentData.date}
-          onChange={(e) => {
-            handleDateChange(e.target.value);
-            setAppointmentData({ ...appointmentData, date: e.target.value });
-          }}
-          fullWidth
-          required
-        />
-        {selectedDate && (
-            <>
-              {availableSlots.morning.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                    Horarios disponibles - Mañana
-                  </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 1 }}>
-                    {availableSlots.morning.map((slot) => (
-                      <Button
-                        key={slot.time}
-                        variant={appointmentData.time === slot.time ? "contained" : "outlined"}
-                        onClick={() => setAppointmentData(prev => ({ ...prev, time: slot.time }))}
-                        size="small"
-                      >
-                        {slot.displayTime}
-                      </Button>
-                    ))}
-                  </Box>
+            )}
+            {availableTimeSlots.afternoon.length > 0 && (
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>Tarde</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {availableTimeSlots.afternoon.map((slot) => (
+                    <Button
+                      key={slot.time}
+                      variant="outlined"
+                      size="small"
+                      onClick={() => setAppointmentData({ date: selectedDate, time: slot.time })}
+                    >
+                      {slot.displayTime}
+                    </Button>
+                  ))}
                 </Box>
-              )}
-
-              {availableSlots.afternoon.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                    Horarios disponibles - Tarde
-                  </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 1 }}>
-                    {availableSlots.afternoon.map((slot) => (
-                      <Button
-                        key={slot.time}
-                        variant={appointmentData.time === slot.time ? "contained" : "outlined"}
-                        onClick={() => setAppointmentData(prev => ({ ...prev, time: slot.time }))}
-                        size="small"
-                      >
-                        {slot.displayTime}
-                      </Button>
-                    ))}
-                  </Box>
-                </Box>
-              )}
-
-              {availableSlots.morning.length === 0 && availableSlots.afternoon.length === 0 && (
-                <Typography color="error">
-                  No hay horarios disponibles para la fecha seleccionada
-                </Typography>
-              )}
-            </>
-          )}
-      </Box>
-    </Box>
-</>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
   );
 }
 export default Dashboard;

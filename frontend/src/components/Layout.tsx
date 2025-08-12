@@ -232,11 +232,16 @@ const Layout = ({ children }: LayoutProps) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 1, sm: 2, md: 3 },
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: '64px',
-          height: 'calc(100vh - 64px)',
-          overflow: 'auto'
+          width: '90%',
+          maxWidth: '1400px',
+          margin: '64px auto 0 auto',
+          minHeight: 'calc(100vh - 64px)',
+          backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#0a1929' : '#f5f5f5',
+          transition: 'all 0.3s ease-in-out',
+          padding: { xs: 2, sm: 3 },
+          overflow: 'auto',
+          borderRadius: 2,
+          boxShadow: 3
         }}
       >
         {children}
