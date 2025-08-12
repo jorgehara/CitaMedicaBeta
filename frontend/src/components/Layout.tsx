@@ -44,8 +44,8 @@ const Layout = ({ children }: LayoutProps) => {
     { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios' },
     { text: 'Pacientes', icon: <PeopleIcon />, path: '/pacientes' },
     { text: 'Historial', icon: <HistoryIcon />, path: '/historial' },
-    { text: 'QR WhatsApp', icon: <QrCodeIcon />, path: '/qr' },
-    { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion' },
+    // { text: 'QR WhatsApp', icon: <QrCodeIcon />, path: '/qr' },
+    // { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion' },
   ];
 
   const drawer = (

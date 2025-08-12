@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import QRCode from './components/QRCode';
 import Settings from './pages/Settings';
 import History from './pages/History';
+import Schedule from './pages/Schedule';
 import { ColorModeContext } from './context/ColorModeContext';
 
 const App = () => {
@@ -65,11 +66,25 @@ const App = () => {
         <CssBaseline />
         <Router>
           <Layout>
-            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+            <Box 
+              component="main" 
+              sx={{ 
+                flexGrow: 1,
+                p: 3,
+                width: '1200px',
+                maxWidth: '1200px',
+                mx: 'auto', // Centra el contenido
+                '@media (max-width: 1200px)': {
+                  maxWidth: '100%',
+                  px: { xs: 2, sm: 3 } // Padding horizontal responsivo
+                }
+              }}
+            >
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/qr" element={<QRCode />} />
-                <Route path="/configuracion" element={<Settings />} />
+                <Route path="/horarios" element={<Schedule />} />
+                {/* <Route path="/qr" element={<QRCode />} /> */}
+                {/* <Route path="/configuracion" element={<Settings />} /> */}
                 <Route path="/historial" element={<History />} />
               </Routes>
             </Box>

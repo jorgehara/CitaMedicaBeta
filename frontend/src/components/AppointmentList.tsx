@@ -623,10 +623,11 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
             label="Buscar por nombre o teléfono"
             value={searchQuery}
             onChange={handleSearchChange}
+            placeholder='Juan Pérez '
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
+                <InputAdornment position="end">
+                  {/* <SearchIcon /> */}
                 </InputAdornment>
               ),
             }}
@@ -651,7 +652,7 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <CalendarIcon />
+                
                 </InputAdornment>
               )
             }}
