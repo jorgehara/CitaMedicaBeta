@@ -4,13 +4,13 @@ import { useRef, useEffect } from 'react';
 import { EventNote as EventNoteIcon } from '@mui/icons-material';
 import { useState } from 'react';
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-ES', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
-};
+// const formatDate = (date: string) => {
+//   return new Date(date).toLocaleDateString('es-ES', {
+//     day: 'numeric',
+//     month: 'long',
+//     year: 'numeric'
+//   });
+// };
 
 const SchedulePage = () => {
   const today = new Date().toISOString().split('T')[0];

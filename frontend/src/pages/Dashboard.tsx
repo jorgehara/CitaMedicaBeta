@@ -31,7 +31,7 @@ const Dashboard = () => {
   // No necesitamos handleDateChange ya que la fecha es solo informativa en el Dashboard
 
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, width: '100%' }}>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, width: '100%', marginTop: 2 }}>
       {/* Panel de Citas de Hoy */}
       <Box sx={{ width: { xs: '100%', md: '49%' }, flex: 1 }}>
         <Card elevation={3}>
