@@ -25,7 +25,7 @@ const Dashboard = () => {
   );
   
   const overturnAppointments = mockAppointments.filter(
-    app => app.description?.toLowerCase().includes('sobre-turno')
+    app => app.description?.toLowerCase().includes('sobre-turno') && app.date === selectedDate
   );
 
   // No necesitamos handleDateChange ya que la fecha es solo informativa en el Dashboard
@@ -35,7 +35,7 @@ const Dashboard = () => {
       {/* Panel de Citas de Hoy */}
       <Box sx={{ width: { xs: '100%', md: '49%' }, flex: 1 }}>
         <Card elevation={3}>
-          <CardContent>
+          <CardContent sx={{ minHeight: 120 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <TodayIcon sx={{ mr: 1 }} />
@@ -66,16 +66,15 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </Box>
-
       {/* Panel de Sobre-turnos */}
       <Box sx={{ width: { xs: '100%', md: '49%' }, flex: 1 }}>
         <Card elevation={3}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <ScheduleIcon sx={{ mr: 1 }} />
-              <Typography variant="h6">Sobre-turnos</Typography>
-            </Box>
-            <SimpleAppointmentList appointments={overturnAppointments} />
+          <CardContent sx={{ minHeight: 120 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <ScheduleIcon sx={{ mr: 1 }} />
+          <Typography variant="h6">Sobre-turnos</Typography>
+        </Box>
+        <SimpleAppointmentList appointments={overturnAppointments} />
           </CardContent>
         </Card>
       </Box>
