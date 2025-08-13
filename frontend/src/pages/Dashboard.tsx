@@ -1,4 +1,4 @@
-import { Box, Typography, Card, CardContent } from '@mui/material';
+import { Box, Typography, Card, CardContent, TextField } from '@mui/material';
 import {
   Today as TodayIcon,
   Schedule as ScheduleIcon,
@@ -41,9 +41,26 @@ const Dashboard = () => {
                 <TodayIcon sx={{ mr: 1 }} />
                 <Typography variant="h6">Citas Hoy</Typography>
               </Box>
-              <Typography variant="subtitle1" color="text.secondary">
-                {formatDate(selectedDate)}
-              </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TextField
+                  type="date"
+                  size="small"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  sx={{
+                  backgroundColor: 'background.paper',
+                  borderRadius: 1,
+                  minWidth: 140,
+                  '& .MuiInputBase-input': {
+                    py: 1,
+                    px: 1.5,
+                  },
+                  }}
+                  InputLabelProps={{
+                  shrink: true,
+                  }}
+                />
+                </Box>
             </Box>
             <SimpleAppointmentList appointments={todayAppointments} />
           </CardContent>
