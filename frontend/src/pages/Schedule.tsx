@@ -1,4 +1,6 @@
 import { Box, Typography, Card, CardContent, TextField, Button } from '@mui/material';
+import AppointmentList from '../components/AppointmentList';
+import { useRef, useEffect } from 'react';
 import { EventNote as EventNoteIcon } from '@mui/icons-material';
 import { useState } from 'react';
 
@@ -13,6 +15,12 @@ const formatDate = (date: string) => {
 const SchedulePage = () => {
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
+  const appointmentListRef = useRef<{ openCreateDialog: () => void }>(null);
+  useEffect(() => {
+    (window as Window & { openCreateAppointmentDialog?: () => void }).openCreateAppointmentDialog = () => {
+      appointmentListRef.current?.openCreateDialog();
+    };
+  }, []);
 
   // Horarios disponibles de ejemplo
   const availableTimeSlots = {
@@ -42,7 +50,7 @@ const SchedulePage = () => {
               <Typography variant="h6">Horarios Disponibles</Typography>
             </Box>
             <Typography variant="subtitle1" color="text.secondary">
-              {formatDate(selectedDate)}
+              {/* {formatDate(selectedDate)} */}
             </Typography>
           </Box>
           <TextField
@@ -86,6 +94,7 @@ const SchedulePage = () => {
           )}
         </CardContent>
       </Card>
+  <AppointmentList ref={appointmentListRef} />
     </Box>
   );
 };

@@ -59,7 +59,7 @@ const Dashboard = () => {
                 <Typography variant="h6">Citas Hoy</Typography>
               </Box>
               <Typography variant="subtitle1" color="text.secondary">
-                {formatDate(selectedDate)}
+                {/* {formatDate(selectedDate)} */}
               </Typography>
             </Box>
             <SimpleAppointmentList appointments={todayAppointments} />

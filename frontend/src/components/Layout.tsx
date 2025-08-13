@@ -24,6 +24,8 @@ import {
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
+import CreateAppointmentButton from './CreateAppointmentButton';
+import { useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,6 +36,7 @@ const drawerWidth = 240;
 const Layout = ({ children }: LayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -241,9 +244,19 @@ const Layout = ({ children }: LayoutProps) => {
           padding: { xs: 2, sm: 3 },
           overflow: 'auto',
           borderRadius: 2,
-          boxShadow: 3
+          boxShadow: 3,
+          position: 'relative'
         }}
       >
+        {(location.pathname === '/' || location.pathname === '/horarios' || location.pathname === '/historial') && (
+          <Box sx={{ position: 'absolute', top: 0, right: 0, mt: '12px', mr: 2, zIndex: 10 }}>
+            <CreateAppointmentButton onClick={() => {
+              if (typeof window.openCreateAppointmentDialog === 'function') {
+                window.openCreateAppointmentDialog();
+              }
+            }} size="small" />
+          </Box>
+        )}
         {children}
       </Box>
     </Box>
