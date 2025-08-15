@@ -1,19 +1,24 @@
 import { Box, Typography, List, ListItem, ListItemText, Chip } from '@mui/material';
+import NewAppointmentButton from './NewAppointmentButton';
 import type { Appointment } from '../types/appointment';
 
 interface SimpleAppointmentListProps {
   appointments: Appointment[];
   title?: string;
+  onNewAppointment?: () => void;
 }
 
-const SimpleAppointmentList = ({ appointments, title }: SimpleAppointmentListProps) => {
+const SimpleAppointmentList = ({ appointments, title, onNewAppointment }: SimpleAppointmentListProps) => {
   return (
     <Box>
-      {title && (
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
-      )}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        {title && (
+          <Typography variant="h6" gutterBottom>
+            {title}
+          </Typography>
+        )}
+        {onNewAppointment && <NewAppointmentButton onClick={onNewAppointment} />}
+      </Box>
       <List>
         {appointments.map((appointment) => (
           <ListItem

@@ -37,7 +37,7 @@ import {
   NavigateBefore as NavigateBeforeIcon,
   NavigateNext as NavigateNextIcon
 } from '@mui/icons-material';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { format } from 'date-fns';
 import type { ChangeEvent } from 'react';
 import type { Appointment, AppointmentStatus, SocialWork } from '../types/appointment';
@@ -95,10 +95,20 @@ interface TimeSlot {
   period: 'morning' | 'afternoon';
 }
 
-const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({ 
-  showHistory = false,
-  title = showHistory ? 'Historial de Turnos' : 'Próximos Turnos'
-}) => {
+export interface AppointmentListHandle {
+  openCreateDialog: () => void;
+}
+
+const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolean; title?: string }>(
+  ({ showHistory = false, title = showHistory ? 'Historial de Turnos' : 'Próximos Turnos' }, ref) => {
+    // Permite abrir el diálogo de nueva cita desde el exterior
+    useImperativeHandle(ref, () => ({
+      openCreateDialog: () => {
+        setFormData(initialFormState);
+        setEditingAppointment(null);
+        setOpenDialog(true);
+      }
+    }));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1370,6 +1380,6 @@ const AppointmentList: React.FC<{ showHistory?: boolean; title?: string }> = ({
       </Snackbar>
     </Box>
   );
-};
+});
 
 export default AppointmentList;
