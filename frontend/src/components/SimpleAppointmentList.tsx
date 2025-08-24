@@ -31,12 +31,18 @@ const SimpleAppointmentList = ({ appointments, title, onNewAppointment }: Simple
             }}
           >
             <ListItemText
-              primary={appointment.clientName}
-              secondary={
+              primary={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                    {appointment.clientName}
+                  </Typography>
+                  <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
                     {appointment.time}
                   </Typography>
+                </Box>
+              }
+              secondary={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Chip
                     label={appointment.status}
                     size="small"
