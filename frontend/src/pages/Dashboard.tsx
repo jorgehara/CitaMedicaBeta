@@ -3,7 +3,7 @@ import {
   Today as TodayIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import CreateOverturnDialog from '../components/CreateOverturnDialog';
 import SimpleAppointmentList from '../components/SimpleAppointmentList';
 // Permite usar la función global para abrir el diálogo de nueva cita
@@ -13,6 +13,7 @@ declare global {
   }
 }
 import { mockAppointments } from '../mockData/appointments';
+import * as sobreturnoService from '../services/sobreturnoService';
 import AppointmentList from '../components/AppointmentList';
 
 const formatDate = (date: string) => {
@@ -28,33 +29,49 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(today);
   const [openOverturnDialog, setOpenOverturnDialog] = useState(false);
   const [appointments, setAppointments] = useState(mockAppointments);
+  const [overturnAppointments, setOverturnAppointments] = useState([]);
 
-  // Filtrar citas para hoy y próximas
+  // Filtrar citas para hoy y próximas (mock solo para turnos normales)
   const todayAppointments = appointments.filter(
     app => app.date === selectedDate && !app.isSobreturno
   );
-  const overturnAppointments = appointments.filter(
-    app => app.date === selectedDate && app.isSobreturno
+  const overturnsToday = overturnAppointments.filter(
+    (app: any) => app.date === selectedDate
   );
 
-  // Crear sobre turno
-  const handleCreateOverturn = (data: any) => {
-    setAppointments(prev => [
-      ...prev,
-      {
-        ...data,
-        _id: 'mock-' + (prev.length + 1),
-        isSobreturno: true,
-        status: 'pending'
+  // Obtener sobre turnos del backend
+  useEffect(() => {
+    const fetchSobreturnos = async () => {
+      try {
+        const data = await sobreturnoService.getSobreturnos();
+        setOverturnAppointments(data);
+      } catch (e) {
+        setOverturnAppointments([]);
       }
-    ]);
+    };
+    fetchSobreturnos();
+  }, []);
+
+  // Crear sobre turno
+  const handleCreateOverturn = async (data: any) => {
+    try {
+      await sobreturnoService.createSobreturno({ ...data, status: 'pending' });
+      const updated = await sobreturnoService.getSobreturnos();
+      setOverturnAppointments(updated);
+    } catch (e) {
+      // Manejar error
+    }
   };
 
   // Validar (aceptar/rechazar) sobre turno
-  const handleValidateOverturn = (id: string, status: 'confirmed' | 'cancelled') => {
-    setAppointments(prev => prev.map(app =>
-      app._id === id ? { ...app, status } : app
-    ));
+  const handleValidateOverturn = async (id: string, status: 'confirmed' | 'cancelled') => {
+    try {
+      await sobreturnoService.updateSobreturnoStatus(id, status);
+      const updated = await sobreturnoService.getSobreturnos();
+      setOverturnAppointments(updated);
+    } catch (e) {
+      // Manejar error
+    }
   };
 
   return (
@@ -107,7 +124,7 @@ const Dashboard = () => {
               </Box>
             </Box>
             <SimpleAppointmentList
-              appointments={overturnAppointments}
+              appointments={overturnsToday}
               onNewAppointment={() => setOpenOverturnDialog(true)}
               onValidateOverturn={handleValidateOverturn}
             />

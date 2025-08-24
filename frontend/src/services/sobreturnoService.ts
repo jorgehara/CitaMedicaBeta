@@ -1,0 +1,20 @@
+import axios from 'axios';
+import type { Appointment } from '../types/appointment';
+
+const API_URL = '/api/sobreturnos';
+
+export const getSobreturnos = async (status?: string): Promise<Appointment[]> => {
+  const params = status ? { status } : {};
+  const res = await axios.get(API_URL, { params });
+  return res.data;
+};
+
+export const createSobreturno = async (sobreturno: Omit<Appointment, '_id'>) => {
+  const res = await axios.post(API_URL, sobreturno);
+  return res.data;
+};
+
+export const updateSobreturnoStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+  const res = await axios.patch(`${API_URL}/${id}/status`, { status });
+  return res.data;
+};
