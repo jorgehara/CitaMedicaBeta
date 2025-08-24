@@ -23,11 +23,18 @@ const StyledCardContent = styled(CardContent)({
 interface DashboardCardProps {
   title: string;
   children: React.ReactNode;
+  onClick?: () => void;
+  clickable?: boolean;
 }
 
-const DashboardCard = ({ title, children }: DashboardCardProps) => {
+const DashboardCard = ({ title, children, onClick, clickable }: DashboardCardProps) => {
   return (
-    <StyledCard>
+    <StyledCard
+      onClick={onClick}
+      sx={clickable ? { cursor: 'pointer', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 8 } } : {}}
+      tabIndex={clickable ? 0 : undefined}
+      role={clickable ? 'button' : undefined}
+    >
       <StyledCardContent>
         <Typography variant="h6" component="div" gutterBottom sx={{ 
           color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#1a237e',

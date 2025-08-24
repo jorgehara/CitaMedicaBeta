@@ -1,4 +1,10 @@
 import { Box, Typography, Card, CardContent, TextField, Button } from '@mui/material';
+// Permite usar la función global para abrir el diálogo de nueva cita
+declare global {
+  interface Window {
+    openCreateAppointmentDialog: () => void;
+  }
+}
 import {
   EventNote as EventNoteIcon,
   Today as TodayIcon,
@@ -62,7 +68,7 @@ const Dashboard = () => {
                 {/* {formatDate(selectedDate)} */}
               </Typography>
             </Box>
-            <SimpleAppointmentList appointments={todayAppointments} />
+            <SimpleAppointmentList appointments={todayAppointments} onNewAppointment={() => window.openCreateAppointmentDialog()} />
           </CardContent>
         </Card>
       </Box>
@@ -75,7 +81,7 @@ const Dashboard = () => {
               <ScheduleIcon sx={{ mr: 1 }} />
               <Typography variant="h6">Próximas Citas</Typography>
             </Box>
-            <SimpleAppointmentList appointments={upcomingAppointments} />
+            <SimpleAppointmentList appointments={upcomingAppointments} onNewAppointment={() => window.openCreateAppointmentDialog()} />
           </CardContent>
         </Card>
       </Box>
