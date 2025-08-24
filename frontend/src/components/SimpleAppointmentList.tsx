@@ -1,4 +1,7 @@
 import { Box, Typography, List, ListItem, ListItemText, Chip } from '@mui/material';
+import { useState } from 'react';
+import AppointmentDrawer from './AppointmentDrawer';
+import * as sobreturnoService from '../services/sobreturnoService';
 import NewAppointmentButton from './NewAppointmentButton';
 import type { Appointment } from '../types/appointment';
 
@@ -10,6 +13,26 @@ interface SimpleAppointmentListProps {
 }
 
 const SimpleAppointmentList = ({ appointments, title, onNewAppointment, onValidateOverturn }: SimpleAppointmentListProps) => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+
+  const handleItemClick = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setDrawerOpen(true);
+  };
+
+  const handleSaveDescription = async (id: string, description: string) => {
+    if (selectedAppointment && selectedAppointment._id === id) {
+      setSelectedAppointment({ ...selectedAppointment, description });
+    }
+    // Si es sobreturno, guardar en backend
+    try {
+      await sobreturnoService.updateSobreturnoDescription(id, description);
+    } catch (e) {
+      // Manejar error si es necesario
+    }
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -29,7 +52,9 @@ const SimpleAppointmentList = ({ appointments, title, onNewAppointment, onValida
               borderRadius: 1,
               border: '1px solid',
               borderColor: 'divider',
+              cursor: 'pointer'
             }}
+            onClick={() => handleItemClick(appointment)}
           >
             <ListItemText
               primary={
@@ -55,7 +80,7 @@ const SimpleAppointmentList = ({ appointments, title, onNewAppointment, onValida
                         : 'error'
                     }
                   />
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" component="span">
                     {appointment.socialWork}
                   </Typography>
                   {onValidateOverturn && appointment.status === 'pending' && appointment.isSobreturno && (
@@ -63,12 +88,12 @@ const SimpleAppointmentList = ({ appointments, title, onNewAppointment, onValida
                       <button
                         style={{ marginLeft: 8, color: 'green', border: 'none', background: 'none', cursor: 'pointer' }}
                         title="Aceptar"
-                        onClick={() => onValidateOverturn(appointment._id, 'confirmed')}
+                        onClick={e => { e.stopPropagation(); onValidateOverturn(appointment._id, 'confirmed'); }}
                       >Aceptar</button>
                       <button
                         style={{ marginLeft: 4, color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}
                         title="Rechazar"
-                        onClick={() => onValidateOverturn(appointment._id, 'cancelled')}
+                        onClick={e => { e.stopPropagation(); onValidateOverturn(appointment._id, 'cancelled'); }}
                       >Rechazar</button>
                     </>
                   )}
@@ -78,6 +103,12 @@ const SimpleAppointmentList = ({ appointments, title, onNewAppointment, onValida
           </ListItem>
         ))}
       </List>
+      <AppointmentDrawer
+        open={drawerOpen}
+        appointment={selectedAppointment}
+        onClose={() => setDrawerOpen(false)}
+        onSaveDescription={handleSaveDescription}
+      />
     </Box>
   );
 };

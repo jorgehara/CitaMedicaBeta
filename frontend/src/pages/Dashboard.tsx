@@ -50,7 +50,7 @@ const Dashboard = () => {
       }
     };
     fetchSobreturnos();
-  }, []);
+  }, [selectedDate]);
 
   // Crear sobre turno
   const handleCreateOverturn = async (data: any) => {

@@ -1,3 +1,7 @@
+export const updateSobreturnoDescription = async (id: string, description: string) => {
+  const res = await axios.patch(`${API_URL}/${id}/status`, { description });
+  return res.data;
+};
 import axios from 'axios';
 import type { Appointment } from '../types/appointment';
 
