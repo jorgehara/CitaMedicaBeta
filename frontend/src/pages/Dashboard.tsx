@@ -4,6 +4,7 @@ import {
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { useState, useRef, useEffect } from 'react';
+import CreateOverturnDialog from '../components/CreateOverturnDialog';
 import SimpleAppointmentList from '../components/SimpleAppointmentList';
 // Permite usar la función global para abrir el diálogo de nueva cita
 declare global {
@@ -25,24 +26,28 @@ const formatDate = (date: string) => {
 const Dashboard = () => {
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
-  const appointmentListRef = useRef<{ openCreateDialog: () => void }>(null);
-
-  useEffect(() => {
-    window.openCreateAppointmentDialog = () => {
-      appointmentListRef.current?.openCreateDialog();
-    };
-  }, []);
+  const [openOverturnDialog, setOpenOverturnDialog] = useState(false);
+  const [appointments, setAppointments] = useState(mockAppointments);
 
   // Filtrar citas para hoy y próximas
-  const todayAppointments = mockAppointments.filter(
-    app => app.date === selectedDate
+  const todayAppointments = appointments.filter(
+    app => app.date === selectedDate && !app.isSobreturno
   );
-  
-  const overturnAppointments = mockAppointments.filter(
-    app => app.description?.toLowerCase().includes('sobre-turno') && app.date === selectedDate
+  const overturnAppointments = appointments.filter(
+    app => app.date === selectedDate && app.isSobreturno
   );
 
-  // No necesitamos handleDateChange ya que la fecha es solo informativa en el Dashboard
+  // Crear sobre turno
+  const handleCreateOverturn = (data: any) => {
+    setAppointments(prev => [
+      ...prev,
+      {
+        ...data,
+        _id: 'mock-' + (prev.length + 1),
+        isSobreturno: true
+      }
+    ]);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, width: '100%', marginTop: 2 }}>
@@ -87,18 +92,21 @@ const Dashboard = () => {
       <Box sx={{ width: { xs: '100%', md: '49%' }, flex: 1 }}>
         <Card elevation={3}>
           <CardContent sx={{ minHeight: 120 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <ScheduleIcon sx={{ mr: 1 }} />
-              <Typography variant="h6">Sobre-turnos</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ScheduleIcon sx={{ mr: 1 }} />
+                <Typography variant="h6">Sobre-turnos</Typography>
+              </Box>
             </Box>
             <SimpleAppointmentList
               appointments={overturnAppointments}
-              onNewAppointment={() => window.openCreateAppointmentDialog()}
+              onNewAppointment={() => setOpenOverturnDialog(true)}
             />
-          {/* Renderizar el AppointmentList oculto solo para exponer el ref global */}
-          <div style={{ display: 'none' }}>
-            <AppointmentList ref={appointmentListRef} />
-          </div>
+            <CreateOverturnDialog
+              open={openOverturnDialog}
+              onClose={() => setOpenOverturnDialog(false)}
+              onCreate={handleCreateOverturn}
+            />
           </CardContent>
         </Card>
       </Box>
