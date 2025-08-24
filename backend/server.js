@@ -19,6 +19,7 @@ requiredEnvVars.forEach(varName => {
 });
 
 const appointmentRoutes = require('./src/routes/appointmentRoutes');
+const sobreturnoRoutes = require('./src/routes/sobreturnoRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const PORT = process.env.PORT || 3001;
@@ -66,6 +67,7 @@ app.use((req, res, next) => {
 
 // Rutas
 app.use('/api', appointmentRoutes);
+app.use('/api/sobreturnos', sobreturnoRoutes);
 
 // Ruta de prueba
 app.get('/health', (req, res) => {

@@ -6,9 +6,10 @@ interface SimpleAppointmentListProps {
   appointments: Appointment[];
   title?: string;
   onNewAppointment?: () => void;
+  onValidateOverturn?: (id: string, status: 'confirmed' | 'cancelled') => void;
 }
 
-const SimpleAppointmentList = ({ appointments, title, onNewAppointment }: SimpleAppointmentListProps) => {
+const SimpleAppointmentList = ({ appointments, title, onNewAppointment, onValidateOverturn }: SimpleAppointmentListProps) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -57,6 +58,20 @@ const SimpleAppointmentList = ({ appointments, title, onNewAppointment }: Simple
                   <Typography variant="body2" color="text.secondary">
                     {appointment.socialWork}
                   </Typography>
+                  {onValidateOverturn && appointment.status === 'pending' && appointment.isSobreturno && (
+                    <>
+                      <button
+                        style={{ marginLeft: 8, color: 'green', border: 'none', background: 'none', cursor: 'pointer' }}
+                        title="Aceptar"
+                        onClick={() => onValidateOverturn(appointment._id, 'confirmed')}
+                      >Aceptar</button>
+                      <button
+                        style={{ marginLeft: 4, color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}
+                        title="Rechazar"
+                        onClick={() => onValidateOverturn(appointment._id, 'cancelled')}
+                      >Rechazar</button>
+                    </>
+                  )}
                 </Box>
               }
             />

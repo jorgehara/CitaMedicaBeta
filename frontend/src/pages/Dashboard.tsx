@@ -44,9 +44,17 @@ const Dashboard = () => {
       {
         ...data,
         _id: 'mock-' + (prev.length + 1),
-        isSobreturno: true
+        isSobreturno: true,
+        status: 'pending'
       }
     ]);
+  };
+
+  // Validar (aceptar/rechazar) sobre turno
+  const handleValidateOverturn = (id: string, status: 'confirmed' | 'cancelled') => {
+    setAppointments(prev => prev.map(app =>
+      app._id === id ? { ...app, status } : app
+    ));
   };
 
   return (
@@ -101,6 +109,7 @@ const Dashboard = () => {
             <SimpleAppointmentList
               appointments={overturnAppointments}
               onNewAppointment={() => setOpenOverturnDialog(true)}
+              onValidateOverturn={handleValidateOverturn}
             />
             <CreateOverturnDialog
               open={openOverturnDialog}
