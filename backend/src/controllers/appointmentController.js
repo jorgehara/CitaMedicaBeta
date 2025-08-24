@@ -200,6 +200,7 @@ exports.getReservedAppointments = async (req, res) => {
 
 exports.createAppointment = async (req, res) => {
   try {
+    const isSobreturno = req.body.isSobreturno === true;
     const appointmentData = {
       clientName: req.body.clientName,
       socialWork: req.body.socialWork,
@@ -207,21 +208,33 @@ exports.createAppointment = async (req, res) => {
       email: req.body.email,
       date: req.body.date,
       time: req.body.time,
-      status: 'pending'  // Cambiado de 'ocupado' a 'pending' para coincidir con el enum del modelo
+      status: 'pending',
+      isSobreturno
     };
 
-    // Verificar si ya existe una cita en ese horario
-    const existingAppointment = await Appointment.findOne({
-      date: appointmentData.date,
-      time: appointmentData.time,
-      status: { $ne: 'cancelled' }
-    });
-
-    if (existingAppointment) {
+    // Validar horario entre 08:00 y 22:00
+    const [hour, minute] = appointmentData.time.split(':').map(Number);
+    if (hour < 8 || (hour > 22) || (hour === 22 && minute > 0)) {
       return res.status(400).json({
         success: false,
-        message: 'El horario seleccionado ya no está disponible'
+        message: 'El horario debe estar entre las 08:00 y las 22:00.'
       });
+    }
+
+    if (!isSobreturno) {
+      // Verificar si ya existe una cita en ese horario SOLO para turnos normales
+      const existingAppointment = await Appointment.findOne({
+        date: appointmentData.date,
+        time: appointmentData.time,
+        status: { $ne: 'cancelled' },
+        isSobreturno: false
+      });
+      if (existingAppointment) {
+        return res.status(400).json({
+          success: false,
+          message: 'El horario seleccionado ya no está disponible'
+        });
+      }
     }
 
     const appointment = new Appointment(appointmentData);

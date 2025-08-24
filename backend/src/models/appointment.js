@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
+    isSobreturno: {
+        type: Boolean,
+        default: false,
+        required: true
+    },
     clientName: { 
         type: String, 
         required: true,

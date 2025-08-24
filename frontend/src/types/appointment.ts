@@ -1,6 +1,7 @@
 export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled';
 export type SocialWork = 'INSSSEP' | 'Swiss Medical' | 'OSDE' | 'Galeno' | 'CONSULTA PARTICULAR';
 
+
 export interface BaseAppointment {
   clientName: string;
   date: string;
@@ -11,6 +12,7 @@ export interface BaseAppointment {
   email?: string;
   description?: string;
   attended?: boolean; // indica si el paciente asistió a la cita
+  isSobreturno?: boolean; // indica si es sobreturno
 }
 
 export interface Appointment extends BaseAppointment {

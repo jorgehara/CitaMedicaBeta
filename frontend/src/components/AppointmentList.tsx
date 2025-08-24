@@ -86,7 +86,8 @@ const initialFormState = {
   phone: '',
   email: '',
   description: '',
-  attended: false
+  attended: false,
+  isSobreturno: false
 };
 
 interface TimeSlot {
@@ -533,6 +534,17 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
               height: { xs: 24, sm: 32 }
             }}
           />
+          {appointment.isSobreturno && (
+            <Chip
+              label="Sobreturno"
+              color="info"
+              size={viewMode === 'grid' ? 'medium' : 'small'}
+              sx={{
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                height: { xs: 24, sm: 32 }
+              }}
+            />
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -1178,6 +1190,18 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
               flexDirection: 'column', 
               gap: 2 
             }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.isSobreturno}
+                    onChange={e => setFormData(prev => ({ ...prev, isSobreturno: e.target.checked }))}
+                    name="isSobreturno"
+                    color="primary"
+                  />
+                }
+                label="Sobreturno (permite cualquier horario entre 08:00 y 22:00)"
+                sx={{ mb: 1 }}
+              />
               <TextField
                 label="Nombre del paciente"
                 name="clientName"

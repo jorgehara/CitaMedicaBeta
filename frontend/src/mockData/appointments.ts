@@ -4,7 +4,7 @@ export const mockAppointments: Appointment[] = [
   {
     _id: 'mock-1',
     clientName: 'María González',
-    date: '2025-08-11',
+    date: '2025-08-24',
     time: '09:00',
     status: 'confirmed',
     socialWork: 'OSDE',
@@ -16,7 +16,7 @@ export const mockAppointments: Appointment[] = [
   {
     _id: 'mock-2',
     clientName: 'Juan Pérez',
-    date: '2025-08-11',
+    date: '2025-08-24',
     time: '10:30',
     status: 'pending',
     socialWork: 'Swiss Medical',
@@ -28,7 +28,7 @@ export const mockAppointments: Appointment[] = [
   {
     _id: 'mock-3',
     clientName: 'Ana Martínez',
-    date: '2025-08-11',
+    date: '2025-08-24',
     time: '11:45',
     status: 'confirmed',
     socialWork: 'INSSSEP',
@@ -38,7 +38,7 @@ export const mockAppointments: Appointment[] = [
   {
     _id: 'mock-4',
     clientName: 'Carlos Rodríguez',
-    date: '2025-08-11',
+    date: '2025-08-24',
     time: '15:00',
     status: 'cancelled',
     socialWork: 'Galeno',
@@ -49,7 +49,7 @@ export const mockAppointments: Appointment[] = [
   {
     _id: 'mock-5',
     clientName: 'Laura Sánchez',
-    date: '2025-08-11',
+    date: '2025-08-24',
     time: '16:30',
     status: 'confirmed',
     socialWork: 'CONSULTA PARTICULAR',
