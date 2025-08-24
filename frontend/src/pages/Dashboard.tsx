@@ -3,7 +3,7 @@ import {
   Today as TodayIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import SimpleAppointmentList from '../components/SimpleAppointmentList';
 // Permite usar la función global para abrir el diálogo de nueva cita
 declare global {
@@ -12,6 +12,7 @@ declare global {
   }
 }
 import { mockAppointments } from '../mockData/appointments';
+import AppointmentList from '../components/AppointmentList';
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('es-ES', {
@@ -24,6 +25,13 @@ const formatDate = (date: string) => {
 const Dashboard = () => {
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
+  const appointmentListRef = useRef<{ openCreateDialog: () => void }>(null);
+
+  useEffect(() => {
+    window.openCreateAppointmentDialog = () => {
+      appointmentListRef.current?.openCreateDialog();
+    };
+  }, []);
 
   // Filtrar citas para hoy y próximas
   const todayAppointments = mockAppointments.filter(
@@ -87,6 +95,10 @@ const Dashboard = () => {
               appointments={overturnAppointments}
               onNewAppointment={() => window.openCreateAppointmentDialog()}
             />
+          {/* Renderizar el AppointmentList oculto solo para exponer el ref global */}
+          <div style={{ display: 'none' }}>
+            <AppointmentList ref={appointmentListRef} />
+          </div>
           </CardContent>
         </Card>
       </Box>

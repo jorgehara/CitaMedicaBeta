@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import {
   AppBar,
   Box,
@@ -25,6 +25,7 @@ import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import CreateAppointmentButton from './CreateAppointmentButton';
+import GlobalCreateAppointmentDialog from './GlobalCreateAppointmentDialog';
 import { useLocation } from 'react-router-dom';
 
 interface LayoutProps {
@@ -35,6 +36,14 @@ const drawerWidth = 240;
 
 const Layout = ({ children }: LayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGlobalDialog, setOpenGlobalDialog] = useState(false);
+  // Exponer función global para abrir el diálogo desde cualquier parte
+  useEffect(() => {
+    window.openCreateAppointmentDialog = () => setOpenGlobalDialog(true);
+    return () => {
+      window.openCreateAppointmentDialog = undefined;
+    };
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -250,13 +259,10 @@ const Layout = ({ children }: LayoutProps) => {
       >
         {(location.pathname === '/' || location.pathname === '/horarios' || location.pathname === '/historial') && (
           <Box sx={{ position: 'absolute', top: 0, right: 0, mt: '12px', mr: 2, zIndex: 10 }}>
-            <CreateAppointmentButton onClick={() => {
-              if (typeof window.openCreateAppointmentDialog === 'function') {
-                window.openCreateAppointmentDialog();
-              }
-            }} size="small" />
+            <CreateAppointmentButton onClick={() => setOpenGlobalDialog(true)} size="small" />
           </Box>
         )}
+        <GlobalCreateAppointmentDialog open={openGlobalDialog} onClose={() => setOpenGlobalDialog(false)} />
         {children}
       </Box>
     </Box>
