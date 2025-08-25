@@ -4,6 +4,7 @@ import {
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
+import type { Appointment } from '../types/appointment';
 import CreateOverturnDialog from '../components/CreateOverturnDialog';
 import SimpleAppointmentList from '../components/SimpleAppointmentList';
 // Permite usar la función global para abrir el diálogo de nueva cita
@@ -14,22 +15,14 @@ declare global {
 }
 import { mockAppointments } from '../mockData/appointments';
 import * as sobreturnoService from '../services/sobreturnoService';
-import AppointmentList from '../components/AppointmentList';
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-ES', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
-};
 
 const Dashboard = () => {
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [openOverturnDialog, setOpenOverturnDialog] = useState(false);
-  const [appointments, setAppointments] = useState(mockAppointments);
-  const [overturnAppointments, setOverturnAppointments] = useState([]);
+  const [appointments] = useState(mockAppointments);
+  const [overturnAppointments, setOverturnAppointments] = useState<Appointment[]>([]);
 
   // Filtrar citas para hoy y próximas (mock solo para turnos normales)
   const todayAppointments = appointments.filter(

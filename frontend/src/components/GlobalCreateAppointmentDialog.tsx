@@ -22,11 +22,6 @@ const socialWorkOptions: SocialWork[] = [
   'CONSULTA PARTICULAR'
 ];
 
-const statusOptions = [
-  { value: 'pending' as AppointmentStatus, label: 'Pendiente' },
-  { value: 'confirmed' as AppointmentStatus, label: 'Confirmada' },
-  { value: 'cancelled' as AppointmentStatus, label: 'Cancelada' }
-];
 
 interface GlobalCreateAppointmentDialogProps {
   open: boolean;

@@ -3,8 +3,6 @@ import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { useMemo, useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
-import QRCode from './components/QRCode';
-import Settings from './pages/Settings';
 import History from './pages/History';
 import Schedule from './pages/Schedule';
 import { ColorModeContext } from './context/ColorModeContext';

@@ -33,7 +33,6 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
   Search as SearchIcon,
-  CalendarToday as CalendarIcon,
   NavigateBefore as NavigateBeforeIcon,
   NavigateNext as NavigateNextIcon
 } from '@mui/icons-material';
@@ -281,7 +280,8 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
   };
 
   const handleEditClick = (appointment: Appointment) => {
-    setEditingAppointment(appointment);    setFormData({
+    setEditingAppointment(appointment);
+    setFormData({
       clientName: appointment.clientName,
       date: appointment.date,
       time: appointment.time,
@@ -290,7 +290,8 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
       phone: appointment.phone,
       email: appointment.email || '',
       description: appointment.description || '',
-      attended: appointment.attended || false
+      attended: appointment.attended || false,
+      isSobreturno: appointment.isSobreturno || false
     });
     setOpenDialog(true);
   };

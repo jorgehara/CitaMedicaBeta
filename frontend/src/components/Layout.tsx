@@ -18,8 +18,6 @@ import {
   Schedule as ScheduleIcon,
   People as PeopleIcon,
   History as HistoryIcon,
-  Settings as SettingsIcon,
-  QrCode as QrCodeIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
@@ -41,7 +39,7 @@ const Layout = ({ children }: LayoutProps) => {
   useEffect(() => {
     window.openCreateAppointmentDialog = () => setOpenGlobalDialog(true);
     return () => {
-      window.openCreateAppointmentDialog = undefined;
+     window.openCreateAppointmentDialog = undefined as unknown as () => void;
     };
   }, []);
   const navigate = useNavigate();
