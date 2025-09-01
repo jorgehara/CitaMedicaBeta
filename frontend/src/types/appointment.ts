@@ -9,6 +9,7 @@ export interface BaseAppointment {
   status: AppointmentStatus;
   socialWork: SocialWork;
   phone: string;
+  dni?: string;
   email?: string;
   description?: string;
   attended?: boolean; // indica si el paciente asistió a la cita

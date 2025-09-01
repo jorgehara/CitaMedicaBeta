@@ -58,44 +58,77 @@ const SimpleAppointmentList = ({ appointments, title, onNewAppointment, onValida
           >
             <ListItemText
               primary={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                     {appointment.clientName}
                   </Typography>
-                  <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
+                  <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
                     {appointment.time}
                   </Typography>
                 </Box>
               }
               secondary={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Chip
-                    label={appointment.status}
-                    size="small"
-                    color={
-                      appointment.status === 'confirmed'
-                        ? 'success'
-                        : appointment.status === 'pending'
-                        ? 'warning'
-                        : 'error'
-                    }
-                  />
-                  <Typography variant="body2" color="text.secondary" component="span">
-                    {appointment.socialWork}
-                  </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  {/* Primera fila: Status y Obra Social */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      label={appointment.status}
+                      size="small"
+                      color={
+                        appointment.status === 'confirmed'
+                          ? 'success'
+                          : appointment.status === 'pending'
+                          ? 'warning'
+                          : 'error'
+                      }
+                    />
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                      {appointment.socialWork}
+                    </Typography>
+                  </Box>
+                  
+                  {/* Segunda fila: Teléfono y DNI */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      📞 <strong>{appointment.phone}</strong>
+                    </Typography>
+                    {appointment.dni && (
+                      <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        🆔 <strong>{appointment.dni}</strong>
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Botones de validación para sobreturnos */}
                   {onValidateOverturn && appointment.status === 'pending' && appointment.isSobreturno && (
-                    <>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                       <button
-                        style={{ marginLeft: 8, color: 'green', border: 'none', background: 'none', cursor: 'pointer' }}
+                        style={{ 
+                          padding: '4px 8px', 
+                          color: 'white', 
+                          backgroundColor: 'green', 
+                          border: 'none', 
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
                         title="Aceptar"
                         onClick={e => { e.stopPropagation(); onValidateOverturn(appointment._id, 'confirmed'); }}
-                      >Aceptar</button>
+                      >✓ Aceptar</button>
                       <button
-                        style={{ marginLeft: 4, color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}
+                        style={{ 
+                          padding: '4px 8px', 
+                          color: 'white', 
+                          backgroundColor: 'red', 
+                          border: 'none', 
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
                         title="Rechazar"
                         onClick={e => { e.stopPropagation(); onValidateOverturn(appointment._id, 'cancelled'); }}
-                      >Rechazar</button>
-                    </>
+                      >✗ Rechazar</button>
+                    </Box>
                   )}
                 </Box>
               }
