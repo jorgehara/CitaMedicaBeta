@@ -5,8 +5,28 @@ const googleCalendarService = require('../services/googleCalendarService');
 // Crear un nuevo sobre turno
 exports.createSobreturno = async (req, res) => {
   try {
-    const sobreturno = new Sobreturno(req.body);
+    const sobreturnoData = {
+      ...req.body,
+      status: 'confirmed' // Los sobreturnos ahora se confirman automáticamente
+    };
+    
+    const sobreturno = new Sobreturno(sobreturnoData);
     await sobreturno.save();
+
+    // Crear evento en Google Calendar inmediatamente para sobreturnos confirmados
+    try {
+      const googleCalendarService = require('../services/googleCalendarService');
+      const eventId = await googleCalendarService.createCalendarEvent(sobreturno);
+      if (eventId) {
+        sobreturno.googleEventId = eventId;
+        await sobreturno.save();
+        console.log(`Evento de Google Calendar creado para sobreturno con ID: ${eventId}`);
+      }
+    } catch (calendarError) {
+      console.error('Error al crear evento de sobreturno en Google Calendar:', calendarError);
+      // No interrumpir el flujo por error de calendar
+    }
+
     res.status(201).json(sobreturno);
   } catch (error) {
     res.status(400).json({ error: error.message });

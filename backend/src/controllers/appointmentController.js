@@ -208,7 +208,7 @@ exports.createAppointment = async (req, res) => {
       email: req.body.email,
       date: req.body.date,
       time: req.body.time,
-      status: 'pending',
+      status: isSobreturno ? 'pending' : 'confirmed', // Las citas normales se confirman automáticamente
       isSobreturno
     };
 
@@ -240,16 +240,19 @@ exports.createAppointment = async (req, res) => {
     const appointment = new Appointment(appointmentData);
     await appointment.save();
 
-    // Intentar crear el evento en Google Calendar
-    try {
-      const eventId = await googleCalendarService.createCalendarEvent(appointment);
-      if (eventId) {
-        appointment.googleEventId = eventId;
-        await appointment.save();
+    // Crear el evento en Google Calendar para todas las citas confirmadas
+    if (appointment.status === 'confirmed') {
+      try {
+        const eventId = await googleCalendarService.createCalendarEvent(appointment);
+        if (eventId) {
+          appointment.googleEventId = eventId;
+          await appointment.save();
+          console.log(`Evento de Google Calendar creado con ID: ${eventId}`);
+        }
+      } catch (calendarError) {
+        console.error('Error al crear evento en Google Calendar:', calendarError);
+        // Continuamos con la creación de la cita aunque falle la sincronización con Google Calendar
       }
-    } catch (calendarError) {
-      console.error('Error al crear evento en Google Calendar:', calendarError);
-      // Continuamos con la creación de la cita aunque falle la sincronización con Google Calendar
     }
 
     res.status(201).json({

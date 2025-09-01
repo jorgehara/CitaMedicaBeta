@@ -13,7 +13,7 @@ declare global {
     openCreateAppointmentDialog: () => void;
   }
 }
-import { mockAppointments } from '../mockData/appointments';
+import { appointmentService } from '../services/appointmentService';
 import * as sobreturnoService from '../services/sobreturnoService';
 
 
@@ -21,16 +21,34 @@ const Dashboard = () => {
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [openOverturnDialog, setOpenOverturnDialog] = useState(false);
-  const [appointments] = useState(mockAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [overturnAppointments, setOverturnAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filtrar citas para hoy y próximas (mock solo para turnos normales)
+  // Filtrar citas para la fecha seleccionada
   const todayAppointments = appointments.filter(
     app => app.date === selectedDate && !app.isSobreturno
   );
   const overturnsToday = overturnAppointments.filter(
     (app: any) => app.date === selectedDate
   );
+
+  // Obtener citas del backend
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        const data = await appointmentService.getAll();
+        setAppointments(data);
+      } catch (e) {
+        console.error('Error al cargar citas:', e);
+        setAppointments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAppointments();
+  }, [selectedDate]);
 
   // Obtener sobre turnos del backend
   useEffect(() => {
@@ -39,6 +57,7 @@ const Dashboard = () => {
         const data = await sobreturnoService.getSobreturnos();
         setOverturnAppointments(data);
       } catch (e) {
+        console.error('Error al cargar sobreturnos:', e);
         setOverturnAppointments([]);
       }
     };
@@ -46,13 +65,17 @@ const Dashboard = () => {
   }, [selectedDate]);
 
   // Crear sobre turno
-  const handleCreateOverturn = async (data: any) => {
+  const handleCreateOverturn = async (data: Omit<Appointment, '_id'>) => {
     try {
       await sobreturnoService.createSobreturno({ ...data, status: 'pending' });
-      const updated = await sobreturnoService.getSobreturnos();
-      setOverturnAppointments(updated);
+      // Refrescar sobreturnos
+      const updatedSobreturnos = await sobreturnoService.getSobreturnos();
+      setOverturnAppointments(updatedSobreturnos);
+      // Refrescar citas normales también
+      const updatedAppointments = await appointmentService.getAll();
+      setAppointments(updatedAppointments);
     } catch (e) {
-      // Manejar error
+      console.error('Error al crear sobreturno:', e);
     }
   };
 
@@ -60,10 +83,14 @@ const Dashboard = () => {
   const handleValidateOverturn = async (id: string, status: 'confirmed' | 'cancelled') => {
     try {
       await sobreturnoService.updateSobreturnoStatus(id, status);
-      const updated = await sobreturnoService.getSobreturnos();
-      setOverturnAppointments(updated);
+      // Refrescar sobreturnos
+      const updatedSobreturnos = await sobreturnoService.getSobreturnos();
+      setOverturnAppointments(updatedSobreturnos);
+      // Refrescar citas normales también
+      const updatedAppointments = await appointmentService.getAll();
+      setAppointments(updatedAppointments);
     } catch (e) {
-      // Manejar error
+      console.error('Error al validar sobreturno:', e);
     }
   };
 
@@ -99,10 +126,16 @@ const Dashboard = () => {
                 />
               </Box>
             </Box>
-            <SimpleAppointmentList
-              appointments={todayAppointments}
-              onNewAppointment={() => window.openCreateAppointmentDialog()}
-            />
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <Typography>Cargando citas...</Typography>
+              </Box>
+            ) : (
+              <SimpleAppointmentList
+                appointments={todayAppointments}
+                onNewAppointment={() => window.openCreateAppointmentDialog()}
+              />
+            )}
           </CardContent>
         </Card>
       </Box>
