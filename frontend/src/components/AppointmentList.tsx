@@ -1217,11 +1217,8 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                 }}
               />
               
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: { xs: 'column', sm: 'row' }, 
-                gap: 2 
-              }}>                <TextField
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                <TextField
                   label="Fecha"
                   name="date"
                   type="date"
@@ -1240,57 +1237,29 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                   }}
                 />
 
-                {selectedDate && (
-                  <>
-                    {availableSlots.morning.length > 0 && (
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
-                          Horarios disponibles - Mañana
-                        </Typography>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 1 }}>
-                          {availableSlots.morning.map((slot) => (
-                            <Button
-                              key={slot.time}
-                              variant={formData.time === slot.time ? "contained" : "outlined"}
-                              onClick={() => setFormData(prev => ({ ...prev, time: slot.time }))}
-                              size="small"
-                              sx={{ minWidth: '80px' }}
-                            >
-                              {slot.displayTime}
-                            </Button>
-                          ))}
-                        </Box>
-                      </Box>
+                {/* Dropdown para seleccionar hora */}
+                <FormControl fullWidth required sx={{ minWidth: 120 }}>
+                  <InputLabel id="select-time-label">Hora</InputLabel>
+                  <Select
+                    labelId="select-time-label"
+                    id="select-time"
+                    name="time"
+                    value={formData.time}
+                    label="Hora"
+                    onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                  >
+                    {selectedDate && (
+                      <>
+                        {availableSlots.morning.map((slot) => (
+                          <MenuItem key={slot.time} value={slot.time}>{slot.displayTime} (Mañana)</MenuItem>
+                        ))}
+                        {availableSlots.afternoon.map((slot) => (
+                          <MenuItem key={slot.time} value={slot.time}>{slot.displayTime} (Tarde)</MenuItem>
+                        ))}
+                      </>
                     )}
-
-                    {availableSlots.afternoon.length > 0 && (
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
-                          Horarios disponibles - Tarde
-                        </Typography>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 1 }}>
-                          {availableSlots.afternoon.map((slot) => (
-                            <Button
-                              key={slot.time}
-                              variant={formData.time === slot.time ? "contained" : "outlined"}
-                              onClick={() => setFormData(prev => ({ ...prev, time: slot.time }))}
-                              size="small"
-                              sx={{ minWidth: '80px' }}
-                            >
-                              {slot.displayTime}
-                            </Button>
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
-
-                    {availableSlots.morning.length === 0 && availableSlots.afternoon.length === 0 && (
-                      <Typography color="error" sx={{ mt: 2 }}>
-                        No hay horarios disponibles para la fecha seleccionada
-                      </Typography>
-                    )}
-                  </>
-                )}
+                  </Select>
+                </FormControl>
               </Box>
 
               <TextField
