@@ -1,3 +1,7 @@
+# Archivos y carpetas de testing del frontend
+frontend/mockData/
+frontend/test-*.ts
+frontend/*.test.ts
 # Dependencies
 node_modules
 dist
@@ -173,3 +177,10 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Archivos y carpetas de testing del backend
+backend/debug-script.js
+backend/detailed-analysis.js
+backend/test-*.js
+backend/mock/
+backend/scripts/resetDatabase.js

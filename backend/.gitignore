@@ -22,3 +22,10 @@ node_modules
 credentials.json
 *.pem
 *.key
+
+# Archivos y carpetas de testing
+debug-script.js
+detailed-analysis.js
+test-*.js
+mock/
+scripts/resetDatabase.js
