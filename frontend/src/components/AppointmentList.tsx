@@ -47,38 +47,6 @@ import { appointmentService, getAvailableTimes } from '../services/appointmentSe
 
 const ITEMS_PER_PAGE = 6;
 
-const socialWorkOptions: SocialWork[] = [
-  'INSSSEP',
-  'Swiss Medical',
-  'OSDE',
-  'Galeno',
-  'CONSULTA PARTICULAR'
-];
-
-const statusOptions = [
-  { value: 'pending' as AppointmentStatus, label: 'Pendiente' },
-  { value: 'confirmed' as AppointmentStatus, label: 'Confirmada' },
-  { value: 'cancelled' as AppointmentStatus, label: 'Cancelada' }
-];
-
-const getStatusColor = (status: AppointmentStatus) => {
-  switch (status) {
-    case 'pending': return 'warning';
-    case 'confirmed': return 'success';
-    case 'cancelled': return 'error';
-    default: return 'default';
-  }
-};
-
-const getStatusLabel = (status: AppointmentStatus) => {
-  switch (status) {
-    case 'pending': return 'Pendiente';
-    case 'confirmed': return 'Confirmada';
-    case 'cancelled': return 'Cancelada';
-    default: return status;
-  }
-};
-
 const initialFormState = {
   clientName: '',
   date: '',
@@ -139,13 +107,14 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
     message: '',
     severity: 'success'
   });
-  const [selectedDate, setSelectedDate] = useState('');
   const [availableSlots, setAvailableSlots] = useState<{
     morning: TimeSlot[];
     afternoon: TimeSlot[];
+    all: TimeSlot[];
   }>({
     morning: [],
-    afternoon: []
+    afternoon: [],
+    all: []
   });
 
   const handleCloseSnackbar = () => {
@@ -530,8 +499,8 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
             }}
           />
           <Chip
-            label={getStatusLabel(appointment.status)}
-            color={getStatusColor(appointment.status)}
+            label={appointment.status === 'pending' ? 'Pendiente' : 'Confirmada'}
+            color={appointment.status === 'pending' ? 'warning' : 'success'}
             size={viewMode === 'grid' ? 'medium' : 'small'}
             sx={{
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -555,26 +524,59 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
   );
 
   const handleDateChange = async (date: string) => {
-    setSelectedDate(date);
     if (date) {
       try {
         const response = await getAvailableTimes(date);
         if (response.success) {
           setAvailableSlots({
             morning: response.data.morning,
-            afternoon: response.data.afternoon
+            afternoon: response.data.afternoon,
+            all: [...response.data.morning, ...response.data.afternoon]
           });
         } else {
-          setAvailableSlots({ morning: [], afternoon: [] });
+          setAvailableSlots({ morning: [], afternoon: [], all: [] });
         }
       } catch (error) {
         console.error('Error al obtener horarios:', error);
-        setAvailableSlots({ morning: [], afternoon: [] });
+        setAvailableSlots({ morning: [], afternoon: [], all: [] });
       }
     } else {
-      setAvailableSlots({ morning: [], afternoon: [] });
+      setAvailableSlots({ morning: [], afternoon: [], all: [] });
     }
   };
+
+  // Generar todos los horarios posibles para sobreturnos (08:00 a 22:00 cada 15 min)
+  const generateAllTimeSlots = () => {
+    const slots: TimeSlot[] = [];
+    let hour = 8;
+    let minute = 0;
+    while (hour < 22 || (hour === 22 && minute === 0)) {
+      const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      slots.push({ time, displayTime: time, period: hour < 12 ? 'morning' : 'afternoon' });
+      minute += 15;
+      if (minute === 60) {
+        minute = 0;
+        hour++;
+      }
+    }
+    return slots;
+  };
+
+  useEffect(() => {
+    if (!formData.date) {
+      setAvailableSlots({ morning: [], afternoon: [], all: [] });
+      return;
+    }
+    if (formData.isSobreturno) {
+      setAvailableSlots({
+        morning: [],
+        afternoon: [],
+        all: generateAllTimeSlots()
+      });
+    } else {
+      handleDateChange(formData.date);
+    }
+  }, [formData.date, formData.isSobreturno]);
 
   if (loading) {
     return (
@@ -1037,8 +1039,8 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                   label="Asistió"
                 />
                 <Chip
-                  label={getStatusLabel(selectedAppointment.status)}
-                  color={getStatusColor(selectedAppointment.status)}
+                  label={selectedAppointment.status === 'pending' ? 'Pendiente' : 'Confirmada'}
+                  color={selectedAppointment.status === 'pending' ? 'warning' : 'success'}
                   sx={{ ml: 1 }}
                 />
               </Box>
@@ -1251,16 +1253,13 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                     label="Hora"
                     onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                   >
-                    {selectedDate && (
-                      <>
-                        {availableSlots.morning.map((slot) => (
-                          <MenuItem key={slot.time} value={slot.time}>{slot.displayTime} (Mañana)</MenuItem>
+                    {formData.isSobreturno
+                      ? availableSlots.all.map((slot) => (
+                          <MenuItem key={slot.time} value={slot.time}>{slot.displayTime}</MenuItem>
+                        ))
+                      : availableSlots.all.map((slot) => (
+                          <MenuItem key={slot.time} value={slot.time}>{slot.displayTime} ({slot.period === 'morning' ? 'Mañana' : 'Tarde'})</MenuItem>
                         ))}
-                        {availableSlots.afternoon.map((slot) => (
-                          <MenuItem key={slot.time} value={slot.time}>{slot.displayTime} (Tarde)</MenuItem>
-                        ))}
-                      </>
-                    )}
                   </Select>
                 </FormControl>
               </Box>
@@ -1274,11 +1273,11 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                 fullWidth
                 required
               >
-                {socialWorkOptions.map(option => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
+                <MenuItem value="INSSSEP">INSSSEP</MenuItem>
+                <MenuItem value="Swiss Medical">Swiss Medical</MenuItem>
+                <MenuItem value="OSDE">OSDE</MenuItem>
+                <MenuItem value="Galeno">Galeno</MenuItem>
+                <MenuItem value="CONSULTA PARTICULAR">CONSULTA PARTICULAR</MenuItem>
               </TextField>
 
               {editingAppointment && (
@@ -1291,11 +1290,9 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                   fullWidth
                   required
                 >
-                  {statusOptions.map(option => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
+                  <MenuItem value="pending">Pendiente</MenuItem>
+                  <MenuItem value="confirmed">Confirmada</MenuItem>
+                  <MenuItem value="cancelled">Cancelada</MenuItem>
                 </TextField>
               )}
 
