@@ -71,10 +71,12 @@ const GlobalCreateAppointmentDialog: React.FC<GlobalCreateAppointmentDialogProps
             <TextField
               label="Hora"
               name="time"
+              type="time"
               value={formData.time}
               onChange={handleFormChange}
               fullWidth
               required
+                inputProps={{ min: '08:00', max: '22:00' }}
             />
             <TextField
               select
