@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Snackbar, Alert } from '@mui/material';
 import type { AppointmentStatus, SocialWork } from '../types/appointment';
+import { appointmentService } from '../services/appointmentService';
 
 const initialFormState = {
   clientName: '',
@@ -11,7 +12,8 @@ const initialFormState = {
   phone: '',
   email: '',
   description: '',
-  attended: false
+  attended: false,
+  isSobreturno: false
 };
 
 const socialWorkOptions: SocialWork[] = [
@@ -30,18 +32,71 @@ interface GlobalCreateAppointmentDialogProps {
 
 const GlobalCreateAppointmentDialog: React.FC<GlobalCreateAppointmentDialogProps> = ({ open, onClose }) => {
   const [formData, setFormData] = useState(initialFormState);
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí deberías llamar al servicio de creación de cita global
-    // await appointmentService.create(formData);
-    onClose();
-    setFormData(initialFormState);
+    setLoading(true);
+    try {
+      // Construir el objeto exactamente como el test manual exitoso
+      const dataToSend: any = {
+        clientName: formData.clientName,
+        date: formData.date,
+        time: formData.time,
+        socialWork: formData.socialWork,
+        phone: formData.phone,
+        email: formData.email,
+        description: formData.description,
+        isSobreturno: false // Citas normales
+      };
+      // Eliminar campos vacíos para evitar enviar undefined/null
+      Object.keys(dataToSend).forEach(key => {
+        if (dataToSend[key] === '' || dataToSend[key] === undefined) {
+          delete dataToSend[key];
+        }
+      });
+      console.log('Creando cita normal (GlobalDialog):', dataToSend);
+      await appointmentService.create(dataToSend);
+      setSnackbar({
+        open: true,
+        message: 'Cita creada correctamente',
+        severity: 'success'
+      });
+      onClose();
+      setFormData(initialFormState);
+    } catch (error: any) {
+      let msg = 'Error al crear la cita';
+      if (error?.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (error?.message) {
+        msg = error.message;
+      }
+      setSnackbar({
+        open: true,
+        message: msg,
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   return (
@@ -120,9 +175,31 @@ const GlobalCreateAppointmentDialog: React.FC<GlobalCreateAppointmentDialogProps
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button type="submit" variant="contained" color="primary">Crear cita</Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            color="primary"
+            disabled={loading}
+          >
+            {loading ? 'Creando...' : 'Crear cita'}
+          </Button>
         </DialogActions>
       </form>
+      
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };

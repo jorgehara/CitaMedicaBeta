@@ -199,6 +199,7 @@ exports.getReservedAppointments = async (req, res) => {
 };
 
 exports.createAppointment = async (req, res) => {
+  console.log('BODY RECIBIDO EN BACKEND:', req.body);
   try {
     const isSobreturno = req.body.isSobreturno === true;
     const appointmentData = {

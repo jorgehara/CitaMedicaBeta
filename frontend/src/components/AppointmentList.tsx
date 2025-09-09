@@ -229,7 +229,25 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
           severity: 'success'
         });
       } else {
-        await appointmentService.create(formData);
+        // Construir el objeto exactamente como el test manual exitoso
+        const dataToSend: any = {
+          clientName: formData.clientName,
+          date: formData.date,
+          time: formData.time,
+          socialWork: formData.socialWork,
+          phone: formData.phone,
+          email: formData.email,
+          description: formData.description,
+          isSobreturno: !!formData.isSobreturno
+        };
+        // Eliminar campos vacíos para evitar enviar undefined/null
+        Object.keys(dataToSend).forEach(key => {
+          if (dataToSend[key] === '' || dataToSend[key] === undefined) {
+            delete dataToSend[key];
+          }
+        });
+        console.log('Creando cita (frontend, ajustado):', dataToSend);
+        await appointmentService.create(dataToSend);
         setSnackbar({
           open: true,
           message: 'Cita creada correctamente',
@@ -240,12 +258,16 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
       setEditingAppointment(null);
       setFormData(initialFormState);
       await loadAppointments();
-    } catch {
+    } catch (error: any) {
+      let msg = 'Error al crear la cita';
+      if (error?.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (error?.message) {
+        msg = error.message;
+      }
       setSnackbar({
         open: true,
-        message: editingAppointment 
-          ? 'Error al actualizar la cita'
-          : 'Error al crear la cita',
+        message: msg,
         severity: 'error'
       });
     }
