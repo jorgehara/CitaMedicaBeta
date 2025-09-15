@@ -4,7 +4,7 @@ import axiosInstance from '../config/axios';
 import axios from 'axios';
 
 // Define la URL base de la API aquí o impórtala desde tu configuración
-const API_URL = process.env.REACT_APP_API_URL || 'https://micitamedica.me/api';
+const API_URL = 'https://micitamedica.me/api';
 
 export const createAppointment = async (appointmentData: BaseAppointment): Promise<Appointment> => {
   try {
