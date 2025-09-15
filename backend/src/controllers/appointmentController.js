@@ -1,7 +1,7 @@
 const Appointment = require('../models/appointment');
 const mongoose = require('mongoose');
 const googleCalendarService = require('../services/googleCalendarService');
-const syncWithGoogleCalendar = require('../services/calendarSync');
+
 
 // Función auxiliar para validar ObjectId
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
