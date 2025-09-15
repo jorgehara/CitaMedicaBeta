@@ -85,15 +85,41 @@ const syncWithGoogleCalendar = async (date) => {
         });
 
         if (!existingSobreturno) {
-          // Insertar como nueva cita
-          await Appointment.create({
-            clientName: event.summary ? event.summary.replace('Consulta médica - ', '') : 'Sin nombre',
+          // Extraer datos del evento de Google Calendar
+          let clientName = 'Sin nombre';
+          let socialWork = '';
+          let phone = '';
+          let email = '';
+          let description = '';
+
+          if (event.summary) {
+            clientName = event.summary.replace('Consulta médica - ', '').trim();
+          }
+          if (event.description) {
+            description = event.description;
+            // Intentar extraer datos adicionales del campo description
+            // Ejemplo: "Paciente: Juan Perez\nObra Social: OSDE\nTeléfono: 123456\nEmail: test@x.com"
+            const socialWorkMatch = description.match(/Obra Social: (.*)/);
+            if (socialWorkMatch) socialWork = socialWorkMatch[1].split('\n')[0].trim();
+            const phoneMatch = description.match(/Tel[eé]fono: (.*)/);
+            if (phoneMatch) phone = phoneMatch[1].split('\n')[0].trim();
+            const emailMatch = description.match(/Email: (.*)/);
+            if (emailMatch) email = emailMatch[1].split('\n')[0].trim();
+          }
+
+          const newAppointment = {
+            clientName,
+            socialWork,
+            phone,
+            email,
+            description,
             date: dateStr,
             time: timeStr,
             status: 'confirmed',
-            // Puedes mapear más campos si los tienes en event.description
-          });
-          console.log('[DEBUG] Evento de Google Calendar insertado en MongoDB:', event.summary, startTime);
+            googleEventId: event.id || undefined
+          };
+          await Appointment.create(newAppointment);
+          console.log('[DEBUG][SYNC] Evento de Google Calendar insertado en MongoDB:', newAppointment);
         }
       }
     }
