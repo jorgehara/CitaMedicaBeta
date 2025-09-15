@@ -47,7 +47,25 @@ exports.createSobreturno = async (req, res) => {
 exports.getSobreturnos = async (req, res) => {
   try {
     console.log('[DEBUG] Obteniendo sobreturnos - Query:', req.query);
-    const { status } = req.query;
+    const { status, date } = req.query;
+
+    // Sincronizar con Google Calendar si se solicita una fecha específica
+    if (date) {
+      console.log('[DEBUG] Sincronizando sobreturnos con Google Calendar para la fecha:', date);
+      try {
+        await googleCalendarService.syncEventsForDate(new Date(date));
+      } catch (syncError) {
+        console.error('[ERROR] Error al sincronizar con Google Calendar:', syncError);
+        // Continuar con la búsqueda local incluso si falla la sincronización
+      }
+    }
+    
+    // Sincronizar con Google Calendar si se especifica una fecha
+    if (date) {
+      const targetDate = new Date(date);
+      console.log('[DEBUG] Sincronizando sobreturnos para la fecha:', targetDate);
+      await syncWithGoogleCalendar(targetDate);
+    }
     const filter = status ? { status } : {};
     console.log('[DEBUG] Filtro aplicado:', filter);
     const sobreturnos = await Sobreturno.find(filter).sort({ date: 1, time: 1 });

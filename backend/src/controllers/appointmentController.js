@@ -60,6 +60,39 @@ const AFTERNOON_HOURS = ['17:00', '17:15', '17:30', '17:45',
                         '18:00', '18:15', '18:30', '18:45',
                         '19:00', '19:15', '19:30', '19:45'];
 
+const syncWithGoogleCalendar = async (date) => {
+  try {
+    const googleCalendarService = require('../services/googleCalendarService');
+    const events = await googleCalendarService.syncEventsForDate(date);
+    const Appointment = require('../models/appointment');
+    const Sobreturno = require('../models/sobreturno');
+
+    // Procesar eventos y actualizar la base de datos local
+    for (const event of events) {
+      const startTime = new Date(event.start.dateTime);
+      const existingAppointment = await Appointment.findOne({
+        date: startTime.toISOString().split('T')[0],
+        time: startTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+      });
+
+      if (!existingAppointment) {
+        // Si no existe en las citas regulares, buscar en sobreturnos
+        const existingSobreturno = await Sobreturno.findOne({
+          date: startTime.toISOString().split('T')[0],
+          time: startTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+        });
+
+        if (!existingSobreturno) {
+          console.log('[DEBUG] Evento encontrado en Google Calendar pero no en la base de datos local');
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[ERROR] Error al sincronizar con Google Calendar:', error);
+    throw error;
+  }
+};
+
 exports.getAllAppointments = async (req, res) => {
   try {
     console.log('[DEBUG] Obteniendo citas con parámetros:', req.query);
@@ -67,6 +100,16 @@ exports.getAllAppointments = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     console.log('[DEBUG] Fecha actual:', today.toISOString());
+
+    // Sincronizar con Google Calendar si se solicita una fecha específica
+    if (date) {
+      console.log('[DEBUG] Sincronizando con Google Calendar para la fecha:', date);
+      try {
+        await syncWithGoogleCalendar(new Date(date));
+      } catch (syncError) {
+        console.error('[ERROR] Error al sincronizar con Google Calendar:', syncError);
+      }
+    }
 
     let query = {};
     
@@ -103,7 +146,12 @@ exports.getAllAppointments = async (req, res) => {
 exports.getAvailableAppointments = async (req, res) => {
     try {
         const { date } = req.params;
-        console.log('1. Backend - getAvailableAppointments - fecha solicitada:', date);
+        console.log('[DEBUG] getAvailableAppointments - fecha solicitada:', date);
+
+        // Sincronizar con Google Calendar antes de buscar horarios disponibles
+        const targetDate = new Date(date);
+        console.log('[DEBUG] Sincronizando con Google Calendar...');
+        await syncWithGoogleCalendar(targetDate);
 
         // Crear array con todos los horarios posibles
         const allPossibleSlots = [];

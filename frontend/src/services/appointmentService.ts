@@ -29,6 +29,23 @@ export const createAppointment = async (appointmentData: BaseAppointment): Promi
 // Flag para usar datos mock - ESTABLECER A FALSE EN PRODUCCIÓN
 const USE_MOCK_DATA = false;
 
+export const getAvailableAppointments = async (date: string): Promise<string[]> => {
+  try {
+    console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
+    const response = await axiosInstance.get(`/appointments/available/${date}`);
+    console.log('[DEBUG] Horarios disponibles recibidos:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('[ERROR] Error al obtener horarios disponibles:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || error.message);
+    } else {
+      console.error('[ERROR] Error desconocido al obtener horarios disponibles:', error);
+      throw new Error('Error al obtener horarios disponibles');
+    }
+  }
+};
+
 // Servicio de citas con datos mock para desarrollo
 class MockAppointmentService {
   private appointments: Appointment[];

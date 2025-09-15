@@ -25,6 +25,30 @@ class GoogleCalendarService {
         }
     }
 
+    async syncEventsForDate(date) {
+        await this.ensureInitialized();
+        try {
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+
+            const response = await this.calendar.events.list({
+                calendarId: 'primary',
+                timeMin: startOfDay.toISOString(),
+                timeMax: endOfDay.toISOString(),
+                singleEvents: true,
+                orderBy: 'startTime'
+            });
+
+            return response.data.items || [];
+        } catch (error) {
+            console.error('[ERROR] Error al sincronizar eventos con Google Calendar:', error);
+            throw error;
+        }
+    }
+
     async createCalendarEvent(appointment) {
         await this.ensureInitialized();
         try {
