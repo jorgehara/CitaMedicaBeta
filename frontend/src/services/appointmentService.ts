@@ -94,17 +94,15 @@ class MockAppointmentService {
 // Servicio de citas real para producción
 class RealAppointmentService {
   async getAll(params?: { showHistory?: boolean }): Promise<Appointment[]> {
-    const queryParams = new URLSearchParams();
-    if (params?.showHistory !== undefined) {
-      queryParams.append('showHistory', params.showHistory.toString());
-    }
-    
-    const url = `${API_URL}/appointments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await fetch(url);
-    if (!response.ok) {
+    try {
+      console.log('Obteniendo todas las citas con params:', params);
+      const response = await axiosInstance.get('/appointments', { params });
+      console.log('Citas obtenidas:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener las citas:', error);
       throw new Error('Error al obtener las citas');
     }
-    return response.json();
   }
 
   async getById(id: string): Promise<Appointment> {
@@ -183,9 +181,11 @@ interface AvailableTimesResponse {
 
 export const getAvailableTimes = async (date: string): Promise<AvailableTimesResponse> => {
   try {
-    const response = await axios.get<AvailableTimesResponse>(`${API_URL}/appointments/available-times`, {
+    console.log('Consultando horarios disponibles para fecha:', date);
+    const response = await axiosInstance.get<AvailableTimesResponse>('/appointments/available-times', {
       params: { date }
     });
+    console.log('Horarios disponibles recibidos:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error al obtener horarios disponibles:', error);
