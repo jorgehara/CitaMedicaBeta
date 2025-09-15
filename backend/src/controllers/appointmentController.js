@@ -160,8 +160,17 @@ exports.getAllAppointments = async (req, res) => {
         }
       };
     } else if (date) {
-      // Para una fecha específica
-      query = { date };
+      // Para una fecha específica: traer todos los turnos del día usando un rango
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      query = {
+        date: {
+          $gte: startOfDay.toISOString().split('T')[0],
+          $lte: endOfDay.toISOString().split('T')[0]
+        }
+      };
     } else {
       // Para turnos futuros (incluyendo hoy)
       query = {
@@ -172,6 +181,7 @@ exports.getAllAppointments = async (req, res) => {
     }
 
     const appointments = await Appointment.find(query).sort({ date: 1, time: 1 });
+    console.log('[DEBUG][QUERY] Turnos devueltos:', appointments);
     res.json(appointments);
   } catch (error) {
     console.error('Error al obtener las citas:', error);
