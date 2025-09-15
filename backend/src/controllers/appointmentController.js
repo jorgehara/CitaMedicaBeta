@@ -70,20 +70,30 @@ const syncWithGoogleCalendar = async (date) => {
     // Procesar eventos y actualizar la base de datos local
     for (const event of events) {
       const startTime = new Date(event.start.dateTime);
+      const dateStr = startTime.toISOString().split('T')[0];
+      const timeStr = startTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       const existingAppointment = await Appointment.findOne({
-        date: startTime.toISOString().split('T')[0],
-        time: startTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+        date: dateStr,
+        time: timeStr
       });
 
       if (!existingAppointment) {
         // Si no existe en las citas regulares, buscar en sobreturnos
         const existingSobreturno = await Sobreturno.findOne({
-          date: startTime.toISOString().split('T')[0],
-          time: startTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+          date: dateStr,
+          time: timeStr
         });
 
         if (!existingSobreturno) {
-          console.log('[DEBUG] Evento encontrado en Google Calendar pero no en la base de datos local');
+          // Insertar como nueva cita
+          await Appointment.create({
+            clientName: event.summary ? event.summary.replace('Consulta médica - ', '') : 'Sin nombre',
+            date: dateStr,
+            time: timeStr,
+            status: 'confirmed',
+            // Puedes mapear más campos si los tienes en event.description
+          });
+          console.log('[DEBUG] Evento de Google Calendar insertado en MongoDB:', event.summary, startTime);
         }
       }
     }
