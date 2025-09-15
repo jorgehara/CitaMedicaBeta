@@ -2,7 +2,7 @@ import type { Appointment, BaseAppointment } from '../types/appointment';
 import { mockAppointments } from '../mockData/appointments';
 import axios from 'axios';
 
-const API_URL = '/api';
+const API_URL = 'https://micitamedica.me/api';
 
 export const createAppointment = async (appointmentData: BaseAppointment): Promise<Appointment> => {
   try {

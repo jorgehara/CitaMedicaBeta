@@ -5,7 +5,7 @@ export const updateSobreturnoDescription = async (id: string, description: strin
 import axios from 'axios';
 import type { Appointment } from '../types/appointment';
 
-const API_URL = '/api/sobreturnos';
+const API_URL = 'https://micitamedica.me/api/sobreturnos';
 
 export const getSobreturnos = async (status?: string): Promise<Appointment[]> => {
   const params = status ? { status } : {};

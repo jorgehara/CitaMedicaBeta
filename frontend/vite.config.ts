@@ -15,7 +15,11 @@ export default defineConfig(() => ({
   },
 server: {
   proxy: {
-    '/api': 'http://localhost:3001'
+    '/api': {
+      target: 'https://micitamedica.me',
+      changeOrigin: true,
+      secure: false
+    }
   }
 }
 }))
