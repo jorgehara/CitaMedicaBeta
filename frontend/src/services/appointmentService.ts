@@ -110,10 +110,16 @@ class MockAppointmentService {
 
 // Servicio de citas real para producción
 class RealAppointmentService {
-  async getAll(params?: { showHistory?: boolean }): Promise<Appointment[]> {
+  async getAll(params?: { showHistory?: boolean, date?: string }): Promise<Appointment[]> {
     try {
-      console.log('Obteniendo todas las citas con params:', params);
-      const response = await axiosInstance.get('/appointments', { params });
+      // Si no se pasa fecha, usar la de hoy
+      const today = new Date().toISOString().split('T')[0];
+      const finalParams = { ...params };
+      if (!finalParams.date) {
+        finalParams.date = today;
+      }
+      console.log('Obteniendo todas las citas con params:', finalParams);
+      const response = await axiosInstance.get('/appointments', { params: finalParams });
       console.log('Citas obtenidas:', response.data);
       return response.data;
     } catch (error) {
