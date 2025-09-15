@@ -61,9 +61,11 @@ const AFTERNOON_HOURS = ['17:00', '17:15', '17:30', '17:45',
 
 exports.getAllAppointments = async (req, res) => {
   try {
+    console.log('[DEBUG] Obteniendo citas con parámetros:', req.query);
     const { date, showHistory } = req.query;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    console.log('[DEBUG] Fecha actual:', today.toISOString());
 
     let query = {};
     

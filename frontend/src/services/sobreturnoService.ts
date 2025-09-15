@@ -8,9 +8,24 @@ import type { Appointment } from '../types/appointment';
 const API_URL = 'https://micitamedica.me/api/sobreturnos';
 
 export const getSobreturnos = async (status?: string): Promise<Appointment[]> => {
-  const params = status ? { status } : {};
-  const res = await axios.get(API_URL, { params });
-  return res.data;
+  try {
+    console.log('Obteniendo sobreturnos con estado:', status);
+    const params = status ? { status } : {};
+    const res = await axios.get(API_URL, { 
+      params,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    console.log('Sobreturnos obtenidos:', res.data);
+    return res.data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error al obtener sobreturnos:', error.message);
+    }
+    throw error;
+  }
 };
 
 export const createSobreturno = async (sobreturno: Omit<Appointment, '_id'>) => {

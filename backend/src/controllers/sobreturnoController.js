@@ -46,8 +46,10 @@ exports.createSobreturno = async (req, res) => {
 // Listar todos los sobre turnos (opcional: filtrar por estado)
 exports.getSobreturnos = async (req, res) => {
   try {
+    console.log('[DEBUG] Obteniendo sobreturnos - Query:', req.query);
     const { status } = req.query;
     const filter = status ? { status } : {};
+    console.log('[DEBUG] Filtro aplicado:', filter);
     const sobreturnos = await Sobreturno.find(filter).sort({ date: 1, time: 1 });
     res.json(sobreturnos);
   } catch (error) {

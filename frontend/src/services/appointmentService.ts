@@ -1,16 +1,28 @@
 import type { Appointment, BaseAppointment } from '../types/appointment';
 import { mockAppointments } from '../mockData/appointments';
+import axiosInstance from '../config/axios';
 import axios from 'axios';
 
-const API_URL = 'https://micitamedica.me/api';
+// Define la URL base de la API aquí o impórtala desde tu configuración
+const API_URL = process.env.REACT_APP_API_URL || 'https://micitamedica.me/api';
 
 export const createAppointment = async (appointmentData: BaseAppointment): Promise<Appointment> => {
   try {
-    const response = await axios.post(`${API_URL}/appointments`, appointmentData);
+    console.log('Intentando crear cita con datos:', appointmentData);
+    const response = await axiosInstance.post('/appointments', appointmentData);
+    console.log('Respuesta del servidor:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error al crear la cita:', error);
-    throw error;
+    if (axios.isAxiosError(error)) {
+      console.error('Error al crear la cita:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || error.message);
+    } else if (error instanceof Error) {
+      console.error('Error al crear la cita:', error.message);
+      throw new Error(error.message);
+    } else {
+      console.error('Error al crear la cita:', error);
+      throw new Error('Error desconocido al crear la cita');
+    }
   }
 };
 
