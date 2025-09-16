@@ -124,7 +124,9 @@ class RealAppointmentService {
     }
   }
 
+  async getById(id: string): Promise<Appointment> {
     const response = await fetch(`${API_URL}/appointments/${id}`);
+    if (!response.ok) {
       throw new Error('Error al obtener la cita');
     }
     return response.json();
