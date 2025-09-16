@@ -9,7 +9,6 @@ const API_URL = 'https://micitamedica.me/api/sobreturnos';
 
 export const getSobreturnos = async (status?: string): Promise<Appointment[]> => {
   try {
-    console.log('Obteniendo sobreturnos con estado:', status);
     const params = status ? { status } : {};
     const res = await axios.get(API_URL, { 
       params,
@@ -18,7 +17,6 @@ export const getSobreturnos = async (status?: string): Promise<Appointment[]> =>
         'Accept': 'application/json'
       }
     });
-    console.log('Sobreturnos obtenidos:', res.data);
     return res.data;
   } catch (error: unknown) {
     if (error instanceof Error) {

@@ -8,9 +8,7 @@ const API_URL = 'https://micitamedica.me/api';
 
 export const createAppointment = async (appointmentData: BaseAppointment): Promise<Appointment> => {
   try {
-    console.log('Intentando crear cita con datos:', appointmentData);
     const response = await axiosInstance.post('/appointments', appointmentData);
-    console.log('Respuesta del servidor:', response.data);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -118,9 +116,7 @@ class RealAppointmentService {
       if (!finalParams.date) {
         finalParams.date = today;
       }
-      console.log('Obteniendo todas las citas con params:', finalParams);
       const response = await axiosInstance.get('/appointments', { params: finalParams });
-      console.log('Citas obtenidas:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error al obtener las citas:', error);
@@ -128,9 +124,7 @@ class RealAppointmentService {
     }
   }
 
-  async getById(id: string): Promise<Appointment> {
     const response = await fetch(`${API_URL}/appointments/${id}`);
-    if (!response.ok) {
       throw new Error('Error al obtener la cita');
     }
     return response.json();
@@ -204,11 +198,9 @@ interface AvailableTimesResponse {
 
 export const getAvailableTimes = async (date: string): Promise<AvailableTimesResponse> => {
   try {
-    console.log('Consultando horarios disponibles para fecha:', date);
     const response = await axiosInstance.get<AvailableTimesResponse>('/appointments/available-times', {
       params: { date }
     });
-    console.log('Horarios disponibles recibidos:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error al obtener horarios disponibles:', error);
