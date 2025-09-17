@@ -7,16 +7,35 @@ exports.createSobreturno = async (req, res) => {
   try {
     console.log('[DEBUG] Recibiendo solicitud de sobreturno:', JSON.stringify(req.body, null, 2));
     
+
+    // Validar que no exista ya un sobreturno con el mismo número y fecha
+    const { sobreturnoNumber, date } = req.body;
+    const existente = await Sobreturno.findOne({ sobreturnoNumber, date });
+    if (existente) {
+      return res.status(409).json({ error: 'Ya existe un sobreturno para ese número y fecha.' });
+    }
+
+    // Determinar el horario según el número de sobreturno
+    let sobreturnoTime = '';
+    if (sobreturnoNumber >= 1 && sobreturnoNumber <= 5) {
+      sobreturnoTime = '11:00-12:00';
+    } else if (sobreturnoNumber >= 6 && sobreturnoNumber <= 10) {
+      sobreturnoTime = '19:00-20:00';
+    } else {
+      sobreturnoTime = 'Sin horario';
+    }
+
     const sobreturnoData = {
       ...req.body,
+      time: sobreturnoTime,
       status: 'confirmed' // Los sobreturnos ahora se confirman automáticamente
     };
-    
+
     console.log('[DEBUG] Creando sobreturno con datos:', JSON.stringify(sobreturnoData, null, 2));
-    
+
     const sobreturno = new Sobreturno(sobreturnoData);
     console.log('[DEBUG] Modelo de sobreturno creado:', JSON.stringify(sobreturno, null, 2));
-    
+
     await sobreturno.save();
     console.log('[DEBUG] Sobreturno guardado en la base de datos');
 
@@ -59,14 +78,12 @@ exports.getSobreturnos = async (req, res) => {
         // Continuar con la búsqueda local incluso si falla la sincronización
       }
     }
-    
-    // Sincronizar con Google Calendar si se especifica una fecha
-    if (date) {
-      const targetDate = new Date(date);
-      console.log('[DEBUG] Sincronizando sobreturnos para la fecha:', targetDate);
-      await syncWithGoogleCalendar(targetDate);
-    }
-    const filter = status ? { status } : {};
+
+    // Filtrar por fecha, estado y isSobreturno
+    const filter = {};
+    if (status) filter.status = status;
+    if (date) filter.date = date;
+    filter.isSobreturno = true;
     console.log('[DEBUG] Filtro aplicado:', filter);
     const sobreturnos = await Sobreturno.find(filter).sort({ date: 1, time: 1 });
     res.json(sobreturnos);
