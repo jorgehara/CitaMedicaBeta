@@ -119,7 +119,9 @@ const Dashboard = () => {
             ) : (
               <SimpleAppointmentList
                 appointments={todayAppointments}
-                title="Citas de Hoy"
+                title=""
+                showCreateButton
+                onCreateClick={() => window.openCreateAppointmentDialog?.()}
               />
             )}
           </CardContent>
@@ -137,7 +139,10 @@ const Dashboard = () => {
             </Box>
             <SimpleAppointmentList
               appointments={overturnsToday}
-              title="Sobre-turnos"
+              title=""
+              showCreateButton
+              onCreateClick={() => setOpenOverturnDialog(true)}
+              buttonLabel="NUEVO SOBRETURNO"
             />
             <CreateOverturnDialog
               open={openOverturnDialog}
