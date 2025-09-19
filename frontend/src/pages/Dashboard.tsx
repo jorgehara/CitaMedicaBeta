@@ -64,33 +64,19 @@ const Dashboard = () => {
     fetchSobreturnos();
   }, [selectedDate]);
 
-  // Crear sobre turno
-  const handleCreateOverturn = async (data: Omit<Appointment, '_id'>) => {
+  // Handler para crear un nuevo sobreturno
+  const handleCreateOverturn = async (overturnData: Omit<Appointment, '_id'>) => {
     try {
-      await sobreturnoService.createSobreturno({ ...data, status: 'pending' });
-      // Refrescar sobreturnos
-      const updatedSobreturnos = await sobreturnoService.getSobreturnos();
+      await sobreturnoService.createSobreturno({ ...overturnData, status: 'pending' });
+      // Refrescar sobreturnos y citas
+      const [updatedSobreturnos, updatedAppointments] = await Promise.all([
+        sobreturnoService.getSobreturnos(),
+        appointmentService.getAll()
+      ]);
       setOverturnAppointments(updatedSobreturnos);
-      // Refrescar citas normales también
-      const updatedAppointments = await appointmentService.getAll();
       setAppointments(updatedAppointments);
     } catch (e) {
       console.error('Error al crear sobreturno:', e);
-    }
-  };
-
-  // Validar (aceptar/rechazar) sobre turno
-  const handleValidateOverturn = async (id: string, status: 'confirmed' | 'cancelled') => {
-    try {
-      await sobreturnoService.updateSobreturnoStatus(id, status);
-      // Refrescar sobreturnos
-      const updatedSobreturnos = await sobreturnoService.getSobreturnos();
-      setOverturnAppointments(updatedSobreturnos);
-      // Refrescar citas normales también
-      const updatedAppointments = await appointmentService.getAll();
-      setAppointments(updatedAppointments);
-    } catch (e) {
-      console.error('Error al validar sobreturno:', e);
     }
   };
 
@@ -133,7 +119,7 @@ const Dashboard = () => {
             ) : (
               <SimpleAppointmentList
                 appointments={todayAppointments}
-                onNewAppointment={() => window.openCreateAppointmentDialog()}
+                title="Citas de Hoy"
               />
             )}
           </CardContent>
@@ -151,8 +137,7 @@ const Dashboard = () => {
             </Box>
             <SimpleAppointmentList
               appointments={overturnsToday}
-              onNewAppointment={() => setOpenOverturnDialog(true)}
-              onValidateOverturn={handleValidateOverturn}
+              title="Sobre-turnos"
             />
             <CreateOverturnDialog
               open={openOverturnDialog}

@@ -462,10 +462,52 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                 xs: 500,
                 sm: 600
               },
-              mb: 0.5
+              mb: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
             }}
           >
             {appointment.clientName}
+            {appointment.isSobreturno && (() => {
+              // Extraer hora de inicio y fin
+              let turno = '';
+              let color = '';
+              const timeStr = appointment.time;
+              // Ejemplo: "10:15-11:00", "19:00-20:00"
+              const times = timeStr.split('-');
+              if (times.length === 2) {
+                const [start, end] = times;
+                const [startHour, _startMin] = start.split(':').map(Number);
+                const [endHour, _endMin] = end.split(':').map(Number);
+                // Mañana: cualquier parte entre 10:00 y 12:00
+                if ((startHour >= 10 && startHour < 12) || (endHour >= 10 && endHour < 12)) {
+                  turno = 'Turno Mañana';
+                  color = '#ff9800';
+                }
+                // Tarde: cualquier parte entre 17:00 y 20:00
+                else if ((startHour >= 17 && startHour < 20) || (endHour >= 17 && endHour < 20)) {
+                  turno = 'Turno Tarde';
+                  color = '#d32f2f';
+                }
+              } else if (timeStr) {
+                // Si solo hay una hora, por ejemplo "11:00"
+                const [hour, _min] = timeStr.split(':').map(Number);
+                if (hour >= 10 && hour < 12) {
+                  turno = 'Turno Mañana';
+                  color = '#ff9800';
+                } else if (hour >= 17 && hour < 20) {
+                  turno = 'Turno Tarde';
+                  color = '#d32f2f';
+                }
+              }
+              return turno ? (
+                <>
+                  <span style={{margin: '0 6px', color: '#888'}}>|</span>
+                  <span style={{ color, fontWeight: 600 }}>{turno}</span>
+                </>
+              ) : null;
+            })()}
           </Typography>
           <Typography 
             color="text.secondary" 
@@ -530,16 +572,29 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
             }}
           />
           {appointment.isSobreturno && (
-            <Chip
-              label="Sobreturno"
-              color="info"
-              size={viewMode === 'grid' ? 'medium' : 'small'}
-              sx={{
-                fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                height: { xs: 24, sm: 32 }
-              }}
-            />
+            <>
+              <Chip
+                label="Sobreturno"
+                color="info"
+                size={viewMode === 'grid' ? 'medium' : 'small'}
+                sx={{
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  height: { xs: 24, sm: 32 }
+                }}
+              />
+              <Chip
+                label={appointment.time === '11:00-12:00' || appointment.time === '11:00' ? 'Turno Mañana' : 'Turno Tarde'}
+                color="error"
+                size={viewMode === 'grid' ? 'medium' : 'small'}
+                sx={{
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  height: { xs: 24, sm: 32 },
+                  ml: 1
+                }}
+              />
+            </>
           )}
+      
         </Box>
       </CardContent>
     </Card>

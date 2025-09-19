@@ -46,7 +46,7 @@ const DashboardCard = ({ title, children, onClick, clickable }: DashboardCardPro
         <Box sx={{ mt: 2 }}>
           {children}
         </Box>
-      </StyledCardContent>
+        </StyledCardContent>
     </StyledCard>
   );
 };
