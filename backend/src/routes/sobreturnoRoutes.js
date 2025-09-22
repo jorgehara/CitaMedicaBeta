@@ -23,7 +23,5 @@ router.patch('/:id/status', sobreturnoController.updateSobreturnoStatus);
 // Eliminar un sobreturno
 router.delete('/:id', sobreturnoController.deleteSobreturno);
 
-// (Opcional) Obtener un sobreturno puntual
-router.get('/:id', sobreturnoController.getSobreturno);
 
 module.exports = router;
