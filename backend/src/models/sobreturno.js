@@ -4,6 +4,7 @@ const SobreturnoSchema = new mongoose.Schema({
   clientName: { type: String, required: true },
   date: { type: String, required: true },
   time: { type: String, required: true },
+  sobreturnoNumber: { type: Number, required: true, min: 1, max: 10 },
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'confirmed' },
   socialWork: { type: String, required: true },
   phone: { type: String, required: true },
