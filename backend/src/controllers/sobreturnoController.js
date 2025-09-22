@@ -104,15 +104,19 @@ exports.validateSobreturno = async (req, res) => {
       });
     }
 
-    // Buscar si ya existe un sobreturno para esa fecha y número
+    // Buscar cualquier sobreturno no cancelado para esa fecha y número
     const existente = await Sobreturno.findOne({ 
       date, 
       sobreturnoNumber,
       status: { $ne: 'cancelled' } // No considerar los cancelados
     });
 
+    // Si existe y no está cancelado, no está disponible
     const available = !existente;
-    console.log('[DEBUG] Resultado validación:', { available, existente: !!existente });
+    console.log('[DEBUG] Resultado validación:', { 
+      available, 
+      existente: existente ? existente.status : 'no existe' 
+    });
 
     res.json({ available });
   } catch (error) {
@@ -127,10 +131,10 @@ exports.getAvailableSobreturnos = async (req, res) => {
     const { date } = req.params;
     console.log('[DEBUG] Consultando sobreturnos disponibles para:', date);
 
-    // Obtener todos los sobreturnos confirmados para esa fecha
+    // Obtener todos los sobreturnos no cancelados para esa fecha
     const ocupados = await Sobreturno.find({
       date,
-      status: 'confirmed',
+      status: { $ne: 'cancelled' },
       isSobreturno: true
     }).select('sobreturnoNumber time -_id');
 
