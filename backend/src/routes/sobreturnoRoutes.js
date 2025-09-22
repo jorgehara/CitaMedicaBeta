@@ -17,4 +17,7 @@ router.get('/', sobreturnoController.getSobreturnos);
 // Actualizar estado de un sobre turno
 router.patch('/:id/status', sobreturnoController.updateSobreturnoStatus);
 
+// Reservar un sobreturno
+router.post('/reserve', sobreturnoController.reserveSobreturno);
+
 module.exports = router;

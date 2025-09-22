@@ -12,7 +12,8 @@ const SobreturnoSchema = new mongoose.Schema({
   description: { type: String },
   attended: { type: Boolean, default: false },
   googleEventId: { type: String, default: null },
-  isSobreturno: { type: Boolean, default: true } // Nuevo campo para identificar sobreturnos
+  isSobreturno: { type: Boolean, default: true }, // Nuevo campo para identificar sobreturnos
+  isAvailable: { type: Boolean, default: true } // Indica si el sobreturno está disponible
 }, { timestamps: true });
 
 module.exports = mongoose.model('Sobreturno', SobreturnoSchema, 'sobreturnos');

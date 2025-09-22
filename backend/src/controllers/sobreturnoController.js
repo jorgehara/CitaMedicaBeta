@@ -202,35 +202,38 @@ exports.getAvailableSobreturnos = async (req, res) => {
     const { date } = req.params;
     console.log('[DEBUG] Consultando sobreturnos disponibles para:', date);
 
-    // Obtener todos los sobreturnos no cancelados para esa fecha
-    const ocupados = await Sobreturno.find({
+    // Buscar sobreturnos disponibles para la fecha
+    const disponibles = await Sobreturno.find({
       date,
+      isAvailable: true,
       status: { $ne: 'cancelled' },
       isSobreturno: true
-    }).select('sobreturnoNumber time -_id');
+    });
 
-    console.log('[DEBUG] Sobreturnos ocupados:', ocupados);
-
-    // Generar lista de sobreturnos disponibles
-    const numerosOcupados = ocupados.map(s => s.sobreturnoNumber);
-    const disponibles = [];
-
-    // Mañana: 1-5, Tarde: 6-10
-    for (let i = 1; i <= 10; i++) {
-      if (!numerosOcupados.includes(i)) {
-        const horario = i <= 5 ? '11:00-12:00' : '19:00-20:00';
-        disponibles.push({
-          sobreturnoNumber: i,
-          time: horario,
-          turno: i <= 5 ? 'mañana' : 'tarde'
-        });
-      }
-    }
-
-    console.log('[DEBUG] Sobreturnos disponibles:', disponibles);
-    res.json(disponibles);
+    return res.json({
+      success: true,
+      data: disponibles,
+      totalDisponibles: disponibles.length,
+      fecha: date
+    });
   } catch (error) {
     console.error('[ERROR] Error al obtener sobreturnos disponibles:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Reservar un sobreturno (marcar como no disponible)
+exports.reserveSobreturno = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const sobreturno = await Sobreturno.findById(id);
+    if (!sobreturno || !sobreturno.isAvailable) {
+      return res.status(400).json({ error: 'Sobreturno no disponible' });
+    }
+    sobreturno.isAvailable = false;
+    await sobreturno.save();
+    res.json({ success: true, sobreturno });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
