@@ -92,6 +92,74 @@ exports.getSobreturnos = async (req, res) => {
   }
 };
 
+// Validar disponibilidad de un sobre turno
+exports.validateSobreturno = async (req, res) => {
+  try {
+    const { date, sobreturnoNumber } = req.query;
+    console.log('[DEBUG] Validando disponibilidad:', { date, sobreturnoNumber });
+
+    if (!date || !sobreturnoNumber) {
+      return res.status(400).json({ 
+        error: 'Se requieren fecha y número de sobreturno' 
+      });
+    }
+
+    // Buscar si ya existe un sobreturno para esa fecha y número
+    const existente = await Sobreturno.findOne({ 
+      date, 
+      sobreturnoNumber,
+      status: { $ne: 'cancelled' } // No considerar los cancelados
+    });
+
+    const available = !existente;
+    console.log('[DEBUG] Resultado validación:', { available, existente: !!existente });
+
+    res.json({ available });
+  } catch (error) {
+    console.error('[ERROR] Error al validar sobreturno:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Obtener sobreturnos disponibles por fecha
+exports.getAvailableSobreturnos = async (req, res) => {
+  try {
+    const { date } = req.params;
+    console.log('[DEBUG] Consultando sobreturnos disponibles para:', date);
+
+    // Obtener todos los sobreturnos confirmados para esa fecha
+    const ocupados = await Sobreturno.find({
+      date,
+      status: 'confirmed',
+      isSobreturno: true
+    }).select('sobreturnoNumber time -_id');
+
+    console.log('[DEBUG] Sobreturnos ocupados:', ocupados);
+
+    // Generar lista de sobreturnos disponibles
+    const numerosOcupados = ocupados.map(s => s.sobreturnoNumber);
+    const disponibles = [];
+
+    // Mañana: 1-5, Tarde: 6-10
+    for (let i = 1; i <= 10; i++) {
+      if (!numerosOcupados.includes(i)) {
+        const horario = i <= 5 ? '11:00-12:00' : '19:00-20:00';
+        disponibles.push({
+          sobreturnoNumber: i,
+          time: horario,
+          turno: i <= 5 ? 'mañana' : 'tarde'
+        });
+      }
+    }
+
+    console.log('[DEBUG] Sobreturnos disponibles:', disponibles);
+    res.json(disponibles);
+  } catch (error) {
+    console.error('[ERROR] Error al obtener sobreturnos disponibles:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Actualizar estado de un sobre turno (aceptar/rechazar)
 exports.updateSobreturnoStatus = async (req, res) => {
   try {
