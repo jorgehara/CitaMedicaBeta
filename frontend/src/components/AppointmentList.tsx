@@ -1,4 +1,5 @@
-import { 
+import { deleteSobreturno } from '../services/sobreturnoService';
+import {
   Card, 
   CardContent, 
   Typography, 
@@ -301,7 +302,7 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
     try {
       if (editingAppointment.isSobreturno) {
         // Eliminar sobreturno
-        await sobreturnoService.deleteSobreturno(editingAppointment._id);
+  await deleteSobreturno(editingAppointment._id);
         setSnackbar({
           open: true,
           message: 'Sobreturno eliminado correctamente',
