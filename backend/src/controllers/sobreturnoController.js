@@ -1,3 +1,16 @@
+// Eliminar un sobreturno por ID
+exports.deleteSobreturno = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sobreturno = await Sobreturno.findByIdAndDelete(id);
+    if (!sobreturno) {
+      return res.status(404).json({ error: 'Sobreturno no encontrado' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 const Sobreturno = require('../models/sobreturno');
 const googleCalendarService = require('../services/googleCalendarService');

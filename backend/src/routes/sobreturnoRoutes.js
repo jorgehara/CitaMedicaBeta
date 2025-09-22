@@ -1,3 +1,5 @@
+// Eliminar un sobreturno
+router.delete('/:id', sobreturnoController.deleteSobreturno);
 const express = require('express');
 const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');

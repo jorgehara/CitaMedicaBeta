@@ -299,17 +299,28 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
     if (!editingAppointment) return;
 
     try {
-      await appointmentService.delete(editingAppointment._id);
-      setSnackbar({
-        open: true,
-        message: 'Cita eliminada correctamente',
-        severity: 'success'
-      });
+      if (editingAppointment.isSobreturno) {
+        // Eliminar sobreturno
+        await sobreturnoService.deleteSobreturno(editingAppointment._id);
+        setSnackbar({
+          open: true,
+          message: 'Sobreturno eliminado correctamente',
+          severity: 'success'
+        });
+      } else {
+        // Eliminar cita normal
+        await appointmentService.delete(editingAppointment._id);
+        setSnackbar({
+          open: true,
+          message: 'Cita eliminada correctamente',
+          severity: 'success'
+        });
+      }
       await loadAppointments();
     } catch {
       setSnackbar({
         open: true,
-        message: 'Error al eliminar la cita',
+        message: 'Error al eliminar',
         severity: 'error'
       });
     } finally {

@@ -1,3 +1,7 @@
+export const deleteSobreturno = async (id: string) => {
+  const res = await axios.delete(`${API_URL}/${id}`);
+  return res.data;
+};
 export const updateSobreturnoDescription = async (id: string, description: string) => {
   const res = await axios.patch(`${API_URL}/${id}/status`, { description });
   return res.data;
