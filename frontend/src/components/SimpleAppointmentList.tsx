@@ -3,7 +3,7 @@ import { Box, Typography, List, ListItem, ListItemText, Chip, IconButton, Button
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+// import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AppointmentDrawer from './AppointmentDrawer';
 import * as sobreturnoService from '../services/sobreturnoService';
 import type { Appointment } from '../types/appointment';
@@ -54,11 +54,11 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
     setDrawerOpen(true);
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, appointmentId: string) => {
-    event.stopPropagation();
-    setMenuAnchorEl(event.currentTarget);
-    setSelectedMenuAppointment(appointmentId);
-  };
+  // const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, appointmentId: string) => {
+  //   event.stopPropagation();
+  //   setMenuAnchorEl(event.currentTarget);
+  //   setSelectedMenuAppointment(appointmentId);
+  // };
 
   const handleMenuClose = () => {
     setMenuAnchorEl(null);
