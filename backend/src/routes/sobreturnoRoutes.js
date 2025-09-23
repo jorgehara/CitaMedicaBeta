@@ -20,7 +20,20 @@ router.get('/validate/:sobreturnoNumber', (req, res) => {
     req.query.sobreturnoNumber = sobreturnoNumber;
     
     return sobreturnoController.validateSobreturno(req, res);
-});// Obtener sobre turnos disponibles por fecha
+});
+
+// Endpoint para limpiar caché (usado por el chatbot)
+router.post('/cache/clear', (req, res) => {
+    // En realidad no tenemos caché en el backend pero respondemos OK
+    // para que el chatbot continúe sin errores
+    console.log('Solicitud de limpieza de caché recibida:', req.body);
+    res.status(200).json({ 
+        success: true, 
+        message: 'Caché limpiada exitosamente' 
+    });
+});
+
+// Obtener sobre turnos disponibles por fecha
 router.get('/available/:date', sobreturnoController.getAvailableSobreturnos);
 
 // Reservar un sobreturno
