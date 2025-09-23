@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');
+// Endpoint de salud para sobreturnos
+router.get('/health', (req, res) => {
+	res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
 
 // Validar disponibilidad de un sobre turno
 router.get('/validate', sobreturnoController.validateSobreturno);
