@@ -21,7 +21,8 @@ const socialWorkOptions: SocialWork[] = [
   'Swiss Medical',
   'OSDE',
   'Galeno',
-  'CONSULTA PARTICULAR'
+  'CONSULTA PARTICULAR',
+  'Otras Obras Sociales'
 ];
 
 

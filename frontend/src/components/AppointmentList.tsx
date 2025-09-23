@@ -1382,6 +1382,7 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                 <MenuItem value="OSDE">OSDE</MenuItem>
                 <MenuItem value="Galeno">Galeno</MenuItem>
                 <MenuItem value="CONSULTA PARTICULAR">CONSULTA PARTICULAR</MenuItem>
+                <MenuItem value="Otras Obras Sociales">Otras Obras Sociales</MenuItem>
               </TextField>
 
               {editingAppointment && (

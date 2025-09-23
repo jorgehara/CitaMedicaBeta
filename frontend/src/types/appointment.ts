@@ -1,5 +1,5 @@
 export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled';
-export type SocialWork = 'INSSSEP' | 'Swiss Medical' | 'OSDE' | 'Galeno' | 'CONSULTA PARTICULAR';
+export type SocialWork = 'INSSSEP' | 'Swiss Medical' | 'OSDE' | 'Galeno' | 'CONSULTA PARTICULAR' | 'Otras Obras Sociales';
 
 
 export interface BaseAppointment {

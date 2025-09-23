@@ -17,9 +17,10 @@ const appointmentSchema = new mongoose.Schema({
     },
     socialWork: {
         type: String,
-        enum: ['INSSSEP', 'Swiss Medical', 'OSDE', 'Galeno', 'CONSULTA PARTICULAR'],
+        enum: ['INSSSEP', 'Swiss Medical', 'OSDE', 'Galeno', 'CONSULTA PARTICULAR', 'Otras Obras Sociales'],
         default: 'CONSULTA PARTICULAR',
-        required: true
+        required: true,
+        trim: true
     },
     phone: { 
         type: String, 
