@@ -180,26 +180,8 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                     </Box>
                   </Box>
                   {/* Icono de eliminar en la esquina superior derecha */}
-                  <IconButton
-                    size="small"
-                    sx={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      zIndex: 2,
-                      color: '#d32f2f',
-                      backgroundColor: 'rgba(255,255,255,0.7)',
-                      '&:hover': { backgroundColor: '#ffeaea' }
-                    }}
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleDeleteSobreturno(appointment._id);
-                    }}
-                    disabled={deletingId === appointment._id}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {/* Iconos de visto y eliminar alineados */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton
                       size="small"
                       sx={{ p: 0.5 }}
@@ -209,37 +191,24 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                         updateAttendedState(appointment._id, true);
                       }}
                     >
-                      <CheckCircleIcon sx={{ 
-                        color: attendedStates[appointment._id] 
-                          ? '#4caf50'
-                          : (theme) => theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.3)' 
-                            : 'rgba(0, 0, 0, 0.2)',
-                        fontSize: 24
-                      }} />
+                      <CheckCircleIcon sx={{ color: attendedStates[appointment._id] ? '#4caf50' : (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)', fontSize: 24 }} />
                     </IconButton>
-                    {attendedStates[appointment._id] && (
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleMenuOpen(e, appointment._id)}
-                        sx={{ 
-                          p: 0.5,
-                          color: (theme) => theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.7)' 
-                            : 'rgba(0, 0, 0, 0.54)',
-                          '&:hover': {
-                            color: (theme) => theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.9)' 
-                              : 'rgba(0, 0, 0, 0.87)',
-                            backgroundColor: (theme) => theme.palette.mode === 'dark'
-                              ? 'rgba(255, 255, 255, 0.08)'
-                              : 'rgba(0, 0, 0, 0.04)'
-                          }
-                        }}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    )}
+                    <IconButton
+                      size="small"
+                      sx={{
+                        p: 0.5,
+                        color: '#d32f2f',
+                        backgroundColor: 'transparent',
+                        '&:hover': { color: '#b71c1c', backgroundColor: 'rgba(211,47,47,0.08)' }
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleDeleteSobreturno(appointment._id);
+                      }}
+                      disabled={deletingId === appointment._id}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </Box>
                 </Box>
               }
