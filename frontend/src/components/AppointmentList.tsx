@@ -259,6 +259,11 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
       setEditingAppointment(null);
       setFormData(initialFormState);
       await loadAppointments();
+      
+      // Actualizar también la lista en el Dashboard si la función existe
+      if (window.refreshAppointments) {
+        window.refreshAppointments();
+      }
     } catch (error: any) {
       let msg = 'Error al crear la cita';
       if (error?.response?.data?.message) {
@@ -318,6 +323,11 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
         });
       }
       await loadAppointments();
+      
+      // Actualizar también la lista en el Dashboard si la función existe
+      if (window.refreshAppointments) {
+        window.refreshAppointments();
+      }
     } catch {
       setSnackbar({
         open: true,
@@ -354,6 +364,11 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
 
       if (selectedAppointment && selectedAppointment._id === appointmentId) {
         setSelectedAppointment(prev => prev ? { ...prev, ...updateData } : prev);
+      }
+      
+      // Actualizar también la lista en el Dashboard si la función existe
+      if (window.refreshAppointments) {
+        window.refreshAppointments();
       }
 
       setSnackbar({

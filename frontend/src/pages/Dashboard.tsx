@@ -11,6 +11,7 @@ import SimpleAppointmentList from '../components/SimpleAppointmentList';
 declare global {
   interface Window {
     openCreateAppointmentDialog: () => void;
+    refreshAppointments?: () => void; // Añadimos una función para refrescar las citas
   }
 }
 import { appointmentService } from '../services/appointmentService';
@@ -47,7 +48,16 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
+    
+    // Crear función global para actualizar las citas
+    window.refreshAppointments = fetchAppointments;
+    
     fetchAppointments();
+    
+    return () => {
+      // Limpiar la función global al desmontar el componente
+      window.refreshAppointments = undefined;
+    };
   }, [selectedDate]);
 
   // Obtener sobre turnos del backend

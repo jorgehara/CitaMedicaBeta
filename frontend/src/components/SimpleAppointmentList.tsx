@@ -22,8 +22,12 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
     setDeletingId(id);
     try {
       await sobreturnoService.deleteSobreturno(id);
-      // Opcional: recargar la lista o emitir evento al padre
-      window.location.reload(); // Simple, pero puedes mejorar con estado
+      // Actualizar la lista usando la función global en vez de recargar toda la página
+      if (window.refreshAppointments) {
+        window.refreshAppointments();
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       alert('Error al eliminar sobreturno');
     }
@@ -90,6 +94,11 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
     }
     try {
       await sobreturnoService.updateSobreturnoDescription(id, description);
+      
+      // Actualizar la lista si existe la función global
+      if (window.refreshAppointments) {
+        window.refreshAppointments();
+      }
     } catch {
       // Manejar error si es necesario
     }
