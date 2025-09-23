@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Chip, IconButton, Button, Menu, MenuItem } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -16,6 +17,18 @@ interface SimpleAppointmentListProps {
 }
 
 const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateButton = false, buttonLabel }: SimpleAppointmentListProps) => {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const handleDeleteSobreturno = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await sobreturnoService.deleteSobreturno(id);
+      // Opcional: recargar la lista o emitir evento al padre
+      window.location.reload(); // Simple, pero puedes mejorar con estado
+    } catch (error) {
+      alert('Error al eliminar sobreturno');
+    }
+    setDeletingId(null);
+  };
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -125,7 +138,8 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                   ? 'rgba(255, 255, 255, 0.05)'
                   : 'rgba(0, 0, 0, 0.04)'
                 : 'inherit',
-              p: 2
+              p: 2,
+              position: 'relative',
             }}
             onClick={() => !attendedStates[appointment._id] && handleItemClick(appointment)}
           >
@@ -165,6 +179,26 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                       )}
                     </Box>
                   </Box>
+                  {/* Icono de eliminar en la esquina superior derecha */}
+                  <IconButton
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      zIndex: 2,
+                      color: '#d32f2f',
+                      backgroundColor: 'rgba(255,255,255,0.7)',
+                      '&:hover': { backgroundColor: '#ffeaea' }
+                    }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleDeleteSobreturno(appointment._id);
+                    }}
+                    disabled={deletingId === appointment._id}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <IconButton
                       size="small"
