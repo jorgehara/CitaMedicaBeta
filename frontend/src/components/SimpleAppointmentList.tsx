@@ -3,7 +3,7 @@ import { Box, Typography, List, ListItem, ListItemText, Chip, IconButton, Button
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
-// import MoreVertIcon from '@mui/icons-material/MoreVert';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AppointmentDrawer from './AppointmentDrawer';
 import * as sobreturnoService from '../services/sobreturnoService';
 import type { Appointment } from '../types/appointment';
@@ -54,11 +54,11 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
     setDrawerOpen(true);
   };
 
-  // const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, appointmentId: string) => {
-  //   event.stopPropagation();
-  //   setMenuAnchorEl(event.currentTarget);
-  //   setSelectedMenuAppointment(appointmentId);
-  // };
+ const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, appointmentId: string) => {
+  event.stopPropagation();
+  setMenuAnchorEl(event.currentTarget);
+  setSelectedMenuAppointment(appointmentId);
+};
 
   const handleMenuClose = () => {
     setMenuAnchorEl(null);
@@ -180,7 +180,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                     </Box>
                   </Box>
                   {/* Icono de eliminar en la esquina superior derecha */}
-                  {/* Iconos de visto y eliminar alineados */}
+                  {/* Iconos de visto, eliminar y menú alineados */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <IconButton
                       size="small"
@@ -193,6 +193,15 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                     >
                       <CheckCircleIcon sx={{ color: attendedStates[appointment._id] ? '#4caf50' : (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)', fontSize: 24 }} />
                     </IconButton>
+                    {attendedStates[appointment._id] && (
+                      <IconButton
+                        size="small"
+                        sx={{ p: 0.5 }}
+                        onClick={(e) => handleMenuOpen(e, appointment._id)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    )}
                     <IconButton
                       size="small"
                       sx={{
