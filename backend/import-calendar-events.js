@@ -9,10 +9,10 @@ async function importCalendarEvents(date = null) {
 
     // Conectar a MongoDB
     await mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
         serverSelectionTimeoutMS: 10000,
         connectTimeoutMS: 10000,
+        maxPoolSize: 5,
+        minPoolSize: 1,
     });
     console.log('✅ Conectado a MongoDB');
 

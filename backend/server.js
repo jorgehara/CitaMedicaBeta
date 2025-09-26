@@ -53,11 +53,19 @@ app.use('/api', qrRoutes);
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 60000,
+    socketTimeoutMS: 60000,
+    connectTimeoutMS: 30000,
+    heartbeatFrequencyMS: 2000,
+    maxPoolSize: 10,
+    minPoolSize: 2,
 })
 .then(() => console.log('Conectado a MongoDB'))
-.catch(err => console.error('Error de conexión a MongoDB:', err));
+.catch(err => console.error('Error de conexión a MongoDB:', {
+    message: err.message,
+    code: err.code,
+    name: err.name
+}));
 
 // Middleware para logging de requests
 app.use((req, res, next) => {
