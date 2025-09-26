@@ -14,7 +14,9 @@ const connectDB = async () => {
             socketTimeoutMS: 60000,
             authSource: 'admin',
             user: 'Jorge',
-            pass: 'JaraJorge*2025*!'
+            pass: 'JaraJorge*2025*!',
+            connectTimeoutMS: 30000,
+            heartbeatFrequencyMS: 2000
         });
 
         console.log('MongoDB conectado exitosamente');

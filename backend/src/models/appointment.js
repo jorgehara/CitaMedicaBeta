@@ -17,7 +17,10 @@ const appointmentSchema = new mongoose.Schema({
     },
     socialWork: {
         type: String,
-        enum: ['INSSSEP', 'Swiss Medical', 'OSDE', 'Galeno', 'CONSULTA PARTICULAR', 'Otras Obras Sociales'],
+        enum: {
+            values: ['INSSSEP', 'Swiss Medical', 'OSDE', 'Galeno', 'CONSULTA PARTICULAR', 'Otras Obras Sociales'],
+            message: 'La obra social {VALUE} no es válida'
+        },
         default: 'CONSULTA PARTICULAR',
         required: true,
         trim: true
