@@ -304,10 +304,18 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
   const handleDelete = async () => {
     if (!editingAppointment) return;
 
+    // Log de depuración para saber qué tipo de turno se intenta eliminar
+     
+    console.log('[DEBUG] Eliminando:', {
+      id: editingAppointment._id,
+      isSobreturno: editingAppointment.isSobreturno,
+      clientName: editingAppointment.clientName
+    });
+
     try {
       if (editingAppointment.isSobreturno) {
         // Eliminar sobreturno
-  await deleteSobreturno(editingAppointment._id);
+        await deleteSobreturno(editingAppointment._id);
         setSnackbar({
           open: true,
           message: 'Sobreturno eliminado correctamente',
@@ -323,7 +331,6 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
         });
       }
       await loadAppointments();
-      
       // Actualizar también la lista en el Dashboard si la función existe
       if (window.refreshAppointments) {
         window.refreshAppointments();
