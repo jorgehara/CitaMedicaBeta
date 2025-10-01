@@ -182,7 +182,12 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
     setLoading(true);
     try {
       const data = await appointmentService.getAll({ showHistory });
-      setAppointments(data.filter(appointment => {
+      // Asegurar que cada cita tenga isSobreturno definido
+      const normalized = data.map(appointment => ({
+        ...appointment,
+        isSobreturno: appointment.isSobreturno === true // true si es true, false en cualquier otro caso
+      }));
+      setAppointments(normalized.filter(appointment => {
         if (showHistory) {
           // Para historial, mostrar citas pasadas
           return new Date(appointment.date) < new Date();
