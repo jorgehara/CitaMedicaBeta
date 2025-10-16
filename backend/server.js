@@ -2,14 +2,21 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const rateLimit = require('express-rate-limit');
 
 dotenv.config();
+
+// Rate limiter
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 100 // límite de 100 peticiones por ventana por IP
+});
 
 // Verificar variables de entorno críticas
 console.log('Verificando variables de entorno...');
 console.log('Ambiente:', process.env.NODE_ENV || 'desarrollo');
 
-const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS'];
+const requiredEnvVars = ['MONGODB_URI', 'PORT', 'CALENDAR_ID', 'GOOGLE_APPLICATION_CREDENTIALS', 'CORS_ORIGINS', 'JWT_SECRET'];
 requiredEnvVars.forEach(varName => {
     if (!process.env[varName]) {
         console.error(`Error: La variable de entorno ${varName} no está definida`);
@@ -20,6 +27,7 @@ requiredEnvVars.forEach(varName => {
 
 const appointmentRoutes = require('./src/routes/appointmentRoutes');
 const sobreturnoRoutes = require('./src/routes/sobreturnoRoutes');
+const authRoutes = require('./src/routes/authRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const PORT = process.env.PORT || 3001;
@@ -46,6 +54,12 @@ app.get('/', (req, res) => {
     res.json({ message: 'API del Consultorio Médico' });
 });
 app.use(express.json());
+
+// Aplicar rate limiting a todas las rutas
+app.use(limiter);
+
+// Rutas de autenticación
+app.use('/api/auth', authRoutes);
 
 const qrRoutes = require('./src/routes/qrRoutes');
 // Middleware para manejar el QR

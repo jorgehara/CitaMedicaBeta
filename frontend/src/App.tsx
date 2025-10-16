@@ -1,11 +1,14 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { useMemo, useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import History from './pages/History';
 import Schedule from './pages/Schedule';
+import Login from './pages/Login';
 import { ColorModeContext } from './context/ColorModeContext';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   const [mode, setMode] = useState<'light' | 'dark'>('dark');
@@ -62,32 +65,24 @@ const App = () => {
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Router>
-          <Layout>
-            <Box 
-              component="main" 
-              sx={{ 
-                flexGrow: 1,
-                p: 3,
-                width: '1200px',
-                maxWidth: '1200px',
-                mx: 'auto', // Centra el contenido
-                '@media (max-width: 1200px)': {
-                  maxWidth: '100%',
-                  px: { xs: 2, sm: 3 } // Padding horizontal responsivo
-                }
-              }}
-            >
+        <AuthProvider>
+          <Router>
+            <Box sx={{ display: 'flex' }}>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/horarios" element={<Schedule />} />
-                {/* <Route path="/qr" element={<QRCode />} /> */}
-                {/* <Route path="/configuracion" element={<Settings />} /> */}
-                <Route path="/historial" element={<History />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Dashboard />} />
+                  <Route path="history" element={<History />} />
+                  <Route path="schedule" element={<Schedule />} />
+                </Route>
               </Routes>
             </Box>
-          </Layout>
-        </Router>
+          </Router>
+        </AuthProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );

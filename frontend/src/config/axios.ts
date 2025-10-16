@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: 'https://micitamedica.me/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://micitamedica.me/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -11,6 +11,11 @@ const axiosInstance = axios.create({
 // Interceptor de peticiones
 axiosInstance.interceptors.request.use(
     (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
         console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
             data: config.data,
             headers: config.headers
@@ -34,6 +39,10 @@ axiosInstance.interceptors.response.use(
     },
     (error) => {
         if (error.response) {
+            if (error.response.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
             console.error('[DEBUG] Error de respuesta:', {
                 status: error.response.status,
                 data: error.response.data,
