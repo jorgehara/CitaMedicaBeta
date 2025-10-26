@@ -50,17 +50,23 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
 
   // Estado para pagos
   const [paidStates, setPaidStates] = useState<{[id: string]: boolean}>(() => {
-    const savedPaidStates = localStorage.getItem('paidStates');
-    const defaultPaidStates = Object.fromEntries(
+    return Object.fromEntries(
       appointments.map((a) => [a._id, a.isPaid || false])
     );
-    return savedPaidStates ? { ...defaultPaidStates, ...JSON.parse(savedPaidStates) } : defaultPaidStates;
   });
 
-  const updatePaymentState = (appointmentId: string, value: boolean) => {
-    const newStates = { ...paidStates, [appointmentId]: value };
-    setPaidStates(newStates);
-    localStorage.setItem('paidStates', JSON.stringify(newStates));
+  const updatePaymentState = async (appointmentId: string, value: boolean) => {
+    try {
+      await sobreturnoService.updatePaymentStatus(appointmentId, value);
+      const newStates = { ...paidStates, [appointmentId]: value };
+      setPaidStates(newStates);
+      if (window.refreshAppointments) {
+        window.refreshAppointments();
+      }
+    } catch (error) {
+      console.error('Error al actualizar estado de pago:', error);
+      alert('Error al actualizar estado de pago');
+    }
   };
 
   const handleItemClick = (appointment: Appointment) => {

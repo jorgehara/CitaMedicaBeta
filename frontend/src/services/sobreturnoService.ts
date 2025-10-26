@@ -6,6 +6,11 @@ export const updateSobreturnoDescription = async (id: string, description: strin
   const res = await axios.patch(`${API_URL}/${id}/status`, { description });
   return res.data;
 };
+
+export const updatePaymentStatus = async (id: string, isPaid: boolean) => {
+  const res = await axios.patch(`${API_URL}/${id}/payment`, { isPaid });
+  return res.data;
+};
 import axios from 'axios';
 import type { Appointment } from '../types/appointment';
 

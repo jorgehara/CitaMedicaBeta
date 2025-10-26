@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');
+
+// Ruta para actualizar el estado de pago
+router.patch('/:id/payment', sobreturnoController.updatePaymentStatus);
 // Endpoint de salud para sobreturnos
 router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });
