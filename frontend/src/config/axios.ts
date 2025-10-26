@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:3001/api',
+    baseURL: 'https://micitamedica.me/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'

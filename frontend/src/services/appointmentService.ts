@@ -1,187 +1,6 @@
 import type { Appointment, BaseAppointment } from '../types/appointment';
-import { mockAppointments } from '../mockData/appointments';
 import axiosInstance from '../config/axios';
 import axios from 'axios';
-
-// Define la URL base de la API aquí o impórtala desde tu configuración
-const API_URL = 'http://localhost:3001/api';
-
-export const createAppointment = async (appointmentData: BaseAppointment): Promise<Appointment> => {
-  try {
-    const response = await axiosInstance.post('/appointments', appointmentData);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Error al crear la cita:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || error.message);
-    } else if (error instanceof Error) {
-      console.error('Error al crear la cita:', error.message);
-      throw new Error(error.message);
-    } else {
-      console.error('Error al crear la cita:', error);
-      throw new Error('Error desconocido al crear la cita');
-    }
-  }
-};
-
-// Flag para usar datos mock - ESTABLECER A FALSE EN PRODUCCIÓN
-const USE_MOCK_DATA = false; // Aseguramos que esté en false
-
-export const getAvailableAppointments = async (date: string): Promise<string[]> => {
-  try {
-    console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
-    const response = await axiosInstance.get(`/appointments/available/${date}`);
-    console.log('[DEBUG] Horarios disponibles recibidos:', response.data);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('[ERROR] Error al obtener horarios disponibles:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || error.message);
-    } else {
-      console.error('[ERROR] Error desconocido al obtener horarios disponibles:', error);
-      throw new Error('Error al obtener horarios disponibles');
-    }
-  }
-};
-
-// Servicio de citas con datos mock para desarrollo
-class MockAppointmentService {
-  private appointments: Appointment[];
-
-  constructor() {
-    this.appointments = [...mockAppointments];
-  }
-
-  async getAll(): Promise<Appointment[]> {
-    return Promise.resolve([...this.appointments]);
-  }
-
-  async getById(id: string): Promise<Appointment> {
-    const appointment = this.appointments.find(a => a._id === id);
-    if (!appointment) {
-      throw new Error('Cita no encontrada');
-    }
-    return Promise.resolve({...appointment});
-  }
-
-  async create(appointment: BaseAppointment): Promise<Appointment> {
-    const newAppointment: Appointment = {
-      ...appointment,
-      _id: `mock-${Date.now()}`
-    };
-    this.appointments.push(newAppointment);
-    return Promise.resolve({...newAppointment});
-  }
-
-  async update(id: string, update: Partial<BaseAppointment>): Promise<Appointment> {
-    const index = this.appointments.findIndex(a => a._id === id);
-    if (index === -1) {
-      throw new Error('Cita no encontrada');
-    }
-    
-    this.appointments[index] = {
-      ...this.appointments[index],
-      ...update
-    };
-    
-    return Promise.resolve({...this.appointments[index]});
-  }
-
-  async delete(id: string): Promise<void> {
-    const index = this.appointments.findIndex(a => a._id === id);
-    if (index === -1) {
-      throw new Error('Cita no encontrada');
-    }
-    
-    this.appointments.splice(index, 1);
-    return Promise.resolve();
-  }
-
-  async updateStatus(id: string, status: Appointment['status']): Promise<Appointment> {
-    return this.update(id, { status });
-  }
-
-  async reschedule(id: string, date: string, time: string): Promise<Appointment> {
-    return this.update(id, { date, time });
-  }
-}
-
-// Servicio de citas real para producción
-class RealAppointmentService {
-  async getAll(params?: { showHistory?: boolean, date?: string }): Promise<Appointment[]> {
-    try {
-      // Si no se pasa fecha, usar la de hoy
-      const today = new Date().toISOString().split('T')[0];
-      const finalParams = { ...params };
-      if (!finalParams.date) {
-        finalParams.date = today;
-      }
-      const response = await axiosInstance.get('/appointments', { params: finalParams });
-      return response.data;
-    } catch (error) {
-      console.error('Error al obtener las citas:', error);
-      throw new Error('Error al obtener las citas');
-    }
-  }
-
-  async getById(id: string): Promise<Appointment> {
-    const response = await fetch(`${API_URL}/appointments/${id}`);
-    if (!response.ok) {
-      throw new Error('Error al obtener la cita');
-    }
-    return response.json();
-  }
-
-  async create(appointment: BaseAppointment): Promise<Appointment> {
-    const response = await fetch(`${API_URL}/appointments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(appointment),
-    });
-    if (!response.ok) {
-      throw new Error('Error al crear la cita');
-    }
-    return response.json();
-  }
-
-  async update(id: string, appointment: Partial<BaseAppointment>): Promise<Appointment> {
-    const response = await fetch(`${API_URL}/appointments/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(appointment),
-    });
-    if (!response.ok) {
-      throw new Error('Error al actualizar la cita');
-    }
-    return response.json();
-  }
-
-  async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_URL}/appointments/${id}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      throw new Error('Error al eliminar la cita');
-    }
-  }
-
-  async updateStatus(id: string, status: Appointment['status']): Promise<Appointment> {
-    return this.update(id, { status });
-  }
-
-  async reschedule(id: string, date: string, time: string): Promise<Appointment> {
-    return this.update(id, { date, time });
-  }
-}
-
-// IMPORTANTE: Cambiar USE_MOCK_DATA a false antes de desplegar a producción
-export const appointmentService = USE_MOCK_DATA 
-  ? new MockAppointmentService()
-  : new RealAppointmentService();
 
 interface TimeSlot {
   displayTime: string;
@@ -198,26 +17,89 @@ interface AvailableTimesResponse {
   };
 }
 
-export const getAvailableTimes = async (date: string): Promise<AvailableTimesResponse> => {
-  try {
-    const response = await axiosInstance.get<AvailableTimesResponse>('/appointments/available-times', {
-      params: { date }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener horarios disponibles:', error);
-    throw error;
+class AppointmentService {
+  async getAll({ showHistory = false } = {}): Promise<Appointment[]> {
+    try {
+      const response = await axiosInstance.get('/appointments');
+      const appointments = response.data;
+      
+      if (showHistory) {
+        return appointments;
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return appointments.filter((appointment: Appointment) => {
+          const appointmentDate = new Date(appointment.date);
+          appointmentDate.setHours(0, 0, 0, 0);
+          return appointmentDate >= today || appointment.status !== 'cancelled';
+        });
+      }
+    } catch (error) {
+      console.error('Error al obtener las citas:', error);
+      throw new Error('Error al obtener las citas');
+    }
   }
-};
 
-export const getAppointments = async (showHistory: boolean = false) => {
-  try {
-    const response = await axios.get(`${API_URL}/appointments`, {
-      params: { showHistory }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener las citas:', error);
-    throw error;
+  async create(appointmentData: BaseAppointment): Promise<Appointment> {
+    try {
+      const response = await axiosInstance.post('/appointments', appointmentData);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
+      throw new Error('Error al crear la cita');
+    }
   }
-};
+
+  async update(id: string, update: Partial<BaseAppointment>): Promise<Appointment> {
+    try {
+      const response = await axiosInstance.put(`/appointments/${id}`, update);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
+      throw new Error('Error al actualizar la cita');
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      await axiosInstance.delete(`/appointments/${id}`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
+      throw new Error('Error al eliminar la cita');
+    }
+  }
+
+  async updateStatus(id: string, status: Appointment['status']): Promise<Appointment> {
+    return this.update(id, { status });
+  }
+
+  async reschedule(id: string, date: string, time: string): Promise<Appointment> {
+    return this.update(id, { date, time });
+  }
+
+  async getAvailableTimes(date: string): Promise<AvailableTimesResponse> {
+    try {
+      console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
+      const response = await axiosInstance.get('/appointments/available-times', {
+        params: { date }
+      });
+      console.log('[DEBUG] Horarios disponibles recibidos:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[ERROR] Error al obtener horarios disponibles:', error);
+      throw new Error('Error al obtener horarios disponibles');
+    }
+  }
+}
+
+// Crear y exportar una única instancia del servicio y sus funciones auxiliares
+export const appointmentService = new AppointmentService();
+
+// Función auxiliar para obtener horarios disponibles
+export const getAvailableTimes = (date: string) => appointmentService.getAvailableTimes(date);

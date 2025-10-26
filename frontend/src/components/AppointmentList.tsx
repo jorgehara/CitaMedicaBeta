@@ -44,7 +44,7 @@ import { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHan
 import { format } from 'date-fns';
 import type { ChangeEvent } from 'react';
 import type { Appointment, AppointmentStatus, BaseAppointment, SocialWork } from '../types/appointment';
-import { appointmentService, getAvailableTimes } from '../services/appointmentService';
+import { appointmentService, getAvailableTimes } from '../services/appointmentServiceold';
 
 const ITEMS_PER_PAGE = 6;
 
