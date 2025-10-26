@@ -4,7 +4,7 @@ import axiosInstance from '../config/axios';
 import axios from 'axios';
 
 // Define la URL base de la API aquí o impórtala desde tu configuración
-const API_URL = 'https://micitamedica.me/api';
+const API_URL = 'http://localhost:3001/api';
 
 export const createAppointment = async (appointmentData: BaseAppointment): Promise<Appointment> => {
   try {
@@ -25,7 +25,7 @@ export const createAppointment = async (appointmentData: BaseAppointment): Promi
 };
 
 // Flag para usar datos mock - ESTABLECER A FALSE EN PRODUCCIÓN
-const USE_MOCK_DATA = false;
+const USE_MOCK_DATA = false; // Aseguramos que esté en false
 
 export const getAvailableAppointments = async (date: string): Promise<string[]> => {
   try {

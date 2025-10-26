@@ -60,6 +60,39 @@ const AFTERNOON_HOURS = ['17:00', '17:15', '17:30', '17:45',
                         '18:00', '18:15', '18:30', '18:45',
                         '19:00', '19:15', '19:30', '19:45'];
 
+// Función para obtener la fecha actual en formato YYYY-MM-DD
+const getTodayDate = () => {
+    const now = new Date();
+    now.setHours(now.getHours() - 3); // Ajuste para timezone Argentina
+    return now.toISOString().split('T')[0];
+};
+
+// Controlador para obtener todas las citas
+exports.getAppointments = async (req, res) => {
+    try {
+        const { date } = req.query;
+        const queryDate = date || getTodayDate();
+        
+        console.log('[DEBUG] Buscando citas para la fecha:', queryDate);
+        
+        // Construir el filtro
+        const filter = { date: queryDate };
+        
+        // Ejecutar la consulta
+        const appointments = await Appointment.find(filter).sort({ time: 1 });
+        
+        console.log(`[DEBUG] Se encontraron ${appointments.length} citas para la fecha ${queryDate}`);
+        
+        res.json(appointments);
+    } catch (error) {
+        console.error('[ERROR] Error al obtener citas:', error);
+        res.status(500).json({
+            message: 'Error al obtener las citas',
+            error: error.message
+        });
+    }
+};
+
 const syncWithGoogleCalendar = async (date) => {
   try {
     const googleCalendarService = require('../services/googleCalendarService');

@@ -14,6 +14,7 @@ export interface BaseAppointment {
   description?: string;
   attended?: boolean; // indica si el paciente asistió a la cita
   isSobreturno?: boolean; // indica si es sobreturno
+  isPaid?: boolean; // indica si el paciente realizó el pago
 }
 
 export interface Appointment extends BaseAppointment {

@@ -43,7 +43,7 @@ import {
 import { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { format } from 'date-fns';
 import type { ChangeEvent } from 'react';
-import type { Appointment, AppointmentStatus, SocialWork } from '../types/appointment';
+import type { Appointment, AppointmentStatus, BaseAppointment, SocialWork } from '../types/appointment';
 import { appointmentService, getAvailableTimes } from '../services/appointmentService';
 
 const ITEMS_PER_PAGE = 6;
@@ -58,7 +58,8 @@ const initialFormState = {
   email: '',
   description: '',
   attended: false,
-  isSobreturno: false
+  isSobreturno: false,
+  isPaid: false
 };
 
 interface TimeSlot {
@@ -181,7 +182,9 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
   const loadAppointments = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await appointmentService.getAll({ showHistory });
+      // Obtener la fecha seleccionada o usar la fecha actual
+      const selectedDate = new Date().toISOString().split('T')[0]; // Puedes modificar esto para usar una fecha seleccionada
+      const data = await appointmentService.getAll({ showHistory, date: selectedDate });
       // Asegurar que cada cita tenga isSobreturno definido
       const normalized = data.map(appointment => ({
         ...appointment,
@@ -236,22 +239,19 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
         });
       } else {
         // Construir el objeto exactamente como el test manual exitoso
-        const dataToSend: any = {
+        const dataToSend: BaseAppointment = {
           clientName: formData.clientName,
           date: formData.date,
           time: formData.time,
+          status: formData.status,
           socialWork: formData.socialWork,
           phone: formData.phone,
-          email: formData.email,
-          description: formData.description,
-          isSobreturno: !!formData.isSobreturno
+          email: formData.email || '',
+          description: formData.description || '',
+          attended: formData.attended || false,
+          isSobreturno: !!formData.isSobreturno,
+          isPaid: !!formData.isPaid
         };
-        // Eliminar campos vacíos para evitar enviar undefined/null
-        Object.keys(dataToSend).forEach(key => {
-          if (dataToSend[key] === '' || dataToSend[key] === undefined) {
-            delete dataToSend[key];
-          }
-        });
         console.log('Creando cita (frontend, ajustado):', dataToSend);
         await appointmentService.create(dataToSend);
         setSnackbar({
@@ -269,11 +269,13 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
       if (window.refreshAppointments) {
         window.refreshAppointments();
       }
-    } catch (error: any) {
+    } catch (error) {
       let msg = 'Error al crear la cita';
-      if (error?.response?.data?.message) {
-        msg = error.response.data.message;
-      } else if (error?.message) {
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        msg = String(error.response.data.message);
+      } else if (error instanceof Error) {
         msg = error.message;
       }
       setSnackbar({
@@ -296,7 +298,8 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
       email: appointment.email || '',
       description: appointment.description || '',
       attended: appointment.attended || false,
-      isSobreturno: appointment.isSobreturno || false
+      isSobreturno: appointment.isSobreturno || false,
+      isPaid: appointment.isPaid || false
     });
     setOpenDialog(true);
   };
@@ -485,8 +488,27 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
             xs: 'auto', 
             sm: '180px',
             md: '200px' 
-          }
+          },
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
         }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {appointment.isPaid && (
+              <Chip
+                size="small"
+                color="success"
+                label="Pagado"
+                sx={{ 
+                  height: '20px',
+                  '& .MuiChip-label': {
+                    px: 1,
+                    fontSize: '0.7rem'
+                  }
+                }}
+              />
+            )}
+          </Box>
           <Typography 
             variant={viewMode === 'grid' ? 'h6' : 'subtitle1'} 
             component="div" 
@@ -1312,18 +1334,30 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
               flexDirection: 'column', 
               gap: 2 
             }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.isSobreturno}
-                    onChange={e => setFormData(prev => ({ ...prev, isSobreturno: e.target.checked }))}
-                    name="isSobreturno"
-                    color="primary"
-                  />
-                }
-                label="Sobreturno (permite cualquier horario entre 08:00 y 22:00)"
-                sx={{ mb: 1 }}
-              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.isSobreturno}
+                      onChange={e => setFormData(prev => ({ ...prev, isSobreturno: e.target.checked }))}
+                      name="isSobreturno"
+                      color="primary"
+                    />
+                  }
+                  label="Sobreturno (permite cualquier horario entre 08:00 y 22:00)"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.isPaid || false}
+                      onChange={e => setFormData(prev => ({ ...prev, isPaid: e.target.checked }))}
+                      name="isPaid"
+                      color="success"
+                    />
+                  }
+                  label="Consulta pagada"
+                />
+              </Box>
               <TextField
                 label="Nombre del paciente"
                 name="clientName"
