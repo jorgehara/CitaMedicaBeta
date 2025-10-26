@@ -2,8 +2,16 @@ const express = require('express');
 const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');
 
-// Ruta para actualizar el estado de pago
+// Rutas básicas
+router.get('/', sobreturnoController.getAllSobreturnos);
+router.post('/', sobreturnoController.createSobreturno);
+router.get('/:id', sobreturnoController.getSobreturno);
+router.put('/:id', sobreturnoController.updateSobreturno);
+router.delete('/:id', sobreturnoController.deleteSobreturno);
+
+// Rutas especiales
 router.patch('/:id/payment', sobreturnoController.updatePaymentStatus);
+router.patch('/:id/status', sobreturnoController.updateSobreturnoDescription);
 // Endpoint de salud para sobreturnos
 router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });

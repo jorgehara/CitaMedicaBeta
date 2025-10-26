@@ -39,6 +39,19 @@ exports.updatePaymentStatus = async (req, res) => {
 const Sobreturno = require('../models/sobreturno');
 const googleCalendarService = require('../services/googleCalendarService');
 
+// Obtener todos los sobreturnos
+exports.getAllSobreturnos = async (req, res) => {
+  try {
+    console.log('[DEBUG] Obteniendo todos los sobreturnos');
+    const sobreturnos = await Sobreturno.find({});
+    console.log(`[DEBUG] Se encontraron ${sobreturnos.length} sobreturnos`);
+    res.json(sobreturnos);
+  } catch (error) {
+    console.error('[ERROR] Error al obtener sobreturnos:', error);
+    res.status(500).json({ error: 'Error al obtener sobreturnos' });
+  }
+};
+
 // Crear un nuevo sobre turno
 exports.createSobreturno = async (req, res) => {
   try {

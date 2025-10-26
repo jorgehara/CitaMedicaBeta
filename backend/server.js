@@ -25,6 +25,14 @@ const errorHandler = require('./src/middleware/errorHandler');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+// Middleware
+app.use(express.json());
+app.use(cors());
+
+// Rutas
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/sobreturnos', sobreturnoRoutes);
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({

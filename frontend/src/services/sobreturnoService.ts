@@ -8,8 +8,15 @@ export const updateSobreturnoDescription = async (id: string, description: strin
 };
 
 export const updatePaymentStatus = async (id: string, isPaid: boolean) => {
-  const res = await axios.patch(`${API_URL}/${id}/payment`, { isPaid });
-  return res.data;
+  try {
+    console.log(`[DEBUG] Enviando petición PATCH a ${API_URL}/${id}/payment con isPaid=${isPaid}`);
+    const res = await axios.patch(`${API_URL}/${id}/payment`, { isPaid });
+    console.log('[DEBUG] Respuesta recibida:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error('[ERROR] Error al actualizar estado de pago:', error);
+    throw error;
+  }
 };
 import axios from 'axios';
 import type { Appointment } from '../types/appointment';
