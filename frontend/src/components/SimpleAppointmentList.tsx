@@ -1,3 +1,4 @@
+//tarjetitas de citas con todos los detalles
 import { useState } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Chip, IconButton, Button, Menu, MenuItem, FormControlLabel, Checkbox } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
