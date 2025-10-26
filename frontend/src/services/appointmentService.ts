@@ -18,20 +18,24 @@ interface AvailableTimesResponse {
 }
 
 class AppointmentService {
-  async getAll({ showHistory = false } = {}): Promise<Appointment[]> {
+  async getAll({ showHistory = false, date }: { showHistory?: boolean; date?: string } = {}): Promise<Appointment[]> {
     try {
-      const response = await axiosInstance.get('/appointments');
+      const params: { showHistory?: boolean; date?: string } = {};
+      if (showHistory !== undefined) params.showHistory = showHistory;
+      if (date) params.date = date;
+
+      const response = await axiosInstance.get('/appointments', { params });
       const appointments = response.data;
       
       if (showHistory) {
         return appointments;
       } else {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const filterDate = date ? new Date(date) : new Date();
+        filterDate.setHours(0, 0, 0, 0);
         return appointments.filter((appointment: Appointment) => {
           const appointmentDate = new Date(appointment.date);
           appointmentDate.setHours(0, 0, 0, 0);
-          return appointmentDate >= today || appointment.status !== 'cancelled';
+          return appointmentDate >= filterDate || appointment.status !== 'cancelled';
         });
       }
     } catch (error) {

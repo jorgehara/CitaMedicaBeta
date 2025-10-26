@@ -14,7 +14,7 @@ declare global {
     refreshAppointments?: () => void; // Añadimos una función para refrescar las citas
   }
 }
-import { appointmentService } from '../services/appointmentServiceold';
+import { appointmentService } from '../services/appointmentService';
 import * as sobreturnoService from '../services/sobreturnoService';
 
 

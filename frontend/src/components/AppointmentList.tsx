@@ -44,7 +44,7 @@ import { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHan
 import { format } from 'date-fns';
 import type { ChangeEvent } from 'react';
 import type { Appointment, AppointmentStatus, BaseAppointment, SocialWork } from '../types/appointment';
-import { appointmentService, getAvailableTimes } from '../services/appointmentServiceold';
+import { appointmentService, getAvailableTimes } from '../services/appointmentService';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -186,11 +186,11 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
       const selectedDate = new Date().toISOString().split('T')[0]; // Puedes modificar esto para usar una fecha seleccionada
       const data = await appointmentService.getAll({ showHistory, date: selectedDate });
       // Asegurar que cada cita tenga isSobreturno definido
-      const normalized = data.map(appointment => ({
+      const normalized = data.map((appointment: Appointment) => ({
         ...appointment,
         isSobreturno: appointment.isSobreturno === true // true si es true, false en cualquier otro caso
       }));
-      setAppointments(normalized.filter(appointment => {
+      setAppointments(normalized.filter((appointment: Appointment) => {
         if (showHistory) {
           // Para historial, mostrar citas pasadas
           return new Date(appointment.date) < new Date();
