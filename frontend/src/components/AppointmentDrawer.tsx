@@ -1,3 +1,5 @@
+//sidebar de las tarjetas de citas normales y sobre-turnos
+
 import React from 'react';
 import { Drawer, Box, Typography, IconButton, TextField, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -9,13 +11,22 @@ interface AppointmentDrawerProps {
   appointment: Appointment | null;
   onClose: () => void;
   onSaveDescription?: (id: string, description: string) => void;
+  onUpdatePaymentStatus?: (id: string, isPaid: boolean) => void;
   editable?: boolean;
 }
 
-const AppointmentDrawer = ({ open, appointment, onClose, onSaveDescription, editable = true }: AppointmentDrawerProps) => {
+const AppointmentDrawer = ({ 
+  open, 
+  appointment, 
+  onClose, 
+  onSaveDescription, 
+
+  editable = true 
+}: AppointmentDrawerProps) => {
   const [description, setDescription] = useState(appointment?.description || '');
 
-  // Actualizar descripción local si cambia la cita
+
+  // Actualizar descripción y estado de pago local si cambia la cita
   React.useEffect(() => {
     setDescription(appointment?.description || '');
   }, [appointment]);
@@ -58,7 +69,7 @@ const AppointmentDrawer = ({ open, appointment, onClose, onSaveDescription, edit
           </Box>
           <Box>
             <Typography variant="subtitle2" gutterBottom>Contacto</Typography>
-            <Typography>{appointment.phone}</Typography>
+          <Typography>{appointment.phone}</Typography>
             {appointment.email && <Typography>{appointment.email}</Typography>}
           </Box>
           <Box>

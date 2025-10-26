@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Typography, List, ListItem, ListItemText, Chip, IconButton, Button, Menu, MenuItem } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, Chip, IconButton, Button, Menu, MenuItem, FormControlLabel, Checkbox } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
@@ -42,16 +42,25 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
   const [attendedStates, setAttendedStates] = useState<{[id: string]: boolean}>(() => {
     const savedStates = localStorage.getItem('attendedStates');
     const defaultStates = Object.fromEntries(
-      (appointments as Appointment[]).map((a: Appointment) => [a._id, a.attended || false])
+      appointments.map((a) => [a._id, a.attended || false])
     );
-    
-    if (savedStates) {
-      const parsed = JSON.parse(savedStates);
-      return { ...defaultStates, ...parsed };
-    }
-    
-    return defaultStates;
+    return savedStates ? { ...defaultStates, ...JSON.parse(savedStates) } : defaultStates;
   });
+
+  // Estado para pagos
+  const [paidStates, setPaidStates] = useState<{[id: string]: boolean}>(() => {
+    const savedPaidStates = localStorage.getItem('paidStates');
+    const defaultPaidStates = Object.fromEntries(
+      appointments.map((a) => [a._id, a.isPaid || false])
+    );
+    return savedPaidStates ? { ...defaultPaidStates, ...JSON.parse(savedPaidStates) } : defaultPaidStates;
+  });
+
+  const updatePaymentState = (appointmentId: string, value: boolean) => {
+    const newStates = { ...paidStates, [appointmentId]: value };
+    setPaidStates(newStates);
+    localStorage.setItem('paidStates', JSON.stringify(newStates));
+  };
 
   const handleItemClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
@@ -248,6 +257,26 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                       <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
                         {appointment.time}
                       </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={paidStates[appointment._id] || false}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                updatePaymentState(appointment._id, e.target.checked);
+                              }}
+                              size="small"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          }
+                          label={
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              Pagó
+                            </Typography>
+                          }
+                        />
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
