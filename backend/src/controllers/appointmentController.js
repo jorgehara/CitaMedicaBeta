@@ -400,6 +400,46 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
+// Controlador para actualizar el estado de pago
+exports.updatePaymentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isPaid } = req.body;
+
+    console.log(`[DEBUG] Actualizando estado de pago para cita ${id} a ${isPaid}`);
+
+    if (typeof isPaid !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'El valor de isPaid debe ser un booleano'
+      });
+    }
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      id,
+      { $set: { isPaid } },
+      { new: true }
+    );
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cita no encontrada'
+      });
+    }
+
+    console.log(`[DEBUG] Estado de pago actualizado exitosamente para cita ${id}`);
+    res.json(appointment);
+  } catch (error) {
+    console.error('[ERROR] Error al actualizar estado de pago:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al actualizar estado de pago',
+      error: error.message
+    });
+  }
+};
+
 exports.updateAppointment = async (req, res) => {
   try {
     console.log('Actualizando cita:', req.params.id, req.body);

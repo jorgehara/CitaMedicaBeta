@@ -17,4 +17,7 @@ router.delete('/appointments/:id', appointmentController.deleteAppointment);
 // Ruta para obtener horarios disponibles
 router.get('/appointments/available-times', appointmentController.getAvailableTimes);
 
+// Ruta para actualizar estado de pago
+router.patch('/appointments/:id/payment', appointmentController.updatePaymentStatus);
+
 module.exports = router;

@@ -6,6 +6,10 @@ const appointmentSchema = new mongoose.Schema({
         default: false,
         required: true
     },
+    isPaid: {
+        type: Boolean,
+        default: false
+    },
     clientName: { 
         type: String, 
         required: true,
