@@ -39,7 +39,7 @@ router.patch('/:id/status', sobreturnoController.updateSobreturnoStatus);
 // Endpoints específicos para el chatbot
 router.post('/reserve', sobreturnoController.reserveSobreturno);
 router.post('/cache/clear', (req, res) => {
-    console.log('[DEBUG] Solicitud de limpieza de caché recibida:', req.body);
+    // console.log('[DEBUG] Solicitud de limpieza de caché recibida:', req.body);
     res.status(200).json({ 
         success: true, 
         message: 'Caché limpiada exitosamente' 

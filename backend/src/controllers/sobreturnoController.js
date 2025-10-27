@@ -53,7 +53,7 @@ exports.updatePaymentStatus = async (req, res) => {
       return res.status(400).json({ error: 'El valor de isPaid debe ser un booleano' });
     }
 
-    console.log(`[DEBUG] Actualizando estado de pago para sobreturno ${id} a ${isPaid}`);
+    // console.log(`[DEBUG] Actualizando estado de pago para sobreturno ${id} a ${isPaid}`);
 
     // Usar findByIdAndUpdate para obtener el documento actualizado y asegurar que existe
     const sobreturno = await Sobreturno.findByIdAndUpdate(
@@ -66,7 +66,7 @@ exports.updatePaymentStatus = async (req, res) => {
       return res.status(404).json({ error: 'Sobreturno no encontrado' });
     }
 
-    console.log(`[DEBUG] Estado de pago actualizado exitosamente para sobreturno:`, sobreturno);
+    // console.log(`[DEBUG] Estado de pago actualizado exitosamente para sobreturno:`, sobreturno);
     res.json(sobreturno);
   } catch (error) {
     console.error('[ERROR] Error al actualizar estado de pago:', error);
@@ -133,9 +133,9 @@ exports.updateSobreturnoDescription = async (req, res) => {
 // Obtener todos los sobreturnos
 exports.getAllSobreturnos = async (req, res) => {
   try {
-    console.log('[DEBUG] Obteniendo todos los sobreturnos');
+    // console.log('[DEBUG] Obteniendo todos los sobreturnos');
     const sobreturnos = await Sobreturno.find({});
-    console.log(`[DEBUG] Se encontraron ${sobreturnos.length} sobreturnos`);
+    // console.log(`[DEBUG] Se encontraron ${sobreturnos.length} sobreturnos`);
     res.json(sobreturnos);
   } catch (error) {
     console.error('[ERROR] Error al obtener sobreturnos:', error);
@@ -146,9 +146,8 @@ exports.getAllSobreturnos = async (req, res) => {
 // Crear un nuevo sobre turno
 exports.createSobreturno = async (req, res) => {
   try {
-    console.log('[DEBUG] Recibiendo solicitud de sobreturno:', JSON.stringify(req.body, null, 2));
+    // console.log('[DEBUG] Recibiendo solicitud de sobreturno:', JSON.stringify(req.body, null, 2));
     
-
     // Validar datos requeridos
     const { sobreturnoNumber, date, clientName, socialWork, phone } = req.body;
     
@@ -213,18 +212,18 @@ exports.createSobreturno = async (req, res) => {
 
     // Crear evento en Google Calendar inmediatamente para sobreturnos confirmados
     try {
-      console.log('[DEBUG] Intentando crear evento en Google Calendar...');
+      // console.log('[DEBUG] Intentando crear evento en Google Calendar...');
       const googleCalendarService = require('../services/googleCalendarService');
       const eventId = await googleCalendarService.createCalendarEvent(sobreturno);
       if (eventId) {
-        console.log('[DEBUG] Evento creado en Google Calendar, actualizando sobreturno...');
+        // console.log('[DEBUG] Evento creado en Google Calendar, actualizando sobreturno...');
         sobreturno.googleEventId = eventId;
         await sobreturno.save();
-        console.log(`[DEBUG] Evento de Google Calendar creado para sobreturno con ID: ${eventId}`);
+        // console.log(`[DEBUG] Evento de Google Calendar creado para sobreturno con ID: ${eventId}`);
       }
     } catch (calendarError) {
-      console.log('[DEBUG] Error al crear evento en Google Calendar:', calendarError);
-      console.error('Error al crear evento de sobreturno en Google Calendar:', calendarError);
+      // console.log('[DEBUG] Error al crear evento en Google Calendar:', calendarError);
+      // console.error('Error al crear evento de sobreturno en Google Calendar:', calendarError);
       // No interrumpir el flujo por error de calendar
     }
 
@@ -237,7 +236,7 @@ exports.createSobreturno = async (req, res) => {
 // Listar todos los sobre turnos (opcional: filtrar por estado)
 exports.getSobreturnos = async (req, res) => {
   try {
-    console.log('[DEBUG] Obteniendo sobreturnos - Query:', req.query);
+    // console.log('[DEBUG] Obteniendo sobreturnos - Query:', req.query);
     const { status, date } = req.query;
 
     // Sincronizar con Google Calendar si se solicita una fecha específica

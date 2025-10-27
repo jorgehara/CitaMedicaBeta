@@ -73,17 +73,15 @@ exports.getAppointments = async (req, res) => {
         const { date } = req.query;
         const queryDate = date || getTodayDate();
         
-        console.log('[DEBUG] Buscando citas para la fecha:', queryDate);
+        // console.log('[DEBUG] Buscando citas para la fecha:', queryDate);
         
         // Construir el filtro
         const filter = { date: queryDate };
         
         // Ejecutar la consulta
         const appointments = await Appointment.find(filter).sort({ time: 1 });
-        
-        console.log(`[DEBUG] Se encontraron ${appointments.length} citas para la fecha ${queryDate}`);
-        
-        res.json(appointments);
+
+        // console.log(`[DEBUG] Se encontraron ${appointments.length} citas para la fecha ${queryDate}`);        res.json(appointments);
     } catch (error) {
         console.error('[ERROR] Error al obtener citas:', error);
         res.status(500).json({
