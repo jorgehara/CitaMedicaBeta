@@ -2,56 +2,48 @@ const express = require('express');
 const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');
 
-// Rutas básicas
+/**
+ * Endpoints públicos - No requieren autenticación
+ */
+
+// Health check
 router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
-router.get('/', sobreturnoController.getAllSobreturnos);
+// Endpoints de consulta pública
+router.get('/validate', sobreturnoController.validateSobreturno);
+router.get('/available/:date', sobreturnoController.getAvailableSobreturnos);
+router.get('/date/:date', sobreturnoController.getSobreturnosByDate);
+
+/**
+ * Endpoints protegidos - Sistema principal
+ */
+
+// Operaciones CRUD básicas
+router.get('/', sobreturnoController.getSobreturnos);
 router.post('/', sobreturnoController.createSobreturno);
 router.get('/:id', sobreturnoController.getSobreturno);
 router.put('/:id', sobreturnoController.updateSobreturno);
 router.delete('/:id', sobreturnoController.deleteSobreturno);
 
-// Rutas especiales
+// Gestión de estados y actualizaciones
 router.patch('/:id/payment', sobreturnoController.updatePaymentStatus);
-router.patch('/:id/status', sobreturnoController.updateSobreturnoDescription);
-// Endpoint de salud para sobreturnos
-router.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date() });
-});
+router.patch('/:id/description', sobreturnoController.updateSobreturnoDescription);
+router.patch('/:id/status', sobreturnoController.updateSobreturnoStatus);
 
-// Endpoint para validar disponibilidad
-router.get('/date/:date', sobreturnoController.getSobreturnosByDate);
+/**
+ * Endpoints especiales - Chatbot y sincronización
+ */
 
-// Endpoint para limpiar caché (usado por el chatbot)
+// Endpoints específicos para el chatbot
+router.post('/reserve', sobreturnoController.reserveSobreturno);
 router.post('/cache/clear', (req, res) => {
-    // En realidad no tenemos caché en el backend pero respondemos OK
-    // para que el chatbot continúe sin errores
-    console.log('Solicitud de limpieza de caché recibida:', req.body);
+    console.log('[DEBUG] Solicitud de limpieza de caché recibida:', req.body);
     res.status(200).json({ 
         success: true, 
         message: 'Caché limpiada exitosamente' 
     });
 });
-
-// Obtener sobre turnos disponibles por fecha
-router.get('/available/:date', sobreturnoController.getAvailableSobreturnos);
-
-// Reservar un sobreturno
-router.post('/reserve', sobreturnoController.reserveSobreturno);
-
-// Crear un nuevo sobre turno
-router.post('/', sobreturnoController.createSobreturno);
-
-// Listar sobre turnos (opcional: ?status=pending)
-router.get('/', sobreturnoController.getSobreturnos);
-
-// Actualizar estado de un sobre turno
-router.patch('/:id/status', sobreturnoController.updateSobreturnoStatus);
-
-// Eliminar un sobreturno
-router.delete('/:id', sobreturnoController.deleteSobreturno);
-
 
 module.exports = router;

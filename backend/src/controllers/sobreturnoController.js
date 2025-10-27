@@ -12,6 +12,37 @@ exports.deleteSobreturno = async (req, res) => {
   }
 };
 
+// Validar disponibilidad de sobreturno
+exports.validateSobreturno = async (req, res) => {
+    try {
+        const { date, sobreturnoNumber } = req.query;
+        
+        if (!date || !sobreturnoNumber) {
+            return res.status(400).json({
+                success: false,
+                message: 'Se requiere fecha y número de sobreturno'
+            });
+        }
+
+        const existingSobreturno = await Sobreturno.findOne({
+            date,
+            sobreturnoNumber: parseInt(sobreturnoNumber),
+            status: { $ne: 'cancelled' }
+        });
+
+        return res.json({
+            success: true,
+            available: !existingSobreturno
+        });
+    } catch (error) {
+        console.error('[ERROR] Error al validar sobreturno:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error al validar disponibilidad'
+        });
+    }
+};
+
 // Actualizar estado de pago
 exports.updatePaymentStatus = async (req, res) => {
   try {
