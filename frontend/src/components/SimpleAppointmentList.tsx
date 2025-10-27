@@ -7,6 +7,7 @@ import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AppointmentDrawer from './AppointmentDrawer';
 import * as sobreturnoService from '../services/sobreturnoService';
+import { appointmentService } from '../services/appointmentService';
 import type { Appointment } from '../types/appointment';
 
 interface SimpleAppointmentListProps {
@@ -65,13 +66,24 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
 
   const updatePaymentState = async (appointmentId: string, value: boolean) => {
     try {
-      const updatedSobreturno = await sobreturnoService.updatePaymentStatus(appointmentId, value);
-      console.log('[DEBUG] Sobreturno actualizado:', updatedSobreturno);
+      const appointment = appointments.find(a => a._id === appointmentId);
+      if (!appointment) {
+        throw new Error('Cita no encontrada');
+      }
+
+      let updatedAppointment;
+      if (appointment.isSobreturno) {
+        updatedAppointment = await sobreturnoService.updatePaymentStatus(appointmentId, value);
+      } else {
+        updatedAppointment = await appointmentService.updatePaymentStatus(appointmentId, value);
+      }
+      
+      console.log('[DEBUG] Cita actualizada:', updatedAppointment);
       
       // Actualizar el estado local solo con el valor del servidor
       setPaidStates(prevStates => ({
         ...prevStates,
-        [appointmentId]: updatedSobreturno.isPaid
+        [appointmentId]: updatedAppointment.isPaid
       }));
       
       // Forzar actualización de la lista
@@ -120,18 +132,33 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
   };
 
   const handleSaveDescription = async (id: string, description: string) => {
-    if (selectedAppointment && selectedAppointment._id === id) {
-      setSelectedAppointment({ ...selectedAppointment, description });
-    }
     try {
-      await sobreturnoService.updateSobreturnoDescription(id, description);
-      
+      const appointment = appointments.find(a => a._id === id);
+      if (!appointment) {
+        throw new Error('Cita no encontrada');
+      }
+
+      let updatedAppointment;
+      if (appointment.isSobreturno) {
+        updatedAppointment = await sobreturnoService.updateSobreturnoDescription(id, description);
+      } else {
+        updatedAppointment = await appointmentService.updateDescription(id, description);
+      }
+
+      // Actualizar el estado local
+      if (selectedAppointment && selectedAppointment._id === id) {
+        setSelectedAppointment({ ...selectedAppointment, description });
+      }
+
       // Actualizar la lista si existe la función global
       if (window.refreshAppointments) {
         window.refreshAppointments();
       }
-    } catch {
-      // Manejar error si es necesario
+
+      console.log('[DEBUG] Descripción actualizada:', updatedAppointment);
+    } catch (error) {
+      console.error('Error al guardar descripción:', error);
+      alert('Error al guardar la descripción');
     }
   };
 

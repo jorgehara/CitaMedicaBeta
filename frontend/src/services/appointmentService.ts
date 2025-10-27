@@ -87,6 +87,32 @@ class AppointmentService {
     return this.update(id, { date, time });
   }
 
+  async updateDescription(id: string, description: string): Promise<Appointment> {
+    try {
+      console.log(`[DEBUG] Actualizando descripción para cita ${id}`);
+      const response = await axiosInstance.patch(`/appointments/${id}/description`, { description });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
+      throw new Error('Error al actualizar la descripción');
+    }
+  }
+
+  async updatePaymentStatus(id: string, isPaid: boolean): Promise<Appointment> {
+    try {
+      console.log(`[DEBUG] Actualizando estado de pago para cita ${id} a ${isPaid}`);
+      const response = await axiosInstance.patch(`/appointments/${id}/payment`, { isPaid });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
+      throw new Error('Error al actualizar el estado de pago');
+    }
+  }
+
   async getAvailableTimes(date: string): Promise<AvailableTimesResponse> {
     try {
       console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
