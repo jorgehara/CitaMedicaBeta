@@ -10,6 +10,7 @@ import SimpleAppointmentList from '../components/SimpleAppointmentList';
 // Permite usar la función global para abrir el diálogo de nueva cita
 declare global {
   interface Window {
+    updateAppointmentsList?: (appointments: Appointment[]) => void;
     openCreateAppointmentDialog: () => void;
     refreshAppointments?: () => void; // Añadimos una función para refrescar las citas
   }
@@ -23,6 +24,16 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(today);
   const [openOverturnDialog, setOpenOverturnDialog] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  useEffect(() => {
+    window.updateAppointmentsList = (updatedAppointments: Appointment[]) => {
+      setAppointments(updatedAppointments);
+    };
+
+    return () => {
+      window.updateAppointmentsList = undefined;
+    };
+  }, []);
   const [overturnAppointments, setOverturnAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
