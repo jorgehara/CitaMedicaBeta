@@ -78,17 +78,20 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
         updatedAppointment = await appointmentService.updatePaymentStatus(appointmentId, value);
       }
       
-      console.log('[DEBUG] Cita actualizadaa:', updatedAppointment);
+      console.log('[DEBUG] Cita actualizada:', updatedAppointment);
       
-      // Actualizar el estado local solo con el valor del servidor
+      // Actualizar el estado local inmediatamente
       setPaidStates(prevStates => ({
         ...prevStates,
         [appointmentId]: updatedAppointment.isPaid
       }));
-      
-      // Forzar actualización de la lista
-      if (window.refreshAppointments) {
-        window.refreshAppointments();
+
+      // Actualizar la lista de citas localmente
+      const updatedAppointments = appointments.map(a => 
+        a._id === appointmentId ? { ...a, isPaid: updatedAppointment.isPaid } : a
+      );
+      if (window.updateAppointmentsList) {
+        window.updateAppointmentsList(updatedAppointments);
       }
     } catch (error) {
       console.error('Error al actualizar estado de pago:', error);
@@ -145,14 +148,16 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
         updatedAppointment = await appointmentService.updateDescription(id, description);
       }
 
-      // Actualizar el estado local
+      // Actualizar el estado local inmediatamente
+      const updatedAppointments = appointments.map(a => 
+        a._id === id ? { ...a, description } : a
+      );
+      if (window.updateAppointmentsList) {
+        window.updateAppointmentsList(updatedAppointments);
+      }
+      
       if (selectedAppointment && selectedAppointment._id === id) {
         setSelectedAppointment({ ...selectedAppointment, description });
-      }
-
-      // Actualizar la lista si existe la función global
-      if (window.refreshAppointments) {
-        window.refreshAppointments();
       }
 
       console.log('[DEBUG] Descripción actualizada:', updatedAppointment);
