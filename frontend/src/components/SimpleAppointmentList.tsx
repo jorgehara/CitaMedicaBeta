@@ -287,7 +287,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                       }}
                       onClick={e => {
                         e.stopPropagation();
-                        handleDeleteAppointment(appointment._id, appointment.isSobreturno);
+                        handleDeleteAppointment(appointment._id, !!appointment.isSobreturno);
                       }}
                       disabled={deletingId === appointment._id}
                     >
