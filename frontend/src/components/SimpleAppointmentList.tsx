@@ -78,7 +78,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
         updatedAppointment = await appointmentService.updatePaymentStatus(appointmentId, value);
       }
       
-      console.log('[DEBUG] Cita actualizada:', updatedAppointment);
+      console.log('[DEBUG] Cita actualizadaa:', updatedAppointment);
       
       // Actualizar el estado local solo con el valor del servidor
       setPaidStates(prevStates => ({
