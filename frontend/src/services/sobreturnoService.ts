@@ -37,6 +37,11 @@ export const updatePaymentStatus = async (id: string, isPaid: boolean) => {
         'Accept': 'application/json'
       }
     });
+    
+    if (!res.data || res.status !== 200) {
+      throw new Error('Error al actualizar el estado de pago');
+    }
+    
     console.log('[DEBUG] Respuesta recibida:', res.data);
     
     // Forzar actualización de la lista después de actualizar el pago

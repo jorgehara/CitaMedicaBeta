@@ -1,5 +1,5 @@
 //tarjetitas de citas con todos los detalles
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Chip, IconButton, Button, Menu, MenuItem, FormControlLabel, Checkbox } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -55,17 +55,24 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
     );
   });
 
+  // Actualizar estados de pago cuando cambian los appointments
+  useEffect(() => {
+    const newPaidStates = Object.fromEntries(
+      appointments.map((a) => [a._id, a.isPaid || false])
+    );
+    setPaidStates(newPaidStates);
+  }, [appointments]);
+
   const updatePaymentState = async (appointmentId: string, value: boolean) => {
     try {
       const updatedSobreturno = await sobreturnoService.updatePaymentStatus(appointmentId, value);
       console.log('[DEBUG] Sobreturno actualizado:', updatedSobreturno);
       
-      // Actualizar el estado local con el valor del servidor
-      const newStates = { ...paidStates, [appointmentId]: updatedSobreturno.isPaid };
-      setPaidStates(newStates);
-      
-      // Guardar el estado en localStorage para persistencia
-      localStorage.setItem('paidStates', JSON.stringify(newStates));
+      // Actualizar el estado local solo con el valor del servidor
+      setPaidStates(prevStates => ({
+        ...prevStates,
+        [appointmentId]: updatedSobreturno.isPaid
+      }));
       
       // Forzar actualización de la lista
       if (window.refreshAppointments) {

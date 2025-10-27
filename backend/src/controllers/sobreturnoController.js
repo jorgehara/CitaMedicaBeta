@@ -18,13 +18,17 @@ exports.updatePaymentStatus = async (req, res) => {
     const { id } = req.params;
     const { isPaid } = req.body;
 
+    if (typeof isPaid !== 'boolean') {
+      return res.status(400).json({ error: 'El valor de isPaid debe ser un booleano' });
+    }
+
     console.log(`[DEBUG] Actualizando estado de pago para sobreturno ${id} a ${isPaid}`);
 
-    // Usar findByIdAndUpdate para obtener el documento actualizado
+    // Usar findByIdAndUpdate para obtener el documento actualizado y asegurar que existe
     const sobreturno = await Sobreturno.findByIdAndUpdate(
       id,
       { $set: { isPaid: isPaid } },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, upsert: false }
     );
 
     if (!sobreturno) {
@@ -76,6 +80,11 @@ exports.updateSobreturnoDescription = async (req, res) => {
   try {
     const { id } = req.params;
     const { description } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ error: 'Se requiere un ID de sobreturno' });
+    }
+    
     const sobreturno = await Sobreturno.findByIdAndUpdate(
       id,
       { $set: { description } },
