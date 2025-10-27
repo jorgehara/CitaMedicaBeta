@@ -20,17 +20,21 @@ interface SimpleAppointmentListProps {
 
 const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateButton = false, buttonLabel }: SimpleAppointmentListProps) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const handleDeleteSobreturno = async (id: string) => {
+  const handleDeleteAppointment = async (id: string, isSobreturno: boolean) => {
     setDeletingId(id);
     try {
-      await sobreturnoService.deleteSobreturno(id);
+      if (isSobreturno) {
+        await sobreturnoService.deleteSobreturno(id);
+      } else {
+        await appointmentService.delete(id);
+      }
       // Actualizar la lista usando la función global en vez de recargar toda la página
       const updatedAppointments = appointments.filter(a => a._id !== id);
       if (window.updateAppointmentsList) {
         window.updateAppointmentsList(updatedAppointments);
       }
     } catch (error) {
-      alert('Error al eliminar sobreturno');
+      alert(`Error al eliminar ${isSobreturno ? 'sobreturno' : 'cita'}`);
     }
     setDeletingId(null);
   };
@@ -283,7 +287,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                       }}
                       onClick={e => {
                         e.stopPropagation();
-                        handleDeleteSobreturno(appointment._id);
+                        handleDeleteAppointment(appointment._id, appointment.isSobreturno);
                       }}
                       disabled={deletingId === appointment._id}
                     >
