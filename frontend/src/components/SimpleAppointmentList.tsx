@@ -57,9 +57,17 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
 
   const updatePaymentState = async (appointmentId: string, value: boolean) => {
     try {
-      await sobreturnoService.updatePaymentStatus(appointmentId, value);
-      const newStates = { ...paidStates, [appointmentId]: value };
+      const updatedSobreturno = await sobreturnoService.updatePaymentStatus(appointmentId, value);
+      console.log('[DEBUG] Sobreturno actualizado:', updatedSobreturno);
+      
+      // Actualizar el estado local con el valor del servidor
+      const newStates = { ...paidStates, [appointmentId]: updatedSobreturno.isPaid };
       setPaidStates(newStates);
+      
+      // Guardar el estado en localStorage para persistencia
+      localStorage.setItem('paidStates', JSON.stringify(newStates));
+      
+      // Forzar actualización de la lista
       if (window.refreshAppointments) {
         window.refreshAppointments();
       }

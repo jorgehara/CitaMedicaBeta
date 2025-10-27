@@ -20,15 +20,18 @@ exports.updatePaymentStatus = async (req, res) => {
 
     console.log(`[DEBUG] Actualizando estado de pago para sobreturno ${id} a ${isPaid}`);
 
-    const sobreturno = await Sobreturno.findById(id);
+    // Usar findByIdAndUpdate para obtener el documento actualizado
+    const sobreturno = await Sobreturno.findByIdAndUpdate(
+      id,
+      { $set: { isPaid: isPaid } },
+      { new: true, runValidators: true }
+    );
+
     if (!sobreturno) {
       return res.status(404).json({ error: 'Sobreturno no encontrado' });
     }
 
-    sobreturno.isPaid = isPaid;
-    await sobreturno.save();
-
-    console.log(`[DEBUG] Estado de pago actualizado exitosamente`);
+    console.log(`[DEBUG] Estado de pago actualizado exitosamente para sobreturno:`, sobreturno);
     res.json(sobreturno);
   } catch (error) {
     console.error('[ERROR] Error al actualizar estado de pago:', error);

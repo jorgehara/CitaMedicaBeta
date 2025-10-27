@@ -10,9 +10,21 @@ export const updateSobreturnoDescription = async (id: string, description: strin
 export const updatePaymentStatus = async (id: string, isPaid: boolean) => {
   try {
     console.log(`[DEBUG] Enviando petición PATCH a ${API_URL}/${id}/payment con isPaid=${isPaid}`);
-    const res = await axios.patch(`${API_URL}/${id}/payment`, { isPaid });
+    const res = await axios.patch(`${API_URL}/${id}/payment`, { isPaid }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
     console.log('[DEBUG] Respuesta recibida:', res.data);
-    return res.data;
+    
+    // Forzar actualización de la lista después de actualizar el pago
+    const updatedSobreturno = res.data;
+    if (window.refreshAppointments) {
+      window.refreshAppointments();
+    }
+    
+    return updatedSobreturno;
   } catch (error) {
     console.error('[ERROR] Error al actualizar estado de pago:', error);
     throw error;
