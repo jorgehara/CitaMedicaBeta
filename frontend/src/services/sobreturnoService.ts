@@ -81,8 +81,23 @@ export const getSobreturnos = async (status?: string): Promise<Appointment[]> =>
 };
 
 export const createSobreturno = async (sobreturno: Omit<Appointment, '_id'>) => {
-  const res = await axios.post(API_BASE, sobreturno);
-  return res.data;
+  try {
+    const res = await axios.post(API_BASE, sobreturno, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!res.data) {
+      throw new Error('No se recibieron datos del servidor');
+    }
+    
+    return res.data;
+  } catch (error: any) {
+    console.error('[ERROR] Error al crear sobreturno:', error);
+    throw new Error(error.response?.data?.error || 'Error al crear el sobreturno');
+  }
 };
 
 export const updateSobreturnoStatus = async (id: string, status: 'confirmed' | 'cancelled') => {

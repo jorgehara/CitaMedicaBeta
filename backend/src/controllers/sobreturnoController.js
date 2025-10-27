@@ -118,9 +118,28 @@ exports.createSobreturno = async (req, res) => {
     console.log('[DEBUG] Recibiendo solicitud de sobreturno:', JSON.stringify(req.body, null, 2));
     
 
+    // Validar datos requeridos
+    const { sobreturnoNumber, date, clientName, socialWork, phone } = req.body;
+    
+    if (!sobreturnoNumber || !date || !clientName || !socialWork || !phone) {
+      return res.status(400).json({ 
+        error: 'Faltan datos requeridos',
+        details: {
+          sobreturnoNumber: !sobreturnoNumber,
+          date: !date,
+          clientName: !clientName,
+          socialWork: !socialWork,
+          phone: !phone
+        }
+      });
+    }
+
     // Validar que no exista ya un sobreturno con el mismo número y fecha
-    const { sobreturnoNumber, date } = req.body;
-    const existente = await Sobreturno.findOne({ sobreturnoNumber, date });
+    const existente = await Sobreturno.findOne({ 
+      sobreturnoNumber: Number(sobreturnoNumber), 
+      date: new Date(date).toISOString().split('T')[0]
+    });
+    
     if (existente) {
       return res.status(409).json({ error: 'Ya existe un sobreturno para ese número y fecha.' });
     }
