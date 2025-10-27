@@ -214,11 +214,11 @@ exports.getSobreturnos = async (req, res) => {
   }
 };
 
-// Validar disponibilidad de un sobre turno
-exports.validateSobreturno = async (req, res) => {
+// Corregir el método getSobreturnosByDate que tiene bloques mal cerrados
+exports.getSobreturnosByDate = async (req, res) => {
   try {
-    const { date, sobreturnoNumber } = req.query;
-    console.log('[DEBUG] Validando disponibilidad:', { date, sobreturnoNumber });
+    const { date } = req.params;
+    console.log('[DEBUG] Obteniendo sobreturnos para fecha:', date);
 
     if (!date) {
       return res.status(400).json({ 
@@ -227,81 +227,60 @@ exports.validateSobreturno = async (req, res) => {
       });
     }
 
-    // Si no se proporciona número de sobreturno, devolver todos los disponibles
-    if (!sobreturnoNumber) {
-      // Obtener todos los sobreturnos para la fecha especificada
-      const sobreturnos = await Sobreturno.find({ 
-        date,
-        status: { $ne: 'cancelled' }
-      });
-
-      // Crear un array con todos los números de sobreturno posibles
-      const allSobreturnos = Array.from({length: 10}, (_, i) => i + 1);
-      
-      // Filtrar los números de sobreturno que ya están ocupados
-      const ocupados = sobreturnos.map(s => s.sobreturnoNumber);
-      const disponibles = allSobreturnos.filter(num => !ocupados.includes(num));
-
-      // Preparar la respuesta con los horarios correspondientes
-      const sobreturnosDisponibles = disponibles.map(num => {
-        let horario = '';
-        if (num >= 1 && num <= 5) {
-          switch(num) {
-            case 1: horario = '11:00'; break;
-            case 2: horario = '11:15'; break;
-            case 3: horario = '11:30'; break;
-            case 4: horario = '11:45'; break;
-            case 5: horario = '12:00'; break;
-          }
-        } else {
-          switch(num) {
-            case 6: horario = '19:00'; break;
-            case 7: horario = '19:15'; break;
-            case 8: horario = '19:30'; break;
-            case 9: horario = '19:45'; break;
-            case 10: horario = '20:00'; break;
-          }
-        }
-        return {
-          numero: num,
-          horario,
-          turno: num <= 5 ? 'mañana' : 'tarde'
-        };
-      });
-
-      return res.json({
-        success: true,
-        data: {
-          disponibles: sobreturnosDisponibles,
-          totalDisponibles: disponibles.length,
-          fecha: date
-        }
-      });
-    }
-
-    if (!date || !sobreturnoNumber) {
-      return res.status(400).json({ 
-        error: 'Se requieren fecha y número de sobreturno' 
-      });
-    }
-
-    // Buscar cualquier sobreturno no cancelado para esa fecha y número
-    const existente = await Sobreturno.findOne({ 
-      date, 
-      sobreturnoNumber,
-      status: { $ne: 'cancelled' } // No considerar los cancelados
+    // Obtener sobreturnos para la fecha especificada
+    const sobreturnos = await Sobreturno.find({ 
+      date,
+      isSobreturno: true,
+      status: { $ne: 'cancelled' }
     });
 
-    // Si existe y no está cancelado, no está disponible
-    const available = !existente;
-    console.log('[DEBUG] Resultado validación:', { 
-      available, 
-      existente: existente ? existente.status : 'no existe' 
+    console.log('[DEBUG] Sobreturnos encontrados:', sobreturnos.length);
+
+    // Crear un array con todos los números de sobreturno posibles
+    const allSobreturnos = Array.from({length: 10}, (_, i) => i + 1);
+    
+    // Filtrar los números de sobreturno que ya están ocupados
+    const ocupados = sobreturnos.map(s => s.sobreturnoNumber);
+    const disponibles = allSobreturnos.filter(num => !ocupados.includes(num));
+
+    // Preparar la respuesta con los horarios correspondientes
+    const sobreturnosDisponibles = disponibles.map(num => {
+      let horario = '';
+      if (num >= 1 && num <= 5) {
+        switch(num) {
+          case 1: horario = '11:00'; break;
+          case 2: horario = '11:15'; break;
+          case 3: horario = '11:30'; break;
+          case 4: horario = '11:45'; break;
+          case 5: horario = '12:00'; break;
+        }
+      } else {
+        switch(num) {
+          case 6: horario = '19:00'; break;
+          case 7: horario = '19:15'; break;
+          case 8: horario = '19:30'; break;
+          case 9: horario = '19:45'; break;
+          case 10: horario = '20:00'; break;
+        }
+      }
+      return {
+        numero: num,
+        horario,
+        turno: num <= 5 ? 'mañana' : 'tarde'
+      };
     });
 
-    res.json({ available });
+    return res.json({
+      success: true,
+      data: {
+        disponibles: sobreturnosDisponibles,
+        totalDisponibles: disponibles.length,
+        fecha: date
+      }
+    });
+
   } catch (error) {
-    console.error('[ERROR] Error al validar sobreturno:', error);
+    console.error('[ERROR] Error al obtener sobreturnos por fecha:', error);
     res.status(500).json({ error: error.message });
   }
 };

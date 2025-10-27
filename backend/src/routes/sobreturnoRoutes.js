@@ -21,21 +21,8 @@ router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
-// Validar disponibilidad de un sobre turno (formato antiguo)
-router.get('/validate', sobreturnoController.validateSobreturno);
-
-// Validar disponibilidad con parámetros simples (para el chatbot)
-router.get('/validate/:sobreturnoNumber', (req, res) => {
-    const sobreturnoNumber = parseInt(req.params.sobreturnoNumber);
-    // Obtenemos la fecha actual en formato YYYY-MM-DD
-    const today = new Date();
-    const date = today.toISOString().split('T')[0];
-    
-    req.query.date = date;
-    req.query.sobreturnoNumber = sobreturnoNumber;
-    
-    return sobreturnoController.validateSobreturno(req, res);
-});
+// Endpoint para validar disponibilidad
+router.get('/date/:date', sobreturnoController.getSobreturnosByDate);
 
 // Endpoint para limpiar caché (usado por el chatbot)
 router.post('/cache/clear', (req, res) => {
