@@ -20,4 +20,7 @@ router.get('/appointments/available-times', appointmentController.getAvailableTi
 // Ruta para actualizar estado de pago
 router.patch('/appointments/:id/payment', appointmentController.updatePaymentStatus);
 
+// Ruta para actualizar descripción
+router.patch('/appointments/:id/description', appointmentController.updateDescription);
+
 module.exports = router;

@@ -10,6 +10,11 @@ const appointmentSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    description: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     clientName: { 
         type: String, 
         required: true,

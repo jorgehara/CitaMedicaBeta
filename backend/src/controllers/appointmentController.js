@@ -400,6 +400,46 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
+// Controlador para actualizar la descripción
+exports.updateDescription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { description } = req.body;
+
+    console.log(`[DEBUG] Actualizando descripción para cita ${id}`);
+
+    if (typeof description !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'La descripción debe ser una cadena de texto'
+      });
+    }
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      id,
+      { $set: { description: description.trim() } },
+      { new: true }
+    );
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cita no encontrada'
+      });
+    }
+
+    console.log(`[DEBUG] Descripción actualizada exitosamente para cita ${id}`);
+    res.json(appointment);
+  } catch (error) {
+    console.error('[ERROR] Error al actualizar descripción:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al actualizar la descripción',
+      error: error.message
+    });
+  }
+};
+
 // Controlador para actualizar el estado de pago
 exports.updatePaymentStatus = async (req, res) => {
   try {
