@@ -42,6 +42,54 @@ exports.updatePaymentStatus = async (req, res) => {
 const Sobreturno = require('../models/sobreturno');
 const googleCalendarService = require('../services/googleCalendarService');
 
+// Obtener un sobreturno por ID
+exports.getSobreturno = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sobreturno = await Sobreturno.findById(id);
+    if (!sobreturno) {
+      return res.status(404).json({ error: 'Sobreturno no encontrado' });
+    }
+    res.json(sobreturno);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Actualizar un sobreturno
+exports.updateSobreturno = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const sobreturno = await Sobreturno.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+    if (!sobreturno) {
+      return res.status(404).json({ error: 'Sobreturno no encontrado' });
+    }
+    res.json(sobreturno);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Actualizar descripción de un sobreturno
+exports.updateSobreturnoDescription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { description } = req.body;
+    const sobreturno = await Sobreturno.findByIdAndUpdate(
+      id,
+      { $set: { description } },
+      { new: true, runValidators: true }
+    );
+    if (!sobreturno) {
+      return res.status(404).json({ error: 'Sobreturno no encontrado' });
+    }
+    res.json(sobreturno);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Obtener todos los sobreturnos
 exports.getAllSobreturnos = async (req, res) => {
   try {

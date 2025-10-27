@@ -3,6 +3,10 @@ const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');
 
 // Rutas básicas
+router.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
+
 router.get('/', sobreturnoController.getAllSobreturnos);
 router.post('/', sobreturnoController.createSobreturno);
 router.get('/:id', sobreturnoController.getSobreturno);
