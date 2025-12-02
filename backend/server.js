@@ -25,49 +25,49 @@ const errorHandler = require('./src/middleware/errorHandler');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
-// Configuración de CORS
+// Configuración de CORS mejorada
 const corsOptions = {
-    origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [
-        'http://localhost:4173',
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'https://micitamedica.me'
-    ],
+    origin: process.env.CORS_ORIGINS && process.env.CORS_ORIGINS !== '*'
+        ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+        : [
+            'http://localhost:4173',
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'http://localhost:3008',
+            'https://micitamedica.me'
+        ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
     credentials: true,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
+    preflightContinue: false
 };
 
-// Middleware
-app.use(express.json());
+// Middleware - orden importante
 app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Log de solicitudes entrantes
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No origin'}`);
     next();
 });
 
-// Rutas
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/sobreturnos', sobreturnoRoutes);
-
-// Health check endpoint
+// Health check endpoint (antes de las rutas específicas)
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
         timestamp: new Date().toISOString(),
         service: 'appointment-backend',
-        version: '1.0.0'
+        version: '1.0.0',
+        uptime: process.uptime()
     });
 });
 
-// Middleware
-app.use(cors({
-    origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [],
-    credentials: true,
-}));
+// Rutas principales
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/sobreturnos', sobreturnoRoutes);
 
 // Ruta base
 app.get('/', (req, res) => {
