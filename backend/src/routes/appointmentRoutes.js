@@ -11,22 +11,22 @@ router.post('/test-calendar-create', auth, checkPermission('appointments', 'crea
 // Rutas para citas (protegidas con autenticación)
 
 // GET - Lectura (admin, operador, auditor)
-router.get('/appointments', auth, checkPermission('appointments', 'read'), appointmentController.getAllAppointments);
-router.get('/appointments/available/:date', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableAppointments);
-router.get('/appointments/reserved/:date', auth, checkPermission('appointments', 'read'), appointmentController.getReservedAppointments);
-router.get('/appointments/available-times', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableTimes);
+router.get('/', auth, checkPermission('appointments', 'read'), appointmentController.getAllAppointments);
+router.get('/available/:date', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableAppointments);
+router.get('/reserved/:date', auth, checkPermission('appointments', 'read'), appointmentController.getReservedAppointments);
+router.get('/available-times', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableTimes);
 
 // POST - Creación (admin, operador)
-router.post('/appointments', auth, checkPermission('appointments', 'create'), appointmentController.createAppointment);
+router.post('/', auth, checkPermission('appointments', 'create'), appointmentController.createAppointment);
 
 // PUT - Actualización (admin, operador)
-router.put('/appointments/:id', auth, checkPermission('appointments', 'update'), appointmentController.updateAppointment);
+router.put('/:id', auth, checkPermission('appointments', 'update'), appointmentController.updateAppointment);
 
 // PATCH - Actualización parcial (admin, operador)
-router.patch('/appointments/:id/payment', auth, checkPermission('appointments', 'update'), appointmentController.updatePaymentStatus);
-router.patch('/appointments/:id/description', auth, checkPermission('appointments', 'update'), appointmentController.updateDescription);
+router.patch('/:id/payment', auth, checkPermission('appointments', 'update'), appointmentController.updatePaymentStatus);
+router.patch('/:id/description', auth, checkPermission('appointments', 'update'), appointmentController.updateDescription);
 
 // DELETE - Eliminación (solo admin)
-router.delete('/appointments/:id', auth, checkPermission('appointments', 'delete'), appointmentController.deleteAppointment);
+router.delete('/:id', auth, checkPermission('appointments', 'delete'), appointmentController.deleteAppointment);
 
 module.exports = router;

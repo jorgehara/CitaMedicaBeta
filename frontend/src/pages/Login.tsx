@@ -263,19 +263,6 @@ const Login = () => {
             </p>
           </motion.div>
         </div>
-
-        {/* Demo Credentials Hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-6 p-4 bg-blue-50 dark:bg-gray-700/50 rounded-xl text-center"
-        >
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            <strong>Credenciales de prueba:</strong><br />
-            admin@cita-medica.com / admin123
-          </p>
-        </motion.div>
       </motion.div>
     </div>
   );
