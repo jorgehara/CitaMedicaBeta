@@ -19,6 +19,7 @@ import {
   People as PeopleIcon,
   History as HistoryIcon,
   Logout as LogoutIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -59,12 +60,12 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   const menuItems = [
-    { text: 'Inicio', icon: <HomeIcon />, path: '/' },
-    { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios' },
-    { text: 'Pacientes', icon: <PeopleIcon />, path: '/pacientes' },
-    { text: 'Historial', icon: <HistoryIcon />, path: '/historial' },
-    // { text: 'QR WhatsApp', icon: <QrCodeIcon />, path: '/qr' },
-    // { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion' },
+    { text: 'Inicio', icon: <HomeIcon />, path: '/', disabled: false },
+    { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios', disabled: false },
+    // { text: 'Pacientes', icon: <PeopleIcon />, path: '/pacientes', disabled: true },
+    { text: 'Historial', icon: <HistoryIcon />, path: '/historial', disabled: false },
+    // { text: 'QR WhatsApp', icon: <QrCodeIcon />, path: '/qr', disabled: true },
+    // { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion', disabled: true },
   ];
 
   const drawer = (
@@ -165,6 +166,27 @@ const Layout = ({ children }: LayoutProps) => {
             </Typography>
           </Box>
         </Box>
+        <ListItemButton
+          onClick={() => {
+            navigate('/change-password');
+            setMobileOpen(false);
+          }}
+          sx={{
+            borderRadius: 1,
+            mb: 0.5,
+            '&:hover': {
+              bgcolor: 'warning.main',
+              '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+                color: 'common.white'
+              }
+            }
+          }}
+        >
+          <ListItemIcon sx={{ color: 'warning.main', minWidth: 40 }}>
+            <LockIcon />
+          </ListItemIcon>
+          <ListItemText primary="Cambiar Contraseña" />
+        </ListItemButton>
         <ListItemButton
           onClick={handleLogout}
           sx={{
@@ -301,7 +323,7 @@ const Layout = ({ children }: LayoutProps) => {
         }}
       >
         {(location.pathname === '/' || location.pathname === '/horarios' || location.pathname === '/historial') && (
-          <Box sx={{ position: 'absolute', top: 0, right: 0, mt: '12px', mr: 2, zIndex: 10 }}>
+          <Box sx={{ position: 'absolute', top: 0, right: 0, mt: '12px', mr: 8, zIndex: 10 }}>
             <CreateAppointmentButton onClick={() => setOpenGlobalDialog(true)} size="small" />
           </Box>
         )}

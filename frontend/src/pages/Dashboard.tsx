@@ -153,7 +153,7 @@ const Dashboard = () => {
       >
         <Box className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div>
-            <Typography variant="h4" className="font-bold text-gray-800 dark:text-white mb-1">
+            <Typography variant="h4" className="font-bold mb-1" sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#1565c0' }}>
               Dashboard
             </Typography>
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -267,9 +267,10 @@ const Dashboard = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
+                className="h-full"
               >
-                <Card elevation={3} className="h-full">
-                  <CardContent className="min-h-[120px]">
+                <Card elevation={3} className="h-full" sx={{ display: 'flex', flexDirection: 'column', minHeight: '400px', maxHeight: '600px' }}>
+                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <Box className="flex items-center justify-between mb-4">
                       <Box className="flex items-center gap-2">
                         <TodayIcon className="text-blue-500" />
@@ -286,12 +287,14 @@ const Dashboard = () => {
                         InputLabelProps={{ shrink: true }}
                       />
                     </Box>
-                    <SimpleAppointmentList
-                      appointments={todayAppointments}
-                      title=""
-                      showCreateButton
-                      onCreateClick={() => window.openCreateAppointmentDialog?.()}
-                    />
+                    <Box sx={{ flex: 1, overflow: 'auto' }}>
+                      <SimpleAppointmentList
+                        appointments={todayAppointments}
+                        title=""
+                        showCreateButton
+                        onCreateClick={() => window.openCreateAppointmentDialog?.()}
+                      />
+                    </Box>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -303,22 +306,25 @@ const Dashboard = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
+                className="h-full"
               >
-                <Card elevation={3} className="h-full">
-                  <CardContent className="min-h-[120px]">
+                <Card elevation={3} className="h-full" sx={{ display: 'flex', flexDirection: 'column', minHeight: '400px', maxHeight: '600px' }}>
+                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <Box className="flex items-center gap-2 mb-4">
                       <ScheduleIcon className="text-purple-500" />
                       <Typography variant="h6" className="font-semibold">
                         Sobre-turnos
                       </Typography>
                     </Box>
-                    <SimpleAppointmentList
-                      appointments={overturnsToday}
-                      title=""
-                      showCreateButton
-                      onCreateClick={() => setOpenOverturnDialog(true)}
-                      buttonLabel="NUEVO SOBRETURNO"
-                    />
+                    <Box sx={{ flex: 1, overflow: 'auto' }}>
+                      <SimpleAppointmentList
+                        appointments={overturnsToday}
+                        title=""
+                        showCreateButton
+                        onCreateClick={() => setOpenOverturnDialog(true)}
+                        buttonLabel="NUEVO SOBRETURNO"
+                      />
+                    </Box>
                   </CardContent>
                 </Card>
               </motion.div>

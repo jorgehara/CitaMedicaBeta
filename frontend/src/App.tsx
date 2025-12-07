@@ -6,6 +6,8 @@ import Layout from './components/Layout';
 import History from './pages/History';
 import Schedule from './pages/Schedule';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import ChangePassword from './pages/ChangePassword';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ColorModeContext } from './context/ColorModeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -77,10 +79,20 @@ const App = () => {
           <CssBaseline />
           <Router>
             <Routes>
-              {/* Ruta pública - Login */}
+              {/* Rutas públicas */}
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
               {/* Rutas protegidas - Requieren autenticación */}
+              <Route
+                path="/change-password"
+                element={
+                  <ProtectedRoute>
+                    <ChangePassword />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/"
                 element={

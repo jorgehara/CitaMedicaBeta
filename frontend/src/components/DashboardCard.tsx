@@ -36,8 +36,8 @@ const DashboardCard = ({ title, children, onClick, clickable }: DashboardCardPro
       role={clickable ? 'button' : undefined}
     >
       <StyledCardContent>
-        <Typography variant="h6" component="div" gutterBottom sx={{ 
-          color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#1a237e',
+        <Typography variant="h6" component="div" gutterBottom sx={{
+          color: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#1565c0',
           fontWeight: 600,
           marginBottom: 2
         }}>

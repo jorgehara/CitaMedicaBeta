@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { Alert, CircularProgress } from '@mui/material';
-import { FaUserDoctor, FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa6';
+import { FaUserDoctor, FaEnvelope, FaLock, FaArrowRight, FaUserPlus, FaEye, FaEyeSlash } from 'react-icons/fa6';
 import { useAuth } from '../context/AuthContext';
 import type { LoginCredentials } from '../types/auth';
 
@@ -12,6 +12,7 @@ const Login = () => {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -176,15 +177,27 @@ const Login = () => {
                       message: 'Mínimo 6 caracteres',
                     },
                   })}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className={`w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border ${
+                  className={`w-full pl-10 pr-12 py-3 bg-gray-50 dark:bg-gray-700 border ${
                     errors.password
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
                   } rounded-xl focus:ring-2 focus:outline-none transition-all duration-200 text-gray-800 dark:text-white placeholder-gray-400`}
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                  disabled={isLoading}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="text-lg" />
+                  ) : (
+                    <FaEye className="text-lg" />
+                  )}
+                </button>
               </div>
               {errors.password && (
                 <motion.p
@@ -219,11 +232,27 @@ const Login = () => {
             </motion.button>
           </form>
 
-          {/* Footer Info */}
+          {/* Register Link */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
+            className="mt-6 text-center"
+          >
+            <Link
+              to="/register"
+              className="inline-flex items-center space-x-2 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+            >
+              <FaUserPlus className="text-sm" />
+              <span>Crear nueva cuenta</span>
+            </Link>
+          </motion.div>
+
+          {/* Footer Info */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
             className="mt-8 text-center"
           >
             <p className="text-sm text-gray-500 dark:text-gray-400">
