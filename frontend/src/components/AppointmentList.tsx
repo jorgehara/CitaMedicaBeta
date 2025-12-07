@@ -217,6 +217,14 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
 
   useEffect(() => {
     loadAppointments();
+
+    // Polling cada 6 minutos (360000ms) para actualizar el estado de pago
+    const pollingInterval = setInterval(() => {
+      loadAppointments();
+    }, 360000);
+
+    // Limpiar el intervalo cuando el componente se desmonte
+    return () => clearInterval(pollingInterval);
   }, [loadAppointments]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -427,10 +435,10 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
       sx={{
         display: 'flex',
         flexDirection: viewMode === 'grid' ? 'column' : 'row',
-        height: viewMode === 'grid' ? 'auto' : { 
-          xs: 'auto', 
+        height: viewMode === 'grid' ? 'auto' : {
+          xs: 'auto',
           sm: '110px',
-          md: '120px' 
+          md: '120px'
         },
         transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
         '&:hover': {
@@ -438,12 +446,18 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
           boxShadow: 3
         },
         cursor: 'pointer',
+        // Color verde claro cuando está pagado
+        backgroundColor: appointment.isPaid
+          ? (theme) => theme.palette.mode === 'dark'
+            ? 'rgba(76, 175, 80, 0.15)' // Verde oscuro suave para dark mode
+            : 'rgba(76, 175, 80, 0.08)'  // Verde claro suave para light mode
+          : 'inherit',
         // Ajuste suave del padding en diferentes breakpoints
         '& .MuiCardContent-root': {
-          p: { 
+          p: {
             xs: 1.5,
             sm: viewMode === 'grid' ? 2 : 1.75,
-            md: 2 
+            md: 2
           }
         }
       }}

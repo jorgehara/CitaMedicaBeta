@@ -20,6 +20,19 @@ interface SimpleAppointmentListProps {
 
 const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateButton = false, buttonLabel }: SimpleAppointmentListProps) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Actualizar cuando cambien los appointments desde el padre
+
+  // Polling cada 6 minutos para refrescar la lista
+  useEffect(() => {
+    const pollingInterval = setInterval(() => {
+      // Forzar actualización llamando a la función global si existe
+      if (window.refreshAppointments) {
+        window.refreshAppointments();
+      }
+    }, 360000); // 6 minutos
+
+    return () => clearInterval(pollingInterval);
+  }, []);
   const handleDeleteAppointment = async (id: string, isSobreturno: boolean) => {
     setDeletingId(id);
     try {
@@ -208,10 +221,14 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
               borderColor: 'divider',
               cursor: attendedStates[appointment._id] ? 'not-allowed' : 'pointer',
               opacity: attendedStates[appointment._id] ? 0.7 : 1,
-              backgroundColor: attendedStates[appointment._id] 
-                ? (theme) => theme.palette.mode === 'dark' 
+              backgroundColor: attendedStates[appointment._id]
+                ? (theme) => theme.palette.mode === 'dark'
                   ? 'rgba(255, 255, 255, 0.05)'
                   : 'rgba(0, 0, 0, 0.04)'
+                : paidStates[appointment._id]
+                ? (theme) => theme.palette.mode === 'dark'
+                  ? 'rgba(76, 175, 80, 0.15)' // Verde oscuro suave para dark mode
+                  : 'rgba(76, 175, 79, 0.253)'  // Verde claro suave para light mode
                 : 'inherit',
               p: 2,
               position: 'relative',
