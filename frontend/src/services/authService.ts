@@ -144,6 +144,43 @@ class AuthService {
   hasToken(): boolean {
     return !!this.getToken();
   }
+
+  /**
+   * Decodificar token JWT sin verificar firma (solo para leer datos)
+   */
+  private decodeToken(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('[AUTH] Error al decodificar token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verificar si el token está expirado
+   */
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) return true;
+
+    const decoded = this.decodeToken(token);
+    if (!decoded || !decoded.exp) return true;
+
+    // exp está en segundos, Date.now() está en milisegundos
+    const expirationTime = decoded.exp * 1000;
+    const currentTime = Date.now();
+
+    return currentTime >= expirationTime;
+  }
 }
 
 // Exportar instancia única del servicio

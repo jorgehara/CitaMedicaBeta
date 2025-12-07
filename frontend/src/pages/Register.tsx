@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { Alert, CircularProgress, MenuItem, FormControl, InputLabel, Select } from '@mui/material';
+import { Alert, CircularProgress } from '@mui/material';
 import { FaUserDoctor, FaEnvelope, FaLock, FaUser, FaArrowRight, FaArrowLeft } from 'react-icons/fa6';
 import { authService } from '../services/authService';
-import type { RegisterData, UserRole } from '../types/auth';
+import type { RegisterData } from '../types/auth';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -243,17 +243,15 @@ const Register = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Rol
               </label>
-              <FormControl fullWidth>
-                <select
-                  {...register('role')}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-blue-500 rounded-xl focus:ring-2 focus:outline-none transition-all duration-200 text-gray-800 dark:text-white"
-                  disabled={isLoading}
-                >
-                  <option value="operador">Operador</option>
-                  <option value="admin">Administrador</option>
-                  <option value="auditor">Auditor</option>
-                </select>
-              </FormControl>
+              <select
+                {...register('role')}
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:ring-blue-500 rounded-xl focus:ring-2 focus:outline-none transition-all duration-200 text-gray-800 dark:text-white"
+                disabled={isLoading}
+              >
+                <option value="operador">Operador</option>
+                <option value="admin">Administrador</option>
+                <option value="auditor">Auditor</option>
+              </select>
             </motion.div>
 
             {/* Password Field */}

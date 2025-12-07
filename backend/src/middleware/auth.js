@@ -89,10 +89,10 @@ const auth = async (req, res, next) => {
 /**
  * Función auxiliar para generar JWT
  * @param {Object} payload - Datos a incluir en el token
- * @param {string} expiresIn - Tiempo de expiración (default: 7 días)
+ * @param {string} expiresIn - Tiempo de expiración (default: 3 días)
  * @returns {string} Token JWT
  */
-const generateToken = (payload, expiresIn = '7d') => {
+const generateToken = (payload, expiresIn = '3d') => {
     return jwt.sign(payload, JWT_SECRET, { expiresIn });
 };
 

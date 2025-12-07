@@ -33,6 +33,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return;
       }
 
+      // Verificar si el token está expirado localmente antes de hacer la petición
+      if (authService.isTokenExpired()) {
+        console.warn('[AUTH] Token expirado detectado localmente');
+        authService.removeToken();
+        setUser(null);
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
       // Verificar token con el backend
       const response = await authService.verify();
 
@@ -103,6 +113,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // Verificar periódicamente si el token ha expirado (cada 5 minutos)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const intervalId = setInterval(() => {
+      if (authService.isTokenExpired()) {
+        console.warn('[AUTH] Token expirado detectado. Cerrando sesión automáticamente...');
+        logout();
+        alert('Tu sesión ha expirado después de 3 días de inactividad. Por favor, inicia sesión nuevamente.');
+        window.location.href = '/login';
+      }
+    }, 5 * 60 * 1000); // Verificar cada 5 minutos
+
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated]);
 
   const value: AuthContextType = {
     user,

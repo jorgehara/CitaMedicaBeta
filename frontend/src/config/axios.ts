@@ -106,9 +106,19 @@ axiosInstance.interceptors.response.use(
 
             // 401 Unauthorized - Token inválido o expirado
             if (status === 401) {
-                console.warn('[AUTH] Token inválido o expirado. Redirigiendo a login...');
+                const errorMessage = (error.response.data as any)?.message || '';
+                const isTokenExpired = errorMessage.includes('expirado') || errorMessage.includes('expired');
+                
+                console.warn('[AUTH] Token inválido o expirado. Cerrando sesión...');
+                
                 // Limpiar token
                 localStorage.removeItem(TOKEN_KEY);
+                
+                // Mostrar mensaje al usuario si el token expiró
+                if (isTokenExpired && window.location.pathname !== '/login') {
+                    alert('Tu sesión ha expirado después de 3 días de inactividad. Por favor, inicia sesión nuevamente.');
+                }
+                
                 // Redirigir a login (solo si no estamos ya en login)
                 if (window.location.pathname !== '/login') {
                     window.location.href = '/login';

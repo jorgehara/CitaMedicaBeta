@@ -11,15 +11,18 @@ import {
   Toolbar,
   Typography,
   Avatar,
+  Menu,
+  MenuItem,
+  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Home as HomeIcon,
   Schedule as ScheduleIcon,
-  People as PeopleIcon,
   History as HistoryIcon,
   Logout as LogoutIcon,
   Lock as LockIcon,
+  KeyboardArrowDown as ArrowDownIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -37,6 +40,7 @@ const drawerWidth = 240;
 const Layout = ({ children }: LayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openGlobalDialog, setOpenGlobalDialog] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user, logout } = useAuth();
 
   // Exponer función global para abrir el diálogo desde cualquier parte
@@ -51,12 +55,27 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
 
   const handleLogout = async () => {
+    setAnchorEl(null);
     await logout();
     navigate('/login', { replace: true });
   };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleChangePassword = () => {
+    setAnchorEl(null);
+    navigate('/change-password');
+    setMobileOpen(false);
   };
 
   const menuItems = [
@@ -153,8 +172,28 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* User info and logout */}
       <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, px: 1 }}>
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', mr: 1.5 }}>
+        <ListItemButton
+          onClick={handleMenuOpen}
+          sx={{
+            borderRadius: 1,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              bgcolor: 'action.hover',
+              transform: 'translateY(-2px)',
+              boxShadow: 1
+            }
+          }}
+        >
+          <Avatar sx={{ 
+            width: 32, 
+            height: 32, 
+            bgcolor: 'secondary.main', 
+            mr: 1.5,
+            transition: 'transform 0.3s ease',
+            '&:hover': {
+              transform: 'scale(1.1)'
+            }
+          }}>
             {user?.nombre?.charAt(0).toUpperCase() || 'U'}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -165,45 +204,111 @@ const Layout = ({ children }: LayoutProps) => {
               {user?.role || 'Rol'}
             </Typography>
           </Box>
-        </Box>
-        <ListItemButton
-          onClick={() => {
-            navigate('/change-password');
-            setMobileOpen(false);
+          <ArrowDownIcon 
+            sx={{ 
+              color: 'text.secondary',
+              transition: 'transform 0.3s ease',
+              transform: Boolean(anchorEl) ? 'rotate(180deg)' : 'rotate(0deg)'
+            }} 
+          />
+        </ListItemButton>
+        
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          TransitionProps={{
+            timeout: 300
           }}
           sx={{
-            borderRadius: 1,
-            mb: 0.5,
-            '&:hover': {
-              bgcolor: 'warning.main',
-              '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
-                color: 'common.white'
+            '& .MuiPaper-root': {
+              minWidth: 200,
+              mt: -1,
+              borderRadius: 2,
+              boxShadow: 3,
+              overflow: 'hidden',
+              animation: 'slideIn 0.3s ease-out',
+              '@keyframes slideIn': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateY(10px)'
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateY(0)'
+                }
               }
             }
           }}
         >
-          <ListItemIcon sx={{ color: 'warning.main', minWidth: 40 }}>
-            <LockIcon />
-          </ListItemIcon>
-          <ListItemText primary="Cambiar Contraseña" />
-        </ListItemButton>
-        <ListItemButton
-          onClick={handleLogout}
-          sx={{
-            borderRadius: 1,
-            '&:hover': {
-              bgcolor: 'error.main',
-              '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
-                color: 'common.white'
+          <MenuItem 
+            onClick={handleChangePassword}
+            sx={{
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: 'warning.light',
+                transform: 'translateX(4px)',
+                '& .MuiListItemIcon-root': {
+                  transform: 'scale(1.2)',
+                  color: 'warning.dark'
+                },
+                '& .MuiListItemText-primary': {
+                  color: 'warning.dark',
+                  fontWeight: 'bold'
+                }
               }
-            }
-          }}
-        >
-          <ListItemIcon sx={{ color: 'error.main', minWidth: 40 }}>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText primary="Cerrar Sesión" />
-        </ListItemButton>
+            }}
+          >
+            <ListItemIcon>
+              <LockIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: 'warning.main',
+                  transition: 'all 0.2s ease'
+                }} 
+              />
+            </ListItemIcon>
+            <ListItemText>Cambiar Contraseña</ListItemText>
+          </MenuItem>
+          <Divider sx={{ my: 0.5 }} />
+          <MenuItem 
+            onClick={handleLogout}
+            sx={{
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: 'error.light',
+                transform: 'translateX(4px)',
+                '& .MuiListItemIcon-root': {
+                  transform: 'scale(1.2)',
+                  color: 'error.dark'
+                },
+                '& .MuiListItemText-primary': {
+                  color: 'error.dark',
+                  fontWeight: 'bold'
+                }
+              }
+            }}
+          >
+            <ListItemIcon>
+              <LogoutIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: 'error.main',
+                  transition: 'all 0.2s ease'
+                }} 
+              />
+            </ListItemIcon>
+            <ListItemText>Cerrar Sesión</ListItemText>
+          </MenuItem>
+        </Menu>
       </Box>
     </Box>
   );
