@@ -20,6 +20,8 @@ requiredEnvVars.forEach(varName => {
 
 const appointmentRoutes = require('./src/routes/appointmentRoutes');
 const sobreturnoRoutes = require('./src/routes/sobreturnoRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const qrRoutes = require('./src/routes/qrRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const PORT = process.env.PORT || 3001;
@@ -65,19 +67,22 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Rutas principales
+// Rutas de autenticación (públicas)
+app.use('/api/auth', authRoutes);
+
+// Rutas principales (se protegerán con middleware auth después)
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/sobreturnos', sobreturnoRoutes);
+app.use('/api', qrRoutes);
 
 // Ruta base
 app.get('/', (req, res) => {
-    res.json({ message: 'API del Consultorio Médico' });
+    res.json({
+        message: 'API del Consultorio Médico',
+        version: '2.0.0',
+        features: ['appointments', 'sobreturnos', 'authentication', 'qr']
+    });
 });
-app.use(express.json());
-
-const qrRoutes = require('./src/routes/qrRoutes');
-// Middleware para manejar el QR
-app.use('/api', qrRoutes);
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -95,20 +100,6 @@ mongoose.connect(process.env.MONGODB_URI, {
     name: err.name
 }));
 
-// Middleware para logging de requests
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-    next();
-});
-
-// Rutas
-app.use('/api', appointmentRoutes);
-app.use('/api/sobreturnos', sobreturnoRoutes);
-
-// Ruta de prueba
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date() });
-});
 
 // Manejo de rutas no encontradas
 app.use((req, res, next) => {

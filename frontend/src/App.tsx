@@ -1,11 +1,14 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import History from './pages/History';
 import Schedule from './pages/Schedule';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 import { ColorModeContext } from './context/ColorModeContext';
+import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
   const [mode, setMode] = useState<'light' | 'dark'>('dark');
@@ -58,40 +61,111 @@ const App = () => {
     [mode]
   );
 
-  
+  // Sincronizar modo oscuro con HTML para Tailwind
+  useEffect(() => {
+    if (mode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [mode]);
 
   return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <Layout>
-            <Box 
-              component="main" 
-              sx={{ 
-                flexGrow: 1,
-                p: 3,
-                width: '1200px',
-                maxWidth: '1200px',
-                mx: 'auto', // Centra el contenido
-                '@media (max-width: 1200px)': {
-                  maxWidth: '100%',
-                  px: { xs: 2, sm: 3 } // Padding horizontal responsivo
+    <AuthProvider>
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <Routes>
+              {/* Ruta pública - Login */}
+              <Route path="/login" element={<Login />} />
+
+              {/* Rutas protegidas - Requieren autenticación */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          p: 3,
+                          width: '1200px',
+                          maxWidth: '1200px',
+                          mx: 'auto',
+                          '@media (max-width: 1200px)': {
+                            maxWidth: '100%',
+                            px: { xs: 2, sm: 3 }
+                          }
+                        }}
+                      >
+                        <Dashboard />
+                      </Box>
+                    </Layout>
+                  </ProtectedRoute>
                 }
-              }}
-            >
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/horarios" element={<Schedule />} />
-                {/* <Route path="/qr" element={<QRCode />} /> */}
-                {/* <Route path="/configuracion" element={<Settings />} /> */}
-                <Route path="/historial" element={<History />} />
-              </Routes>
-            </Box>
-          </Layout>
-        </Router>
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+              />
+
+              <Route
+                path="/horarios"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          p: 3,
+                          width: '1200px',
+                          maxWidth: '1200px',
+                          mx: 'auto',
+                          '@media (max-width: 1200px)': {
+                            maxWidth: '100%',
+                            px: { xs: 2, sm: 3 }
+                          }
+                        }}
+                      >
+                        <Schedule />
+                      </Box>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/historial"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          p: 3,
+                          width: '1200px',
+                          maxWidth: '1200px',
+                          mx: 'auto',
+                          '@media (max-width: 1200px)': {
+                            maxWidth: '100%',
+                            px: { xs: 2, sm: 3 }
+                          }
+                        }}
+                      >
+                        <History />
+                      </Box>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Redirect cualquier ruta no encontrada a login */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Router>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    </AuthProvider>
   );
 }
 export default App;

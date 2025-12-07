@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');
+const { auth } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/roleCheck');
 
 /**
  * Endpoints públicos - No requieren autenticación
@@ -11,7 +13,7 @@ router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
-// Endpoints de consulta pública
+// Endpoints de consulta pública (solo para chatbot)
 router.get('/validate', sobreturnoController.validateSobreturno);
 router.get('/available/:date', sobreturnoController.getAvailableSobreturnos);
 router.get('/date/:date', sobreturnoController.getSobreturnosByDate);
@@ -20,17 +22,25 @@ router.get('/date/:date', sobreturnoController.getSobreturnosByDate);
  * Endpoints protegidos - Sistema principal
  */
 
-// Operaciones CRUD básicas
-router.get('/', sobreturnoController.getSobreturnos);
-router.post('/', sobreturnoController.createSobreturno);
-router.get('/:id', sobreturnoController.getSobreturno);
-router.put('/:id', sobreturnoController.updateSobreturno);
-router.delete('/:id', sobreturnoController.deleteSobreturno);
+// Operaciones CRUD básicas (requieren autenticación)
 
-// Gestión de estados y actualizaciones
-router.patch('/:id/payment', sobreturnoController.updatePaymentStatus);
-router.patch('/:id/description', sobreturnoController.updateSobreturnoDescription);
-router.patch('/:id/status', sobreturnoController.updateSobreturnoStatus);
+// GET - Lectura (admin, operador, auditor)
+router.get('/', auth, checkPermission('sobreturnos', 'read'), sobreturnoController.getSobreturnos);
+router.get('/:id', auth, checkPermission('sobreturnos', 'read'), sobreturnoController.getSobreturno);
+
+// POST - Creación (admin, operador)
+router.post('/', auth, checkPermission('sobreturnos', 'create'), sobreturnoController.createSobreturno);
+
+// PUT - Actualización completa (admin, operador)
+router.put('/:id', auth, checkPermission('sobreturnos', 'update'), sobreturnoController.updateSobreturno);
+
+// PATCH - Actualización parcial (admin, operador)
+router.patch('/:id/payment', auth, checkPermission('sobreturnos', 'update'), sobreturnoController.updatePaymentStatus);
+router.patch('/:id/description', auth, checkPermission('sobreturnos', 'update'), sobreturnoController.updateSobreturnoDescription);
+router.patch('/:id/status', auth, checkPermission('sobreturnos', 'update'), sobreturnoController.updateSobreturnoStatus);
+
+// DELETE - Eliminación (solo admin)
+router.delete('/:id', auth, checkPermission('sobreturnos', 'delete'), sobreturnoController.deleteSobreturno);
 
 /**
  * Endpoints especiales - Chatbot y sincronización

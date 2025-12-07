@@ -18,13 +18,14 @@ import {
   Schedule as ScheduleIcon,
   People as PeopleIcon,
   History as HistoryIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import CreateAppointmentButton from './CreateAppointmentButton';
 import GlobalCreateAppointmentDialog from './GlobalCreateAppointmentDialog';
-import { useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -35,6 +36,8 @@ const drawerWidth = 240;
 const Layout = ({ children }: LayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openGlobalDialog, setOpenGlobalDialog] = useState(false);
+  const { user, logout } = useAuth();
+
   // Exponer función global para abrir el diálogo desde cualquier parte
   useEffect(() => {
     window.openCreateAppointmentDialog = () => setOpenGlobalDialog(true);
@@ -42,8 +45,14 @@ const Layout = ({ children }: LayoutProps) => {
      window.openCreateAppointmentDialog = undefined as unknown as () => void;
     };
   }, []);
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -123,14 +132,14 @@ const Layout = ({ children }: LayoutProps) => {
             }}
             selected={window.location.pathname === item.path}
           >
-            <ListItemIcon sx={{ 
+            <ListItemIcon sx={{
               color: 'primary.main',
               minWidth: { xs: 40, sm: 45 }
             }}>
               {item.icon}
             </ListItemIcon>
-            <ListItemText 
-              primary={item.text} 
+            <ListItemText
+              primary={item.text}
               sx={{
                 '& .MuiListItemText-primary': {
                   fontSize: { xs: '0.875rem', sm: '1rem' }
@@ -140,6 +149,40 @@ const Layout = ({ children }: LayoutProps) => {
           </ListItemButton>
         ))}
       </List>
+
+      {/* User info and logout */}
+      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, px: 1 }}>
+          <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', mr: 1.5 }}>
+            {user?.nombre?.charAt(0).toUpperCase() || 'U'}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="body2" noWrap fontWeight="bold">
+              {user?.nombre || 'Usuario'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {user?.role || 'Rol'}
+            </Typography>
+          </Box>
+        </Box>
+        <ListItemButton
+          onClick={handleLogout}
+          sx={{
+            borderRadius: 1,
+            '&:hover': {
+              bgcolor: 'error.main',
+              '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+                color: 'common.white'
+              }
+            }
+          }}
+        >
+          <ListItemIcon sx={{ color: 'error.main', minWidth: 40 }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Cerrar Sesión" />
+        </ListItemButton>
+      </Box>
     </Box>
   );
 

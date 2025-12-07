@@ -1,26 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const appointmentController = require('../controllers/appointmentController');
+const { auth } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/roleCheck');
 
-// Rutas de prueba para Google Calendar
-router.get('/test-calendar', appointmentController.testCalendarConnection);
-router.post('/test-calendar-create', appointmentController.testCreateEvent);
+// Rutas de prueba para Google Calendar (solo admin)
+router.get('/test-calendar', auth, checkPermission('appointments', 'read'), appointmentController.testCalendarConnection);
+router.post('/test-calendar-create', auth, checkPermission('appointments', 'create'), appointmentController.testCreateEvent);
 
-// Rutas para citas
-router.get('/appointments', appointmentController.getAllAppointments);
-router.get('/appointments/available/:date', appointmentController.getAvailableAppointments);
-router.get('/appointments/reserved/:date', appointmentController.getReservedAppointments);
-router.post('/appointments', appointmentController.createAppointment);
-router.put('/appointments/:id', appointmentController.updateAppointment);
-router.delete('/appointments/:id', appointmentController.deleteAppointment);
+// Rutas para citas (protegidas con autenticación)
 
-// Ruta para obtener horarios disponibles
-router.get('/appointments/available-times', appointmentController.getAvailableTimes);
+// GET - Lectura (admin, operador, auditor)
+router.get('/appointments', auth, checkPermission('appointments', 'read'), appointmentController.getAllAppointments);
+router.get('/appointments/available/:date', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableAppointments);
+router.get('/appointments/reserved/:date', auth, checkPermission('appointments', 'read'), appointmentController.getReservedAppointments);
+router.get('/appointments/available-times', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableTimes);
 
-// Ruta para actualizar estado de pago
-router.patch('/appointments/:id/payment', appointmentController.updatePaymentStatus);
+// POST - Creación (admin, operador)
+router.post('/appointments', auth, checkPermission('appointments', 'create'), appointmentController.createAppointment);
 
-// Ruta para actualizar descripción
-router.patch('/appointments/:id/description', appointmentController.updateDescription);
+// PUT - Actualización (admin, operador)
+router.put('/appointments/:id', auth, checkPermission('appointments', 'update'), appointmentController.updateAppointment);
+
+// PATCH - Actualización parcial (admin, operador)
+router.patch('/appointments/:id/payment', auth, checkPermission('appointments', 'update'), appointmentController.updatePaymentStatus);
+router.patch('/appointments/:id/description', auth, checkPermission('appointments', 'update'), appointmentController.updateDescription);
+
+// DELETE - Eliminación (solo admin)
+router.delete('/appointments/:id', auth, checkPermission('appointments', 'delete'), appointmentController.deleteAppointment);
 
 module.exports = router;

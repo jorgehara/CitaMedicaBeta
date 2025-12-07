@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
+const TOKEN_KEY = 'auth_token';
+
 const axiosInstance = axios.create({
     baseURL: 'https://micitamedica.me/api',
     timeout: 30000, // 30 segundos de timeout
@@ -34,13 +36,23 @@ interface RetryConfig extends InternalAxiosRequestConfig {
     _retryDelay?: number;
 }
 
-// Interceptor de peticiones
+// Interceptor de peticiones - Agregar JWT token
 axiosInstance.interceptors.request.use(
     (config) => {
+        // Obtener token de localStorage
+        const token = localStorage.getItem(TOKEN_KEY);
+
+        // Agregar token al header Authorization si existe
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
         // console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
         //     data: config.data,
-        //     headers: config.headers
+        //     headers: config.headers,
+        //     hasToken: !!token
         // });
+
         return config;
     },
     (error) => {
@@ -87,7 +99,28 @@ axiosInstance.interceptors.response.use(
         }
 
         // Si llegamos aquí, ya no hay más reintentos o el error no es recuperable
+
+        // Manejar errores de autenticación
         if (error.response) {
+            const status = error.response.status;
+
+            // 401 Unauthorized - Token inválido o expirado
+            if (status === 401) {
+                console.warn('[AUTH] Token inválido o expirado. Redirigiendo a login...');
+                // Limpiar token
+                localStorage.removeItem(TOKEN_KEY);
+                // Redirigir a login (solo si no estamos ya en login)
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+            }
+
+            // 403 Forbidden - Sin permisos
+            if (status === 403) {
+                console.warn('[AUTH] Sin permisos para esta acción');
+                // Aquí podrías mostrar un mensaje al usuario o redirigir a una página de "Sin permisos"
+            }
+
             console.error('[API ERROR] Error de respuesta:', {
                 status: error.response.status,
                 data: error.response.data,
