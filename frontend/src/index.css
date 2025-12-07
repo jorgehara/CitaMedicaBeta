@@ -1,7 +1,5 @@
-/* Tailwind CSS directives */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind CSS v4 - Import directives */
+@import "tailwindcss";
 
 /* Custom CSS */
 @layer base {
