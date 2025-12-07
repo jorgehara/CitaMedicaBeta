@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import History from './pages/History';
@@ -57,6 +57,14 @@ const App = () => {
       }),
     [mode]
   );
+
+  // Recarga automática de la app cada 60 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      window.location.reload();
+    }, 60000); // 60,000 ms = 60 segundos
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
