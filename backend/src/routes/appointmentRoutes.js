@@ -3,21 +3,34 @@ const router = express.Router();
 const appointmentController = require('../controllers/appointmentController');
 const { auth } = require('../middleware/auth');
 const { checkPermission } = require('../middleware/roleCheck');
+const { apiKeyAuth } = require('../middleware/apiKeyAuth');
+
+// ========================================
+// RUTAS PÚBLICAS (Con API Key - Para Chatbot)
+// ========================================
+
+// Consultar turnos disponibles (chatbot con API Key)
+router.get('/available/:date', apiKeyAuth, appointmentController.getAvailableAppointments);
+
+// Consultar turnos reservados (chatbot con API Key)
+router.get('/reserved/:date', apiKeyAuth, appointmentController.getReservedAppointments);
+
+// Crear cita (chatbot con API Key)
+router.post('/', apiKeyAuth, appointmentController.createAppointment);
+
+// Consultar tiempos disponibles (chatbot con API Key)
+router.get('/available-times', apiKeyAuth, appointmentController.getAvailableTimes);
+
+// ========================================
+// RUTAS PROTEGIDAS (Con autenticación)
+// ========================================
 
 // Rutas de prueba para Google Calendar (solo admin)
 router.get('/test-calendar', auth, checkPermission('appointments', 'read'), appointmentController.testCalendarConnection);
 router.post('/test-calendar-create', auth, checkPermission('appointments', 'create'), appointmentController.testCreateEvent);
 
-// Rutas para citas (protegidas con autenticación)
-
 // GET - Lectura (admin, operador, auditor)
 router.get('/', auth, checkPermission('appointments', 'read'), appointmentController.getAllAppointments);
-router.get('/available/:date', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableAppointments);
-router.get('/reserved/:date', auth, checkPermission('appointments', 'read'), appointmentController.getReservedAppointments);
-router.get('/available-times', auth, checkPermission('appointments', 'read'), appointmentController.getAvailableTimes);
-
-// POST - Creación (admin, operador)
-router.post('/', auth, checkPermission('appointments', 'create'), appointmentController.createAppointment);
 
 // PUT - Actualización (admin, operador)
 router.put('/:id', auth, checkPermission('appointments', 'update'), appointmentController.updateAppointment);

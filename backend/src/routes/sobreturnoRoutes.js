@@ -3,20 +3,36 @@ const router = express.Router();
 const sobreturnoController = require('../controllers/sobreturnoController');
 const { auth } = require('../middleware/auth');
 const { checkPermission } = require('../middleware/roleCheck');
+const { apiKeyAuth } = require('../middleware/apiKeyAuth');
 
 /**
- * Endpoints públicos - No requieren autenticación
+ * Endpoints públicos con API Key - Para Chatbot
  */
 
-// Health check
+// Health check (sin protección para monitoreo)
 router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
-// Endpoints de consulta pública (solo para chatbot)
-router.get('/validate', sobreturnoController.validateSobreturno);
-router.get('/available/:date', sobreturnoController.getAvailableSobreturnos);
-router.get('/date/:date', sobreturnoController.getSobreturnosByDate);
+// Endpoints de consulta (chatbot con API Key)
+router.get('/validate', apiKeyAuth, sobreturnoController.validateSobreturno);
+router.get('/validate/:sobreturnoNumber', apiKeyAuth, sobreturnoController.validateSobreturno);
+router.get('/available/:date', apiKeyAuth, sobreturnoController.getAvailableSobreturnos);
+router.get('/date/:date', apiKeyAuth, sobreturnoController.getSobreturnosByDate);
+
+// Crear sobreturno (chatbot con API Key)
+router.post('/', apiKeyAuth, sobreturnoController.createSobreturno);
+
+// Reservar sobreturno (chatbot con API Key)
+router.post('/reserve', apiKeyAuth, sobreturnoController.reserveSobreturno);
+
+// Limpiar caché (chatbot con API Key)
+router.post('/cache/clear', apiKeyAuth, (req, res) => {
+    res.status(200).json({ 
+        success: true, 
+        message: 'Caché limpiada exitosamente' 
+    });
+});
 
 /**
  * Endpoints protegidos - Sistema principal
@@ -28,9 +44,6 @@ router.get('/date/:date', sobreturnoController.getSobreturnosByDate);
 router.get('/', auth, checkPermission('sobreturnos', 'read'), sobreturnoController.getSobreturnos);
 router.get('/:id', auth, checkPermission('sobreturnos', 'read'), sobreturnoController.getSobreturno);
 
-// POST - Creación (admin, operador)
-router.post('/', auth, checkPermission('sobreturnos', 'create'), sobreturnoController.createSobreturno);
-
 // PUT - Actualización completa (admin, operador)
 router.put('/:id', auth, checkPermission('sobreturnos', 'update'), sobreturnoController.updateSobreturno);
 
@@ -41,19 +54,5 @@ router.patch('/:id/status', auth, checkPermission('sobreturnos', 'update'), sobr
 
 // DELETE - Eliminación (solo admin)
 router.delete('/:id', auth, checkPermission('sobreturnos', 'delete'), sobreturnoController.deleteSobreturno);
-
-/**
- * Endpoints especiales - Chatbot y sincronización
- */
-
-// Endpoints específicos para el chatbot
-router.post('/reserve', sobreturnoController.reserveSobreturno);
-router.post('/cache/clear', (req, res) => {
-    // console.log('[DEBUG] Solicitud de limpieza de caché recibida:', req.body);
-    res.status(200).json({ 
-        success: true, 
-        message: 'Caché limpiada exitosamente' 
-    });
-});
 
 module.exports = router;
