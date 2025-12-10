@@ -5,7 +5,7 @@ const TOKEN_KEY = 'auth_token';
 const PUBLIC_TOKEN_KEY = 'public_token';
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://micitamedica.me/api',
     timeout: 30000, // 30 segundos de timeout
     headers: {
         'Content-Type': 'application/json',

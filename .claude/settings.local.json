@@ -9,7 +9,9 @@
       "Bash(curl:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run dev:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoicHVibGljIiwicGVybWlzc2lvbnMiOlsidmlld19hdmFpbGFibGVfdGltZXMiLCJjcmVhdGVfYXBwb2ludG1lbnQiXSwic291cmNlIjoiY2hhdGJvdCIsImlhdCI6MTc2NTMzNTA3MCwiZXhwIjoxNzY1MzYwMjcwfQ.bARI9H-LnjQDHy8eY0NFd1JLcVase-nMdsuBr2l6kYs\")"
     ],
     "deny": [],
     "ask": []
