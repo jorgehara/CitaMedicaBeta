@@ -13,18 +13,29 @@ const publicTokenAuth = async (req, res, next) => {
         let token = null;
 
         const authHeader = req.header('Authorization');
+        console.log('[DEBUG publicTokenAuth] Headers recibidos:', {
+            authorization: authHeader,
+            allHeaders: req.headers
+        });
+        console.log('[DEBUG publicTokenAuth] Query params:', req.query);
+
         if (authHeader && authHeader.startsWith('Bearer ')) {
             token = authHeader.replace('Bearer ', '');
+            console.log('[DEBUG publicTokenAuth] Token extraído del header');
         } else if (req.query.token) {
             token = req.query.token;
+            console.log('[DEBUG publicTokenAuth] Token extraído de query param');
         }
 
         if (!token) {
+            console.log('[DEBUG publicTokenAuth] NO SE ENCONTRÓ TOKEN');
             return res.status(401).json({
                 success: false,
                 message: 'Token de acceso requerido'
             });
         }
+
+        console.log('[DEBUG publicTokenAuth] Token encontrado, verificando...');
 
         // Verificar token
         try {
