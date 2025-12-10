@@ -8,6 +8,7 @@ import Schedule from './pages/Schedule';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ChangePassword from './pages/ChangePassword';
+import BookAppointment from './pages/BookAppointment';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ColorModeContext } from './context/ColorModeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -82,6 +83,9 @@ const App = () => {
               {/* Rutas públicas */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/agendar-turno" element={<BookAppointment />} />
+              <Route path="/reservar-turno" element={<BookAppointment />} />
+              <Route path="/book-appointment" element={<BookAppointment />} />
 
               {/* Rutas protegidas - Requieren autenticación */}
               <Route

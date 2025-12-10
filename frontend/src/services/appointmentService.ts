@@ -44,9 +44,10 @@ class AppointmentService {
     }
   }
 
-  async create(appointmentData: BaseAppointment): Promise<Appointment> {
+  async create(appointmentData: BaseAppointment, isPublic: boolean = false): Promise<Appointment> {
     try {
-      const response = await axiosInstance.post('/appointments', appointmentData);
+      const endpoint = isPublic ? '/appointments/public/book' : '/appointments';
+      const response = await axiosInstance.post(endpoint, appointmentData);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -113,10 +114,11 @@ class AppointmentService {
     }
   }
 
-  async getAvailableTimes(date: string): Promise<AvailableTimesResponse> {
+  async getAvailableTimes(date: string, isPublic: boolean = false): Promise<AvailableTimesResponse> {
     try {
       console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
-      const response = await axiosInstance.get('/appointments/available-times', {
+      const endpoint = isPublic ? '/appointments/public/available-times' : '/appointments/available-times';
+      const response = await axiosInstance.get(endpoint, {
         params: { date }
       });
       console.log('[DEBUG] Horarios disponibles recibidos:', response.data);

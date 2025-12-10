@@ -7,6 +7,17 @@ const { apiKeyAuth } = require('../middleware/apiKeyAuth');
 const { flexibleAuth } = require('../middleware/flexibleAuth');
 
 // ========================================
+// RUTAS PÚBLICAS (Sin autenticación)
+// Para la página pública de reserva de turnos
+// ========================================
+
+// Consultar tiempos disponibles - PÚBLICO
+router.get('/public/available-times', appointmentController.getAvailableTimes);
+
+// Crear cita desde formulario público - PÚBLICO
+router.post('/public/book', appointmentController.createAppointment);
+
+// ========================================
 // RUTAS CON AUTENTICACIÓN FLEXIBLE (API Key O JWT)
 // Permiten acceso tanto del chatbot como del frontend
 // ========================================

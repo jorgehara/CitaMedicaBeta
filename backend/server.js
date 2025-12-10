@@ -34,12 +34,13 @@ const corsOptions = {
         : [
             'http://localhost:4173',
             'http://localhost:5173',
+            'http://localhost:5174',
             'http://localhost:3000',
             'http://localhost:3008',
             'https://micitamedica.me'
         ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-API-Key'],
     credentials: true,
     optionsSuccessStatus: 200,
     preflightContinue: false
