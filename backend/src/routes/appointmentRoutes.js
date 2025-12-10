@@ -4,33 +4,35 @@ const appointmentController = require('../controllers/appointmentController');
 const { auth } = require('../middleware/auth');
 const { checkPermission } = require('../middleware/roleCheck');
 const { apiKeyAuth } = require('../middleware/apiKeyAuth');
+const { flexibleAuth } = require('../middleware/flexibleAuth');
 
 // ========================================
-// RUTAS PÚBLICAS (Con API Key - Para Chatbot)
+// RUTAS CON AUTENTICACIÓN FLEXIBLE (API Key O JWT)
+// Permiten acceso tanto del chatbot como del frontend
 // ========================================
 
-// Consultar turnos disponibles (chatbot con API Key)
-router.get('/available/:date', apiKeyAuth, appointmentController.getAvailableAppointments);
+// Consultar turnos disponibles (chatbot con API Key O frontend con JWT)
+router.get('/available/:date', flexibleAuth, appointmentController.getAvailableAppointments);
 
-// Consultar turnos reservados (chatbot con API Key)
-router.get('/reserved/:date', apiKeyAuth, appointmentController.getReservedAppointments);
+// Consultar turnos reservados (chatbot con API Key O frontend con JWT)
+router.get('/reserved/:date', flexibleAuth, appointmentController.getReservedAppointments);
 
-// Crear cita (chatbot con API Key)
-router.post('/', apiKeyAuth, appointmentController.createAppointment);
+// Crear cita (chatbot con API Key O frontend con JWT)
+router.post('/', flexibleAuth, appointmentController.createAppointment);
 
-// Consultar tiempos disponibles (chatbot con API Key)
-router.get('/available-times', apiKeyAuth, appointmentController.getAvailableTimes);
+// Consultar tiempos disponibles (chatbot con API Key O frontend con JWT)
+router.get('/available-times', flexibleAuth, appointmentController.getAvailableTimes);
+
+// Listar todas las citas (chatbot con API Key O frontend con JWT)
+router.get('/', flexibleAuth, appointmentController.getAllAppointments);
 
 // ========================================
-// RUTAS PROTEGIDAS (Con autenticación)
+// RUTAS PROTEGIDAS (Solo JWT con permisos)
 // ========================================
 
 // Rutas de prueba para Google Calendar (solo admin)
 router.get('/test-calendar', auth, checkPermission('appointments', 'read'), appointmentController.testCalendarConnection);
 router.post('/test-calendar-create', auth, checkPermission('appointments', 'create'), appointmentController.testCreateEvent);
-
-// GET - Lectura (admin, operador, auditor)
-router.get('/', auth, checkPermission('appointments', 'read'), appointmentController.getAllAppointments);
 
 // PUT - Actualización (admin, operador)
 router.put('/:id', auth, checkPermission('appointments', 'update'), appointmentController.updateAppointment);
@@ -39,7 +41,7 @@ router.put('/:id', auth, checkPermission('appointments', 'update'), appointmentC
 router.patch('/:id/payment', auth, checkPermission('appointments', 'update'), appointmentController.updatePaymentStatus);
 router.patch('/:id/description', auth, checkPermission('appointments', 'update'), appointmentController.updateDescription);
 
-// DELETE - Eliminación (solo admin)
+// DELETE - Eliminación (admin, operador)
 router.delete('/:id', auth, checkPermission('appointments', 'delete'), appointmentController.deleteAppointment);
 
 module.exports = router;

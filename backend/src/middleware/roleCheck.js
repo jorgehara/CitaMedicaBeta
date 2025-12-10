@@ -57,14 +57,14 @@ const permissions = {
         read: ['admin', 'operador', 'auditor'],
         create: ['admin', 'operador'],
         update: ['admin', 'operador'],
-        delete: ['admin']
+        delete: ['admin', 'operador']  // Permitir que operadores también eliminen
     },
     // Permisos para sobreturnos
     sobreturnos: {
         read: ['admin', 'operador', 'auditor'],
         create: ['admin', 'operador'],
         update: ['admin', 'operador'],
-        delete: ['admin']
+        delete: ['admin', 'operador']  // Permitir que operadores también eliminen
     },
     // Permisos para usuarios
     users: {

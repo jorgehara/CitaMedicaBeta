@@ -4,9 +4,10 @@ const sobreturnoController = require('../controllers/sobreturnoController');
 const { auth } = require('../middleware/auth');
 const { checkPermission } = require('../middleware/roleCheck');
 const { apiKeyAuth } = require('../middleware/apiKeyAuth');
+const { flexibleAuth } = require('../middleware/flexibleAuth');
 
 /**
- * Endpoints públicos con API Key - Para Chatbot
+ * Endpoints con autenticación flexible (API Key O JWT)
  */
 
 // Health check (sin protección para monitoreo)
@@ -14,34 +15,36 @@ router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
-// Endpoints de consulta (chatbot con API Key)
-router.get('/validate', apiKeyAuth, sobreturnoController.validateSobreturno);
-router.get('/validate/:sobreturnoNumber', apiKeyAuth, sobreturnoController.validateSobreturno);
-router.get('/available/:date', apiKeyAuth, sobreturnoController.getAvailableSobreturnos);
-router.get('/date/:date', apiKeyAuth, sobreturnoController.getSobreturnosByDate);
+// Endpoints de consulta (chatbot con API Key O frontend con JWT)
+router.get('/validate', flexibleAuth, sobreturnoController.validateSobreturno);
+router.get('/validate/:sobreturnoNumber', flexibleAuth, sobreturnoController.validateSobreturno);
+router.get('/available/:date', flexibleAuth, sobreturnoController.getAvailableSobreturnos);
+router.get('/date/:date', flexibleAuth, sobreturnoController.getSobreturnosByDate);
 
-// Crear sobreturno (chatbot con API Key)
-router.post('/', apiKeyAuth, sobreturnoController.createSobreturno);
+// Crear sobreturno (chatbot con API Key O frontend con JWT)
+router.post('/', flexibleAuth, sobreturnoController.createSobreturno);
 
-// Reservar sobreturno (chatbot con API Key)
-router.post('/reserve', apiKeyAuth, sobreturnoController.reserveSobreturno);
+// Reservar sobreturno (chatbot con API Key O frontend con JWT)
+router.post('/reserve', flexibleAuth, sobreturnoController.reserveSobreturno);
 
-// Limpiar caché (chatbot con API Key)
-router.post('/cache/clear', apiKeyAuth, (req, res) => {
+// Limpiar caché (chatbot con API Key O frontend con JWT)
+router.post('/cache/clear', flexibleAuth, (req, res) => {
     res.status(200).json({ 
         success: true, 
         message: 'Caché limpiada exitosamente' 
     });
 });
 
+// Listar todos los sobreturnos (chatbot con API Key O frontend con JWT)
+router.get('/', flexibleAuth, sobreturnoController.getSobreturnos);
+// Listar todos los sobreturnos (chatbot con API Key O frontend con JWT)
+router.get('/', flexibleAuth, sobreturnoController.getSobreturnos);
+
 /**
- * Endpoints protegidos - Sistema principal
+ * Endpoints protegidos - Solo JWT con permisos específicos
  */
 
-// Operaciones CRUD básicas (requieren autenticación)
-
-// GET - Lectura (admin, operador, auditor)
-router.get('/', auth, checkPermission('sobreturnos', 'read'), sobreturnoController.getSobreturnos);
+// GET por ID - Lectura (admin, operador, auditor)
 router.get('/:id', auth, checkPermission('sobreturnos', 'read'), sobreturnoController.getSobreturno);
 
 // PUT - Actualización completa (admin, operador)
@@ -52,7 +55,7 @@ router.patch('/:id/payment', auth, checkPermission('sobreturnos', 'update'), sob
 router.patch('/:id/description', auth, checkPermission('sobreturnos', 'update'), sobreturnoController.updateSobreturnoDescription);
 router.patch('/:id/status', auth, checkPermission('sobreturnos', 'update'), sobreturnoController.updateSobreturnoStatus);
 
-// DELETE - Eliminación (solo admin)
+// DELETE - Eliminación (admin, operador)
 router.delete('/:id', auth, checkPermission('sobreturnos', 'delete'), sobreturnoController.deleteSobreturno);
 
 module.exports = router;
