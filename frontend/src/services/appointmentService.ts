@@ -47,7 +47,18 @@ class AppointmentService {
   async create(appointmentData: BaseAppointment, isPublic: boolean = false): Promise<Appointment> {
     try {
       const endpoint = isPublic ? '/appointments/public/book' : '/appointments';
-      const response = await axiosInstance.post(endpoint, appointmentData);
+
+      // Si es público, agregar el token como query parameter
+      const params: any = {};
+      if (isPublic) {
+        const publicToken = localStorage.getItem('public_token');
+        if (publicToken) {
+          params.token = publicToken;
+          console.log('[DEBUG] Agregando token público para crear cita');
+        }
+      }
+
+      const response = await axiosInstance.post(endpoint, appointmentData, { params });
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -118,9 +129,18 @@ class AppointmentService {
     try {
       console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
       const endpoint = isPublic ? '/appointments/public/available-times' : '/appointments/available-times';
-      const response = await axiosInstance.get(endpoint, {
-        params: { date }
-      });
+
+      // Si es público, agregar el token como query parameter
+      const params: any = { date };
+      if (isPublic) {
+        const publicToken = localStorage.getItem('public_token');
+        if (publicToken) {
+          params.token = publicToken;
+          console.log('[DEBUG] Agregando token público como query parameter');
+        }
+      }
+
+      const response = await axiosInstance.get(endpoint, { params });
       console.log('[DEBUG] Horarios disponibles recibidos:', response.data);
       return response.data;
     } catch (error) {
