@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
 const TOKEN_KEY = 'auth_token';
+const PUBLIC_TOKEN_KEY = 'public_token';
 
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
@@ -36,27 +37,31 @@ interface RetryConfig extends InternalAxiosRequestConfig {
     _retryDelay?: number;
 }
 
-// Interceptor de peticiones - Agregar JWT token
+// Interceptor de peticiones - Agregar JWT token o token público
 axiosInstance.interceptors.request.use(
     (config) => {
-        // Obtener token de localStorage
-        const token = localStorage.getItem(TOKEN_KEY);
+        // Obtener token de usuario autenticado
+        const userToken = localStorage.getItem(TOKEN_KEY);
 
-        // Agregar token al header Authorization si existe
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        // Obtener token público temporal
+        const publicToken = localStorage.getItem(PUBLIC_TOKEN_KEY);
+
+        // Priorizar token de usuario, luego token público
+        if (userToken) {
+            config.headers.Authorization = `Bearer ${userToken}`;
+        } else if (publicToken) {
+            config.headers.Authorization = `Bearer ${publicToken}`;
         }
 
-        // console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
-        //     data: config.data,
-        //     headers: config.headers,
-        //     hasToken: !!token
-        // });
+        console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
+            hasUserToken: !!userToken,
+            hasPublicToken: !!publicToken
+        });
 
         return config;
     },
     (error) => {
-        // console.error('[DEBUG] Error en la petición:', error);
+        console.error('[DEBUG] Error en la petición:', error);
         return Promise.reject(error);
     }
 );
@@ -108,19 +113,28 @@ axiosInstance.interceptors.response.use(
             if (status === 401) {
                 const errorMessage = (error.response.data as any)?.message || '';
                 const isTokenExpired = errorMessage.includes('expirado') || errorMessage.includes('expired');
-                
-                console.warn('[AUTH] Token inválido o expirado. Cerrando sesión...');
-                
-                // Limpiar token
+
+                // Verificar si es un token público expirado
+                const publicToken = localStorage.getItem(PUBLIC_TOKEN_KEY);
+                if (publicToken && isTokenExpired) {
+                    console.warn('[AUTH] Token público expirado');
+                    localStorage.removeItem(PUBLIC_TOKEN_KEY);
+                    alert('Tu enlace de reserva ha expirado (7 horas). Por favor, solicita uno nuevo al chatbot de WhatsApp.');
+                    return Promise.reject(error);
+                }
+
+                // Token de usuario expirado
+                console.warn('[AUTH] Token de usuario inválido o expirado');
                 localStorage.removeItem(TOKEN_KEY);
-                
+
                 // Mostrar mensaje al usuario si el token expiró
                 if (isTokenExpired && window.location.pathname !== '/login') {
                     alert('Tu sesión ha expirado después de 3 días de inactividad. Por favor, inicia sesión nuevamente.');
                 }
-                
-                // Redirigir a login (solo si no estamos ya en login)
-                if (window.location.pathname !== '/login') {
+
+                // Redirigir a login (solo si no estamos ya en login o en páginas públicas)
+                const publicPages = ['/login', '/register', '/reservar-turno', '/agendar-turno', '/book-appointment'];
+                if (!publicPages.includes(window.location.pathname)) {
                     window.location.href = '/login';
                 }
             }

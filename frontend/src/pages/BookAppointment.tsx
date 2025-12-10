@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -48,11 +49,32 @@ const steps = ['Fecha y Hora', 'Datos Personales', 'Confirmación'];
 const BookAppointment = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [searchParams] = useSearchParams();
 
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Extraer y almacenar token de la URL
+  useEffect(() => {
+    const urlToken = searchParams.get('token');
+    if (urlToken) {
+      console.log('[DEBUG] Token recibido en URL, almacenando en localStorage');
+      localStorage.setItem('public_token', urlToken);
+
+      // Limpiar URL quitando el token por seguridad
+      window.history.replaceState({}, '', window.location.pathname);
+    } else {
+      // Verificar si ya hay un token almacenado
+      const storedToken = localStorage.getItem('public_token');
+      if (storedToken) {
+        console.log('[DEBUG] Token encontrado en localStorage');
+      } else {
+        console.warn('[WARN] No hay token de acceso. Solicita un nuevo enlace al chatbot.');
+      }
+    }
+  }, [searchParams]);
 
   // Step 1: Date and Time
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);

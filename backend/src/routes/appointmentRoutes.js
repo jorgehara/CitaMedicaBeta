@@ -5,17 +5,20 @@ const { auth } = require('../middleware/auth');
 const { checkPermission } = require('../middleware/roleCheck');
 const { apiKeyAuth } = require('../middleware/apiKeyAuth');
 const { flexibleAuth } = require('../middleware/flexibleAuth');
+const { publicTokenAuth } = require('../middleware/publicTokenAuth');
+const { availableTimesLimiter, createAppointmentLimiter } = require('../middleware/publicRateLimit');
 
 // ========================================
-// RUTAS PÚBLICAS (Sin autenticación)
+// RUTAS PÚBLICAS CON TOKEN TEMPORAL
 // Para la página pública de reserva de turnos
+// Requiere token temporal generado por el chatbot (válido 7 horas)
 // ========================================
 
-// Consultar tiempos disponibles - PÚBLICO
-router.get('/public/available-times', appointmentController.getAvailableTimes);
+// Consultar tiempos disponibles - Token temporal requerido
+router.get('/public/available-times', publicTokenAuth, appointmentController.getAvailableTimes);
 
-// Crear cita desde formulario público - PÚBLICO
-router.post('/public/book', appointmentController.createAppointment);
+// Crear cita desde formulario público - Token temporal requerido
+router.post('/public/book', publicTokenAuth, appointmentController.createAppointment);
 
 // ========================================
 // RUTAS CON AUTENTICACIÓN FLEXIBLE (API Key O JWT)

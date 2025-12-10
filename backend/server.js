@@ -22,6 +22,7 @@ const appointmentRoutes = require('./src/routes/appointmentRoutes');
 const sobreturnoRoutes = require('./src/routes/sobreturnoRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const qrRoutes = require('./src/routes/qrRoutes');
+const tokenRoutes = require('./src/routes/tokenRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const PORT = process.env.PORT || 3001;
@@ -70,6 +71,9 @@ app.get('/api/health', (req, res) => {
 
 // Rutas de autenticación (públicas)
 app.use('/api/auth', authRoutes);
+
+// Rutas de tokens (para generar tokens públicos temporales)
+app.use('/api/tokens', tokenRoutes);
 
 // Rutas principales (se protegerán con middleware auth después)
 app.use('/api/appointments', appointmentRoutes);
