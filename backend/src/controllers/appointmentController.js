@@ -1,6 +1,7 @@
 const Appointment = require('../models/appointment');
 const mongoose = require('mongoose');
 const googleCalendarService = require('../services/googleCalendarService');
+const axios = require('axios');
 
 
 // Función auxiliar para validar ObjectId
@@ -384,6 +385,33 @@ exports.createAppointment = async (req, res) => {
       }
     }
 
+    // Notificar al chatbot para enviar confirmación por WhatsApp
+    const isFromPublicBooking = req.publicToken !== undefined; // Detectar si viene del booking público
+    if (isFromPublicBooking) {
+      try {
+        const CHATBOT_URL = process.env.CHATBOT_URL || 'http://localhost:3008';
+        console.log('[NOTIFICACIÓN] Enviando notificación al chatbot...');
+
+        await axios.post(`${CHATBOT_URL}/api/notify-appointment`, {
+          appointment: {
+            id: appointment._id,
+            clientName: appointment.clientName,
+            phone: appointment.phone,
+            date: appointment.date,
+            time: appointment.time,
+            socialWork: appointment.socialWork
+          }
+        }, {
+          timeout: 5000 // 5 segundos de timeout
+        });
+
+        console.log('[NOTIFICACIÓN] Chatbot notificado exitosamente');
+      } catch (notifyError) {
+        console.error('[NOTIFICACIÓN ERROR] No se pudo notificar al chatbot:', notifyError.message);
+        // No fallamos la request aunque no se pueda notificar
+      }
+    }
+
     res.status(201).json({
       success: true,
       data: appointment
@@ -606,11 +634,17 @@ exports.deleteAppointment = async (req, res) => {
 
 exports.getAvailableTimes = async (req, res) => {
   try {
+    console.log('[DEBUG getAvailableTimes] Iniciando - Query params:', req.query);
+    console.log('[DEBUG getAvailableTimes] Public token info:', req.publicToken);
+
     const { date } = req.query;
-    
+
     if (!date) {
+      console.log('[DEBUG getAvailableTimes] ERROR - Falta el parámetro date');
       return res.status(400).json({ message: 'Se requiere una fecha' });
     }
+
+    console.log('[DEBUG getAvailableTimes] Fecha recibida:', date);
 
     const now = new Date();
     const requestedDate = new Date(date);
@@ -655,6 +689,11 @@ exports.getAvailableTimes = async (req, res) => {
         period: 'afternoon'
       }));
 
+    console.log('[DEBUG getAvailableTimes] Turnos disponibles encontrados:', {
+      morning: availableMorning.length,
+      afternoon: availableAfternoon.length
+    });
+
     res.json({
       success: true,
       data: {
@@ -664,10 +703,11 @@ exports.getAvailableTimes = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error al obtener horarios disponibles:', error);
-    res.status(500).json({ 
+    console.error('[ERROR getAvailableTimes] Error al obtener horarios disponibles:', error);
+    res.status(500).json({
       success: false,
-      message: 'Error al obtener horarios disponibles' 
+      message: 'Error al obtener horarios disponibles',
+      error: error.message
     });
   }
 };

@@ -36,27 +36,33 @@ const publicTokenAuth = async (req, res, next) => {
         }
 
         console.log('[DEBUG publicTokenAuth] Token encontrado, verificando...');
+        console.log('[DEBUG publicTokenAuth] JWT_SECRET configurado:', JWT_SECRET ? 'SI (longitud: ' + JWT_SECRET.length + ')' : 'NO');
 
         // Verificar token
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
+            console.log('[DEBUG publicTokenAuth] Token verificado exitosamente:', decoded);
 
             // Validar que sea un token público
             if (decoded.type !== 'public') {
+                console.log('[DEBUG publicTokenAuth] Token NO es público, rechazando');
                 return res.status(403).json({
                     success: false,
                     message: 'Token inválido para esta operación'
                 });
             }
 
+            console.log('[DEBUG publicTokenAuth] Token público válido, agregando al request');
             // Agregar información del token al request
             req.publicToken = {
                 permissions: decoded.permissions,
                 source: decoded.source
             };
 
+            console.log('[DEBUG publicTokenAuth] Llamando next()');
             next();
         } catch (jwtError) {
+            console.error('[DEBUG publicTokenAuth] Error al verificar token:', jwtError);
             if (jwtError.name === 'TokenExpiredError') {
                 return res.status(401).json({
                     success: false,
@@ -66,7 +72,8 @@ const publicTokenAuth = async (req, res, next) => {
 
             return res.status(401).json({
                 success: false,
-                message: 'Token inválido'
+                message: 'Token inválido',
+                error: jwtError.message
             });
         }
     } catch (error) {
