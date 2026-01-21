@@ -134,7 +134,7 @@ const Dashboard = () => {
   // Handler para crear sobreturno
   const handleCreateOverturn = async (overturnData: Omit<Appointment, '_id'>) => {
     try {
-      await sobreturnoService.createSobreturno({ ...overturnData, status: 'pending' });
+      await sobreturnoService.createSobreturno(overturnData);
       // Refrescar datos
       await fetchAllData(true);
     } catch (e) {
