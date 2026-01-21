@@ -89,7 +89,8 @@ const BookAppointment = () => {
   const [loadingTimes, setLoadingTimes] = useState(false);
 
   // Sobreturnos state
-  const [showingSobreturnos, setShowingSobreturnos] = useState(false);
+  const [showMorningSobreturnos, setShowMorningSobreturnos] = useState(false);
+  const [showAfternoonSobreturnos, setShowAfternoonSobreturnos] = useState(false);
   const [selectedSobreturno, setSelectedSobreturno] = useState<number | null>(null);
   const [disponiblesSobreturnos, setDisponiblesSobreturnos] = useState<number[]>([]);
 
@@ -108,7 +109,8 @@ const BookAppointment = () => {
     setSelectedTime('');
     setSelectedSobreturno(null);
     setError('');
-    setShowingSobreturnos(false);
+    setShowMorningSobreturnos(false);
+    setShowAfternoonSobreturnos(false);
 
     if (date) {
       setLoadingTimes(true);
@@ -117,25 +119,39 @@ const BookAppointment = () => {
         const response = await appointmentService.getAvailableTimes(formattedDate, true); // true = público
 
         if (response.success && response.data) {
-          const allTimes = [...response.data.morning, ...response.data.afternoon];
+          const morningTimes = response.data.morning || [];
+          const afternoonTimes = response.data.afternoon || [];
+          const allTimes = [...morningTimes, ...afternoonTimes];
           setAvailableTimes(allTimes);
 
-          // Si no hay horarios normales, cargar sobreturnos automáticamente
-          if (allTimes.length === 0) {
-            console.log('[DEBUG] No hay turnos normales, consultando sobreturnos...');
-            try {
-              const sobreturnosResponse = await getSobreturnosByDate(formattedDate);
+          // Cargar sobreturnos disponibles
+          try {
+            const sobreturnosResponse = await getSobreturnosByDate(formattedDate);
 
-              if (sobreturnosResponse.success && sobreturnosResponse.data.totalDisponibles > 0) {
-                const numerosDisponibles = sobreturnosResponse.data.disponibles.map((s: any) => s.numero);
-                setDisponiblesSobreturnos(numerosDisponibles);
-                setShowingSobreturnos(true);
-                console.log('[DEBUG] Sobreturnos disponibles:', numerosDisponibles);
-              } else {
-                setError('No hay turnos ni sobreturnos disponibles para esta fecha');
+            if (sobreturnosResponse.success && sobreturnosResponse.data.totalDisponibles > 0) {
+              const numerosDisponibles = sobreturnosResponse.data.disponibles.map((s: any) => s.numero);
+              setDisponiblesSobreturnos(numerosDisponibles);
+
+              // Mostrar sobreturnos de mañana si no hay turnos de mañana
+              if (morningTimes.length === 0) {
+                setShowMorningSobreturnos(true);
+                console.log('[DEBUG] No hay turnos de mañana, mostrando sobreturnos de mañana');
               }
-            } catch (sobreturnoErr) {
-              console.error('[ERROR] Error al cargar sobreturnos:', sobreturnoErr);
+
+              // Mostrar sobreturnos de tarde si no hay turnos de tarde
+              if (afternoonTimes.length === 0) {
+                setShowAfternoonSobreturnos(true);
+                console.log('[DEBUG] No hay turnos de tarde, mostrando sobreturnos de tarde');
+              }
+
+              console.log('[DEBUG] Sobreturnos disponibles:', numerosDisponibles);
+            } else if (allTimes.length === 0) {
+              // Si no hay turnos normales ni sobreturnos
+              setError('No hay turnos ni sobreturnos disponibles para esta fecha');
+            }
+          } catch (sobreturnoErr) {
+            console.error('[ERROR] Error al cargar sobreturnos:', sobreturnoErr);
+            if (allTimes.length === 0) {
               setError('No hay horarios disponibles para esta fecha');
             }
           }
@@ -179,7 +195,8 @@ const BookAppointment = () => {
       }
 
       // Validar según si es turno normal o sobreturno
-      if (showingSobreturnos) {
+      const hasSobreturnos = showMorningSobreturnos || showAfternoonSobreturnos;
+      if (hasSobreturnos) {
         if (!selectedSobreturno) {
           setError('Por favor selecciona un sobreturno');
           return;
@@ -222,12 +239,13 @@ const BookAppointment = () => {
       return;
     }
 
-    if (showingSobreturnos && !selectedSobreturno) {
+    const hasSobreturnos = showMorningSobreturnos || showAfternoonSobreturnos;
+    if (hasSobreturnos && !selectedSobreturno) {
       setError('Por favor selecciona un sobreturno');
       return;
     }
 
-    if (!showingSobreturnos && !selectedTime) {
+    if (!hasSobreturnos && !selectedTime) {
       setError('Datos de hora incompletos');
       return;
     }
@@ -238,7 +256,7 @@ const BookAppointment = () => {
     try {
       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
-      if (showingSobreturnos && selectedSobreturno) {
+      if (hasSobreturnos && selectedSobreturno) {
         // Crear sobreturno
         const sobreturnoData = {
           sobreturnoNumber: selectedSobreturno,
@@ -313,50 +331,97 @@ const BookAppointment = () => {
 
             {!loadingTimes && availableTimes.length > 0 && (
               <Box>
-                <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-                  Horarios disponibles:
-                </Typography>
-                <Grid container spacing={1.5}>
-                  {availableTimes.map((slot) => (
-                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={slot.time}>
-                      <Card
-                        elevation={selectedTime === slot.time ? 8 : 2}
-                        sx={{
-                          border: selectedTime === slot.time ? 2 : 0,
-                          borderColor: 'primary.main',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <CardActionArea onClick={() => handleTimeSelect(slot.time)}>
-                          <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                            <Typography
-                              variant="body1"
+                {/* Turnos de Mañana */}
+                {availableTimes.filter(slot => slot.period === 'morning').length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+                      Horarios de Mañana:
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      {availableTimes
+                        .filter(slot => slot.period === 'morning')
+                        .map((slot) => (
+                          <Grid size={{ xs: 6, sm: 4, md: 3 }} key={slot.time}>
+                            <Card
+                              elevation={selectedTime === slot.time ? 8 : 2}
                               sx={{
-                                fontWeight: selectedTime === slot.time ? 700 : 500,
-                                color: selectedTime === slot.time ? 'primary.main' : 'text.primary'
+                                border: selectedTime === slot.time ? 2 : 0,
+                                borderColor: 'primary.main',
+                                transition: 'all 0.2s',
                               }}
                             >
-                              {slot.displayTime}
-                            </Typography>
-                          </CardContent>
-                        </CardActionArea>
-                      </Card>
+                              <CardActionArea onClick={() => handleTimeSelect(slot.time)}>
+                                <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                                  <Typography
+                                    variant="body1"
+                                    sx={{
+                                      fontWeight: selectedTime === slot.time ? 700 : 500,
+                                      color: selectedTime === slot.time ? 'primary.main' : 'text.primary'
+                                    }}
+                                  >
+                                    {slot.displayTime}
+                                  </Typography>
+                                </CardContent>
+                              </CardActionArea>
+                            </Card>
+                          </Grid>
+                        ))}
                     </Grid>
-                  ))}
-                </Grid>
+                  </Box>
+                )}
+
+                {/* Turnos de Tarde */}
+                {availableTimes.filter(slot => slot.period === 'afternoon').length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+                      Horarios de Tarde:
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      {availableTimes
+                        .filter(slot => slot.period === 'afternoon')
+                        .map((slot) => (
+                          <Grid size={{ xs: 6, sm: 4, md: 3 }} key={slot.time}>
+                            <Card
+                              elevation={selectedTime === slot.time ? 8 : 2}
+                              sx={{
+                                border: selectedTime === slot.time ? 2 : 0,
+                                borderColor: 'primary.main',
+                                transition: 'all 0.2s',
+                              }}
+                            >
+                              <CardActionArea onClick={() => handleTimeSelect(slot.time)}>
+                                <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                                  <Typography
+                                    variant="body1"
+                                    sx={{
+                                      fontWeight: selectedTime === slot.time ? 700 : 500,
+                                      color: selectedTime === slot.time ? 'primary.main' : 'text.primary'
+                                    }}
+                                  >
+                                    {slot.displayTime}
+                                  </Typography>
+                                </CardContent>
+                              </CardActionArea>
+                            </Card>
+                          </Grid>
+                        ))}
+                    </Grid>
+                  </Box>
+                )}
               </Box>
             )}
 
-            {!loadingTimes && showingSobreturnos && (
-              <Box>
+            {/* Sobreturnos de Mañana */}
+            {!loadingTimes && showMorningSobreturnos && (
+              <Box sx={{ mb: 3 }}>
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  No hay turnos disponibles para esta fecha. Puedes seleccionar un sobreturno:
+                  No hay turnos de mañana disponibles. Puedes seleccionar un sobreturno:
                 </Alert>
 
                 <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
                   Sobreturnos Mañana (llegar entre 11:00-11:30):
                 </Typography>
-                <Grid container spacing={1.5} sx={{ mb: 3 }}>
+                <Grid container spacing={1.5}>
                   {[1, 2, 3, 4, 5].map((num) => {
                     const isDisponible = disponiblesSobreturnos.includes(num);
                     const isSelected = selectedSobreturno === num;
@@ -402,6 +467,15 @@ const BookAppointment = () => {
                     );
                   })}
                 </Grid>
+              </Box>
+            )}
+
+            {/* Sobreturnos de Tarde */}
+            {!loadingTimes && showAfternoonSobreturnos && (
+              <Box>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  No hay turnos de tarde disponibles. Puedes seleccionar un sobreturno:
+                </Alert>
 
                 <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
                   Sobreturnos Tarde (llegar entre 19:00-19:30):
@@ -562,7 +636,7 @@ const BookAppointment = () => {
                   <Typography variant="body1" sx={{ fontWeight: 600, mt: 0.5 }}>
                     {selectedDate && format(selectedDate, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}
                   </Typography>
-                  {showingSobreturnos && selectedSobreturno ? (
+                  {(showMorningSobreturnos || showAfternoonSobreturnos) && selectedSobreturno ? (
                     <>
                       <Typography variant="body1" sx={{ fontWeight: 600, color: 'primary.main' }}>
                         Sobreturno {selectedSobreturno} - {HORARIOS_SOBRETURNOS[selectedSobreturno]}
@@ -692,7 +766,7 @@ const BookAppointment = () => {
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                 {selectedDate && format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
               </Typography>
-              {showingSobreturnos && selectedSobreturno ? (
+              {(showMorningSobreturnos || showAfternoonSobreturnos) && selectedSobreturno ? (
                 <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
                   Sobreturno {selectedSobreturno} - {HORARIOS_SOBRETURNOS[selectedSobreturno]}
                 </Typography>
@@ -703,7 +777,7 @@ const BookAppointment = () => {
               )}
             </Paper>
 
-            {showingSobreturnos && selectedSobreturno && (
+            {(showMorningSobreturnos || showAfternoonSobreturnos) && selectedSobreturno && (
               <Alert severity="warning" sx={{ mb: 3, textAlign: 'left' }}>
                 {selectedSobreturno <= 5
                   ? 'Debe llegar entre las 11:00 y las 11:30 hs'
@@ -716,7 +790,7 @@ const BookAppointment = () => {
             </Alert>
 
             <Typography variant="body2" color="text.secondary">
-              {showingSobreturnos
+              {(showMorningSobreturnos || showAfternoonSobreturnos)
                 ? selectedSobreturno && selectedSobreturno <= 5
                   ? 'Por favor, llega entre las 11:00 y las 11:30 hs'
                   : 'Por favor, llega entre las 19:00 y las 19:30 hs'
