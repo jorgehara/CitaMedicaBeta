@@ -100,3 +100,13 @@ export const updateSobreturnoStatus = async (id: string, status: 'confirmed' | '
         throw error;
     }
 };
+
+export const getSobreturnosByDate = async (date: string) => {
+    try {
+        const res = await axiosInstance.get(`${API_BASE}/date/${date}`);
+        return res.data;
+    } catch (error) {
+        console.error('[ERROR] Error al obtener sobreturnos por fecha:', error);
+        throw error;
+    }
+};

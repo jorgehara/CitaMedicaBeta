@@ -55,8 +55,19 @@ const flexibleAuth = async (req, res, next) => {
         // Verificar JWT
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
-            
-            // Buscar usuario
+
+            // Verificar si es un token público (del chatbot)
+            if (decoded.type === 'public') {
+                console.log('[DEBUG flexibleAuth] Token público detectado');
+                req.isPublic = true;
+                req.publicToken = {
+                    permissions: decoded.permissions,
+                    source: decoded.source
+                };
+                return next();
+            }
+
+            // Si no es público, buscar usuario en BD (flujo normal)
             const user = await User.findById(decoded.userId);
 
             if (!user) {

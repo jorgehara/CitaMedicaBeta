@@ -2,6 +2,112 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+## ⚠️ PROTOCOLO OBLIGATORIO DE TRABAJO
+
+**CONTEXTO CRÍTICO**: Este proyecto está en **PRODUCCIÓN**. Todos los cambios son pequeños, incrementales y quirúrgicos. El cliente solicita mejoras sutiles o complementos al código existente. Un error cuesta días de trabajo.
+
+**REGLA FUNDAMENTAL**: NUNCA escribir código sin completar las 3 FASES obligatorias.
+
+---
+
+### 📖 FASE 1: ENTENDIMIENTO (OBLIGATORIO)
+
+Cuando recibas una tarea de modificación, DEBES hacer PRIMERO:
+
+1. **Leer el código existente** relacionado con la tarea
+   - Usa Read, Grep, Glob para explorar
+   - Entiende el contexto actual antes de proponer cambios
+
+2. **Hacer preguntas específicas** para clarificar EXACTAMENTE qué cambiar
+   - ¿Qué funcionalidad específica hay que modificar?
+   - ¿Hay algún comportamiento existente que deba preservarse?
+   - ¿Cuál es el alcance exacto del cambio?
+
+3. **Identificar el alcance mínimo** (qué tocar, qué NO tocar)
+   - Lista archivos que SÍ se modificarán
+   - Lista archivos que NO deben tocarse
+   - Código mínimo necesario
+
+4. **Detectar riesgos** (qué podría romperse)
+   - Dependencias que podrían afectarse
+   - Funcionalidades existentes que podrían fallar
+   - Validaciones que podrían romperse
+
+---
+
+### 📋 FASE 2: PLAN (MOSTRAR Y ESPERAR APROBACIÓN)
+
+Antes de escribir UNA SOLA LÍNEA de código, DEBES presentar:
+
+```
+## 📋 PLAN DE IMPLEMENTACIÓN
+
+### RESUMEN (2-3 líneas):
+[Qué voy a cambiar exactamente]
+
+### ARCHIVOS A MODIFICAR:
+1. ruta/archivo1.ext - [Qué cambio específico]
+2. ruta/archivo2.ext - [Qué cambio específico]
+
+### CAMBIOS DETALLADOS:
+[Descripción específica de cada cambio]
+
+### RIESGOS IDENTIFICADOS:
+- ⚠️ [Qué podría fallar]
+- ✅ [Mitigaciones]
+
+### ❓ ¿Procedo con este plan?
+```
+
+**🛑 STOP AQUÍ - Esperar aprobación explícita del usuario antes de continuar**
+
+---
+
+### 🔨 FASE 3: IMPLEMENTACIÓN (PASO A PASO)
+
+**SOLO después de aprobación explícita:**
+
+1. **Un cambio a la vez**
+   - Modificar un archivo
+   - Explicar qué estás haciendo
+   - Mostrar el cambio
+
+2. **Código mínimo necesario**
+   - No agregar funcionalidades extra
+   - No refactorizar código que funciona
+   - No "mejorar" cosas no solicitadas
+
+3. **Verificar que funcione**
+   - npx tsc --noEmit (si es TypeScript)
+   - Compilación exitosa
+   - Sin errores
+
+4. **Actualizar TodoWrite** después de cada cambio completado
+
+---
+
+### 🚫 PROHIBICIONES ABSOLUTAS
+
+- ❌ NO escribir código sin pasar por FASE 1 y FASE 2
+- ❌ NO agregar features no solicitadas
+- ❌ NO refactorizar código existente que funciona
+- ❌ NO tocar archivos fuera del alcance mínimo
+- ❌ NO asumir - SIEMPRE preguntar si hay duda
+
+---
+
+### ✅ PRINCIPIOS GUÍA
+
+1. **Código en producción primero**: Preservar funcionalidad existente
+2. **Cambios mínimos**: Solo lo estrictamente necesario
+3. **Validación constante**: Verificar antes, durante y después
+4. **Comunicación clara**: Explicar cada paso
+5. **Esperar aprobación**: Nunca asumir que puedo proceder
+
+---
+
 ## Project Overview
 
 CitaMedicaBeta is a medical appointment scheduling system integrated with a chatbot and Google Calendar. The system manages two types of appointments: regular appointments and "sobreturnos" (overturn appointments - additional slots beyond regular capacity).
