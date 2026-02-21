@@ -23,6 +23,7 @@ const sobreturnoRoutes = require('./src/routes/sobreturnoRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const qrRoutes = require('./src/routes/qrRoutes');
 const tokenRoutes = require('./src/routes/tokenRoutes');
+const unavailabilityRoutes = require('./src/routes/unavailabilityRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const PORT = process.env.PORT || 3001;
@@ -78,6 +79,7 @@ app.use('/api/tokens', tokenRoutes);
 // Rutas principales (se protegerán con middleware auth después)
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/sobreturnos', sobreturnoRoutes);
+app.use('/api', unavailabilityRoutes);
 app.use('/api', qrRoutes);
 
 // Ruta base

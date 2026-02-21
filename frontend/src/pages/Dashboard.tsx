@@ -1,9 +1,11 @@
-import { Box, Typography, Card, CardContent, TextField, IconButton, Tooltip, Chip, CircularProgress } from '@mui/material';
+import { Box, Typography, Card, CardContent, TextField, IconButton, Tooltip, Chip, CircularProgress, Button, Select, MenuItem, FormControl, InputLabel, Snackbar, Alert } from '@mui/material';
 import {
   Today as TodayIcon,
   Schedule as ScheduleIcon,
   Refresh as RefreshIcon,
   AccessTime as AccessTimeIcon,
+  Lock as LockIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +18,20 @@ import { appointmentService } from '../services/appointmentService';
 import * as sobreturnoService from '../services/sobreturnoService';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import axiosInstance from '../config/axios';
+
+interface UnavailabilityBlock {
+  _id: string;
+  date: string;
+  period: 'morning' | 'afternoon' | 'full';
+  createdAt: string;
+}
+
+const PERIOD_LABELS: Record<string, string> = {
+  morning: 'Mañana',
+  afternoon: 'Tarde',
+  full: 'Todo el día',
+};
 
 // Declaración global
 declare global {
@@ -38,6 +54,15 @@ const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [timeAgo, setTimeAgo] = useState<string>('justo ahora');
+
+  // Estado de gestión de disponibilidad
+  const [unavailBlocks, setUnavailBlocks] = useState<UnavailabilityBlock[]>([]);
+  const [unavailDate, setUnavailDate] = useState(today);
+  const [unavailPeriod, setUnavailPeriod] = useState<'morning' | 'afternoon' | 'full'>('full');
+  const [unavailLoading, setUnavailLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false, message: '', severity: 'success'
+  });
 
   // Filtrar citas para la fecha seleccionada
   const todayAppointments = appointments.filter(
@@ -129,6 +154,45 @@ const Dashboard = () => {
   // Handler para refresh manual
   const handleManualRefresh = async () => {
     await fetchAllData(true);
+  };
+
+  // Cargar bloqueos de disponibilidad
+  const loadUnavailBlocks = useCallback(async () => {
+    try {
+      const res = await axiosInstance.get('/unavailability');
+      if (res.data.success) setUnavailBlocks(res.data.data);
+    } catch (e) {
+      console.error('[UNAVAILABILITY] Error al cargar bloqueos:', e);
+    }
+  }, []);
+
+  useEffect(() => { loadUnavailBlocks(); }, [loadUnavailBlocks]);
+
+  // Crear bloqueo
+  const handleCreateBlock = async () => {
+    if (!unavailDate) return;
+    setUnavailLoading(true);
+    try {
+      await axiosInstance.post('/unavailability', { date: unavailDate, period: unavailPeriod });
+      setSnackbar({ open: true, message: `Bloqueo creado: ${PERIOD_LABELS[unavailPeriod]} del ${unavailDate}`, severity: 'success' });
+      await loadUnavailBlocks();
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Error al crear bloqueo';
+      setSnackbar({ open: true, message: msg, severity: 'error' });
+    } finally {
+      setUnavailLoading(false);
+    }
+  };
+
+  // Eliminar bloqueo
+  const handleDeleteBlock = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/unavailability/${id}`);
+      setSnackbar({ open: true, message: 'Bloqueo eliminado', severity: 'success' });
+      await loadUnavailBlocks();
+    } catch (e) {
+      setSnackbar({ open: true, message: 'Error al eliminar bloqueo', severity: 'error' });
+    }
   };
 
   // Handler para crear sobreturno
@@ -332,6 +396,96 @@ const Dashboard = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Panel de Gestión de Disponibilidad */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="mt-4"
+      >
+        <Card elevation={3}>
+          <CardContent>
+            <Box className="flex items-center gap-2 mb-4">
+              <LockIcon sx={{ color: 'error.main' }} />
+              <Typography variant="h6" className="font-semibold">
+                Gestión de Disponibilidad del Dr.
+              </Typography>
+            </Box>
+
+            {/* Formulario para crear bloqueo */}
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-end', mb: 3 }}>
+              <TextField
+                type="date"
+                label="Fecha a bloquear"
+                size="small"
+                value={unavailDate}
+                onChange={(e) => setUnavailDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 160 }}
+              />
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>Período</InputLabel>
+                <Select
+                  value={unavailPeriod}
+                  label="Período"
+                  onChange={(e) => setUnavailPeriod(e.target.value as 'morning' | 'afternoon' | 'full')}
+                >
+                  <MenuItem value="morning">🌅 Mañana</MenuItem>
+                  <MenuItem value="afternoon">🌇 Tarde</MenuItem>
+                  <MenuItem value="full">📅 Todo el día</MenuItem>
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<LockIcon />}
+                onClick={handleCreateBlock}
+                disabled={unavailLoading || !unavailDate}
+                sx={{ textTransform: 'none' }}
+              >
+                {unavailLoading ? 'Bloqueando...' : 'Bloquear turnos'}
+              </Button>
+            </Box>
+
+            {/* Lista de bloqueos activos */}
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Bloqueos activos ({unavailBlocks.length})
+            </Typography>
+            {unavailBlocks.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                No hay bloqueos activos. El chatbot ofrece turnos con normalidad.
+              </Typography>
+            ) : (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {unavailBlocks.map((block) => (
+                  <Chip
+                    key={block._id}
+                    label={`${block.date} — ${PERIOD_LABELS[block.period]}`}
+                    color="error"
+                    variant="outlined"
+                    onDelete={() => handleDeleteBlock(block._id)}
+                    deleteIcon={<DeleteIcon />}
+                    sx={{ fontWeight: 500 }}
+                  />
+                ))}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Snackbar de feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       {/* Dialog de sobreturno */}
       <CreateOverturnDialog
