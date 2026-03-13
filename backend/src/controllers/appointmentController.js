@@ -243,6 +243,14 @@ exports.getAvailableAppointments = async (req, res) => {
         console.log('[DEBUG] Sincronizando con Google Calendar...');
         await syncWithGoogleCalendar(targetDate, req.clinicId);
 
+        // Verificar si la fecha es un día hábil
+        const [_y, _mo, _d] = date.split('-').map(Number);
+        const _dayOfWeek = new Date(_y, _mo - 1, _d).getDay();
+        const _workingDays = req.clinic.settings.workingDays || [1, 2, 3, 4, 5, 6];
+        if (!_workingDays.includes(_dayOfWeek)) {
+          return res.json({ success: true, data: { displayDate: date, available: { morning: [], afternoon: [] } } });
+        }
+
         // Generar slots según la configuración de la clínica (dinámico, no hardcodeado)
         const { morning: mSlots, afternoon: aSlots } = getBusinessSlots(req.clinic);
         const allPossibleSlots = [...mSlots, ...aSlots].map(time => ({
@@ -660,6 +668,14 @@ exports.getAvailableTimes = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Verificar si la fecha es un día hábil
+    const [y, mo, d] = date.split('-').map(Number);
+    const dayOfWeek = new Date(y, mo - 1, d).getDay();
+    const workingDays = req.clinic.settings.workingDays || [1, 2, 3, 4, 5, 6];
+    if (!workingDays.includes(dayOfWeek)) {
+      return res.json({ success: true, data: { date, morning: [], afternoon: [] } });
+    }
+
     // Obtener todas las citas para la fecha seleccionada
     const appointments = await Appointment.find({
       date,
@@ -669,7 +685,7 @@ exports.getAvailableTimes = async (req, res) => {
 
     // Obtener los horarios ya ocupados
     const occupiedTimes = appointments.map(appointment => appointment.time);
-    
+
     // Función para verificar si un horario está disponible considerando la hora actual
     const isTimeAvailable = (time) => {
       if (requestedDate.getTime() === today.getTime()) {

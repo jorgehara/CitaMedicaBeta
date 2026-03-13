@@ -45,6 +45,7 @@ import { format } from 'date-fns';
 import type { ChangeEvent } from 'react';
 import type { Appointment, AppointmentStatus, BaseAppointment, SocialWork } from '../types/appointment';
 import { appointmentService, getAvailableTimes } from '../services/appointmentService';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -74,6 +75,7 @@ export interface AppointmentListHandle {
 
 const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolean; title?: string }>(
   ({ showHistory = false, title = showHistory ? 'Historial de Turnos' : 'Próximos Turnos' }, ref) => {
+    const { socialWorks } = useClinicConfig();
     // Permite abrir el diálogo de nueva cita desde el exterior
     useImperativeHandle(ref, () => ({
       openCreateDialog: () => {
@@ -1437,12 +1439,9 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
                 fullWidth
                 required
               >
-                <MenuItem value="INSSSEP">INSSSEP</MenuItem>
-                <MenuItem value="Swiss Medical">Swiss Medical</MenuItem>
-                <MenuItem value="OSDE">OSDE</MenuItem>
-                <MenuItem value="Galeno">Galeno</MenuItem>
-                <MenuItem value="CONSULTA PARTICULAR">CONSULTA PARTICULAR</MenuItem>
-                <MenuItem value="Otras Obras Sociales">Otras Obras Sociales</MenuItem>
+                {socialWorks.map(sw => (
+                  <MenuItem key={sw} value={sw}>{sw}</MenuItem>
+                ))}
               </TextField>
 
               {editingAppointment && (

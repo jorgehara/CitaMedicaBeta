@@ -32,7 +32,9 @@ const clinicSchema = new mongoose.Schema({
         end: { type: String, default: '20:00' },
         enabled: { type: Boolean, default: true }
       }
-    }
+    },
+    // Días hábiles: 0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb
+    workingDays: { type: [Number], default: [1, 2, 3, 4, 5, 6] }
   },
 
   socialWorks: {

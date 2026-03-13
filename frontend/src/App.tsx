@@ -12,6 +12,7 @@ import BookAppointment from './pages/BookAppointment';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ColorModeContext } from './context/ColorModeContext';
 import { AuthProvider } from './context/AuthContext';
+import { ClinicConfigProvider } from './context/ClinicConfigContext';
 
 const App = () => {
   const [mode, setMode] = useState<'light' | 'dark'>('dark');
@@ -75,6 +76,7 @@ const App = () => {
 
   return (
     <AuthProvider>
+      <ClinicConfigProvider>
       <ColorModeContext.Provider value={colorMode}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
@@ -181,6 +183,7 @@ const App = () => {
           </Router>
         </ThemeProvider>
       </ColorModeContext.Provider>
+      </ClinicConfigProvider>
     </AuthProvider>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Snackbar, Alert } from '@mui/material';
 import type { AppointmentStatus, SocialWork } from '../types/appointment';
 import { appointmentService } from '../services/appointmentService';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 const initialFormState = {
   clientName: '',
@@ -16,14 +17,6 @@ const initialFormState = {
   isSobreturno: false
 };
 
-const socialWorkOptions: SocialWork[] = [
-  'INSSSEP',
-  'Swiss Medical',
-  'OSDE',
-  'Galeno',
-  'CONSULTA PARTICULAR',
-  'Otras Obras Sociales'
-];
 
 
 interface GlobalCreateAppointmentDialogProps {
@@ -32,6 +25,7 @@ interface GlobalCreateAppointmentDialogProps {
 }
 
 const GlobalCreateAppointmentDialog: React.FC<GlobalCreateAppointmentDialogProps> = ({ open, onClose }) => {
+  const { socialWorks: socialWorkOptions } = useClinicConfig();
   const [formData, setFormData] = useState(initialFormState);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{

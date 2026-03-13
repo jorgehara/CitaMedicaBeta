@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import { appointmentService } from '../services/appointmentService';
 import { getSobreturnosByDate, createSobreturno } from '../services/sobreturnoService';
 import type { SocialWork } from '../types/appointment';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
@@ -36,26 +37,21 @@ interface TimeSlot {
   period: 'morning' | 'afternoon';
 }
 
-const socialWorks: SocialWork[] = [
-  'INSSSEP',
-  'Swiss Medical',
-  'OSDE',
-  'Galeno',
-  'CONSULTA PARTICULAR',
-  'Otras Obras Sociales',
-];
-
-const HORARIOS_SOBRETURNOS: Record<number, string> = {
-  1: '11:00', 2: '11:15', 3: '11:30', 4: '11:45', 5: '12:00',
-  6: '19:00', 7: '19:15', 8: '19:30', 9: '19:45', 10: '20:00'
-};
 
 const steps = ['Fecha y Hora', 'Datos Personales', 'Confirmación'];
+
+interface SobreturnoSlot {
+  numero: number;
+  horario: string;
+  turno: string;
+  disponible: boolean;
+}
 
 const BookAppointment = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [searchParams] = useSearchParams();
+  const { socialWorks } = useClinicConfig();
 
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -92,7 +88,7 @@ const BookAppointment = () => {
   const [showMorningSobreturnos, setShowMorningSobreturnos] = useState(false);
   const [showAfternoonSobreturnos, setShowAfternoonSobreturnos] = useState(false);
   const [selectedSobreturno, setSelectedSobreturno] = useState<number | null>(null);
-  const [disponiblesSobreturnos, setDisponiblesSobreturnos] = useState<number[]>([]);
+  const [allSobreturnoSlots, setAllSobreturnoSlots] = useState<SobreturnoSlot[]>([]);
 
   // Step 2: Personal Data
   const [formData, setFormData] = useState({
@@ -108,6 +104,7 @@ const BookAppointment = () => {
     setSelectedDate(date);
     setSelectedTime('');
     setSelectedSobreturno(null);
+    setAllSobreturnoSlots([]);
     setError('');
     setShowMorningSobreturnos(false);
     setShowAfternoonSobreturnos(false);
@@ -128,23 +125,18 @@ const BookAppointment = () => {
           try {
             const sobreturnosResponse = await getSobreturnosByDate(formattedDate);
 
-            if (sobreturnosResponse.success && sobreturnosResponse.data.totalDisponibles > 0) {
-              const numerosDisponibles = sobreturnosResponse.data.disponibles.map((s: any) => s.numero);
-              setDisponiblesSobreturnos(numerosDisponibles);
+            if (sobreturnosResponse.success && sobreturnosResponse.data.todosLosSlots?.length > 0) {
+              setAllSobreturnoSlots(sobreturnosResponse.data.todosLosSlots);
 
               // Mostrar sobreturnos de mañana si no hay turnos de mañana
               if (morningTimes.length === 0) {
                 setShowMorningSobreturnos(true);
-                console.log('[DEBUG] No hay turnos de mañana, mostrando sobreturnos de mañana');
               }
 
               // Mostrar sobreturnos de tarde si no hay turnos de tarde
               if (afternoonTimes.length === 0) {
                 setShowAfternoonSobreturnos(true);
-                console.log('[DEBUG] No hay turnos de tarde, mostrando sobreturnos de tarde');
               }
-
-              console.log('[DEBUG] Sobreturnos disponibles:', numerosDisponibles);
             } else if (allTimes.length === 0) {
               // Si no hay turnos normales ni sobreturnos
               setError('No hay turnos ni sobreturnos disponibles para esta fecha');
@@ -174,7 +166,8 @@ const BookAppointment = () => {
   };
 
   const handleSobreturnoSelect = (numero: number) => {
-    if (disponiblesSobreturnos.includes(numero)) {
+    const slot = allSobreturnoSlots.find(s => s.numero === numero);
+    if (slot?.disponible) {
       setSelectedSobreturno(numero);
       setError('');
     }
@@ -261,7 +254,7 @@ const BookAppointment = () => {
         const sobreturnoData = {
           sobreturnoNumber: selectedSobreturno,
           date: formattedDate,
-          time: HORARIOS_SOBRETURNOS[selectedSobreturno],
+          time: allSobreturnoSlots.find(s => s.numero === selectedSobreturno)?.horario ?? '',
           clientName: formData.clientName,
           socialWork: formData.socialWork as SocialWork,
           phone: formData.phone,
@@ -419,43 +412,42 @@ const BookAppointment = () => {
                 </Alert>
 
                 <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
-                  Sobreturnos Mañana (llegar entre 11:00-11:30):
+                  Sobreturnos Mañana:
                 </Typography>
                 <Grid container spacing={1.5}>
-                  {[1, 2, 3, 4, 5].map((num) => {
-                    const isDisponible = disponiblesSobreturnos.includes(num);
-                    const isSelected = selectedSobreturno === num;
+                  {allSobreturnoSlots.filter(s => s.turno === 'mañana').map((slot) => {
+                    const isSelected = selectedSobreturno === slot.numero;
                     return (
-                      <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={num}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={slot.numero}>
                         <Card
                           elevation={isSelected ? 8 : 2}
                           sx={{
                             border: isSelected ? 2 : 0,
                             borderColor: 'primary.main',
-                            opacity: isDisponible ? 1 : 0.5,
+                            opacity: slot.disponible ? 1 : 0.5,
                             transition: 'all 0.2s',
-                            cursor: isDisponible ? 'pointer' : 'not-allowed',
-                            bgcolor: !isDisponible ? 'action.disabledBackground' : 'background.paper',
+                            cursor: slot.disponible ? 'pointer' : 'not-allowed',
+                            bgcolor: !slot.disponible ? 'action.disabledBackground' : 'background.paper',
                           }}
                         >
                           <CardActionArea
-                            onClick={() => handleSobreturnoSelect(num)}
-                            disabled={!isDisponible}
+                            onClick={() => handleSobreturnoSelect(slot.numero)}
+                            disabled={!slot.disponible}
                           >
                             <CardContent sx={{ p: 2, textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                Sobreturno {num}
+                                Sobreturno {slot.numero}
                               </Typography>
                               <Typography
                                 variant="body1"
                                 sx={{
                                   fontWeight: isSelected ? 700 : 500,
-                                  color: isSelected ? 'primary.main' : isDisponible ? 'text.primary' : 'text.disabled',
+                                  color: isSelected ? 'primary.main' : slot.disponible ? 'text.primary' : 'text.disabled',
                                 }}
                               >
-                                {HORARIOS_SOBRETURNOS[num]}
+                                {slot.horario}
                               </Typography>
-                              {!isDisponible && (
+                              {!slot.disponible && (
                                 <Typography variant="caption" color="error">
                                   Ocupado
                                 </Typography>
@@ -478,43 +470,42 @@ const BookAppointment = () => {
                 </Alert>
 
                 <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
-                  Sobreturnos Tarde (llegar entre 19:00-19:30):
+                  Sobreturnos Tarde:
                 </Typography>
                 <Grid container spacing={1.5}>
-                  {[6, 7, 8, 9, 10].map((num) => {
-                    const isDisponible = disponiblesSobreturnos.includes(num);
-                    const isSelected = selectedSobreturno === num;
+                  {allSobreturnoSlots.filter(s => s.turno === 'tarde').map((slot) => {
+                    const isSelected = selectedSobreturno === slot.numero;
                     return (
-                      <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={num}>
+                      <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={slot.numero}>
                         <Card
                           elevation={isSelected ? 8 : 2}
                           sx={{
                             border: isSelected ? 2 : 0,
                             borderColor: 'primary.main',
-                            opacity: isDisponible ? 1 : 0.5,
+                            opacity: slot.disponible ? 1 : 0.5,
                             transition: 'all 0.2s',
-                            cursor: isDisponible ? 'pointer' : 'not-allowed',
-                            bgcolor: !isDisponible ? 'action.disabledBackground' : 'background.paper',
+                            cursor: slot.disponible ? 'pointer' : 'not-allowed',
+                            bgcolor: !slot.disponible ? 'action.disabledBackground' : 'background.paper',
                           }}
                         >
                           <CardActionArea
-                            onClick={() => handleSobreturnoSelect(num)}
-                            disabled={!isDisponible}
+                            onClick={() => handleSobreturnoSelect(slot.numero)}
+                            disabled={!slot.disponible}
                           >
                             <CardContent sx={{ p: 2, textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                Sobreturno {num}
+                                Sobreturno {slot.numero}
                               </Typography>
                               <Typography
                                 variant="body1"
                                 sx={{
                                   fontWeight: isSelected ? 700 : 500,
-                                  color: isSelected ? 'primary.main' : isDisponible ? 'text.primary' : 'text.disabled',
+                                  color: isSelected ? 'primary.main' : slot.disponible ? 'text.primary' : 'text.disabled',
                                 }}
                               >
-                                {HORARIOS_SOBRETURNOS[num]}
+                                {slot.horario}
                               </Typography>
-                              {!isDisponible && (
+                              {!slot.disponible && (
                                 <Typography variant="caption" color="error">
                                   Ocupado
                                 </Typography>
@@ -596,7 +587,7 @@ const BookAppointment = () => {
                   onChange={(e) => handleInputChange('socialWork', e.target.value)}
                   variant="outlined"
                 >
-                  {socialWorks.map((work) => (
+                  {socialWorks.map((work: string) => (
                     <MenuItem key={work} value={work}>
                       {work}
                     </MenuItem>
@@ -639,12 +630,12 @@ const BookAppointment = () => {
                   {(showMorningSobreturnos || showAfternoonSobreturnos) && selectedSobreturno ? (
                     <>
                       <Typography variant="body1" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                        Sobreturno {selectedSobreturno} - {HORARIOS_SOBRETURNOS[selectedSobreturno]}
+                        Sobreturno {selectedSobreturno} - {allSobreturnoSlots.find(s => s.numero === selectedSobreturno)?.horario}
                       </Typography>
                       <Alert severity="info" sx={{ mt: 1 }}>
-                        {selectedSobreturno <= 5
-                          ? 'Debe llegar entre las 11:00 y las 11:30 hs'
-                          : 'Debe llegar entre las 19:00 y las 19:30 hs'}
+                        {allSobreturnoSlots.find(s => s.numero === selectedSobreturno)?.turno === 'mañana'
+                          ? 'Turno mañana'
+                          : 'Turno tarde'}
                       </Alert>
                     </>
                   ) : (
@@ -768,7 +759,7 @@ const BookAppointment = () => {
               </Typography>
               {(showMorningSobreturnos || showAfternoonSobreturnos) && selectedSobreturno ? (
                 <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
-                  Sobreturno {selectedSobreturno} - {HORARIOS_SOBRETURNOS[selectedSobreturno]}
+                  Sobreturno {selectedSobreturno} - {allSobreturnoSlots.find(s => s.numero === selectedSobreturno)?.horario}
                 </Typography>
               ) : (
                 <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
@@ -779,9 +770,9 @@ const BookAppointment = () => {
 
             {(showMorningSobreturnos || showAfternoonSobreturnos) && selectedSobreturno && (
               <Alert severity="warning" sx={{ mb: 3, textAlign: 'left' }}>
-                {selectedSobreturno <= 5
-                  ? 'Debe llegar entre las 11:00 y las 11:30 hs'
-                  : 'Debe llegar entre las 19:00 y las 19:30 hs'}
+                {allSobreturnoSlots.find(s => s.numero === selectedSobreturno)?.turno === 'mañana'
+                  ? 'Turno mañana'
+                  : 'Turno tarde'}
               </Alert>
             )}
 
@@ -790,11 +781,7 @@ const BookAppointment = () => {
             </Alert>
 
             <Typography variant="body2" color="text.secondary">
-              {(showMorningSobreturnos || showAfternoonSobreturnos)
-                ? selectedSobreturno && selectedSobreturno <= 5
-                  ? 'Por favor, llega entre las 11:00 y las 11:30 hs'
-                  : 'Por favor, llega entre las 19:00 y las 19:30 hs'
-                : 'Por favor, llega 30 minutos antes de tu turno'}
+              Por favor, llega 10 minutos antes de tu turno
             </Typography>
           </Paper>
         </Container>

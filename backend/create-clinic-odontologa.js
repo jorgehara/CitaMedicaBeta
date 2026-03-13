@@ -27,13 +27,14 @@ async function createClinic() {
     subdomain: 'od-melinavillalba',
     settings: {
       appointmentDuration: 30,
+      workingDays: [1, 2, 3, 4], // Lun-Jue (0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue)
       businessHours: {
-        morning:   { start: '09:00', end: '12:00', enabled: true },
-        afternoon: { start: '15:00', end: '19:00', enabled: true }
+        morning:   { start: '09:00', end: '12:00', enabled: false }, // sin turno mañana
+        afternoon: { start: '15:00', end: '20:00', enabled: true }
       },
       sobreturnoHours: {
-        morning:   { start: '12:00', end: '13:00', enabled: true },
-        afternoon: { start: '19:00', end: '20:00', enabled: true }
+        morning:   { start: '12:00', end: '13:00', enabled: false }, // sin sobreturno mañana
+        afternoon: { start: '20:00', end: '20:30', enabled: false }  // configurar cuando sea necesario
       }
     },
     socialWorks: [

@@ -325,10 +325,18 @@ exports.getSobreturnosByDate = async (req, res) => {
       turno: num <= mSlots.length ? 'mañana' : 'tarde'
     }));
 
+    const todosLosSlots = allSlots.map((horario, i) => ({
+      numero: i + 1,
+      horario,
+      turno: i < mSlots.length ? 'mañana' : 'tarde',
+      disponible: !ocupados.includes(i + 1)
+    }));
+
     return res.json({
       success: true,
       data: {
         disponibles: sobreturnosDisponibles,
+        todosLosSlots,
         totalDisponibles: disponibles.length,
         fecha: date
       }

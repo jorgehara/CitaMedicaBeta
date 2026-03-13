@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import type { AppointmentStatus, SocialWork } from '../types/appointment';
 import { getSobreturnosByDate } from '../services/sobreturnoService';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 const initialFormState = {
   clientName: '',
@@ -28,27 +29,6 @@ const initialFormState = {
   attended: false
 };
 
-const socialWorkOptions: SocialWork[] = [
-  'INSSSEP',
-  'Swiss Medical',
-  'OSDE',
-  'Galeno',
-  'CONSULTA PARTICULAR',
-  'Otras Obras Sociales'
-];
-
-const HORARIOS_SOBRETURNOS: Record<number, string> = {
-  1: '11:00',
-  2: '11:15',
-  3: '11:30',
-  4: '11:45',
-  5: '12:00',
-  6: '19:00',
-  7: '19:15',
-  8: '19:30',
-  9: '19:45',
-  10: '20:00'
-};
 
 interface CreateOverturnDialogProps {
   open: boolean;
@@ -56,11 +36,19 @@ interface CreateOverturnDialogProps {
   onCreate: (data: any) => void;
 }
 
+interface SobreturnoSlot {
+  numero: number;
+  horario: string;
+  turno: string;
+  disponible: boolean;
+}
+
 const CreateOverturnDialog: React.FC<CreateOverturnDialogProps> = ({ open, onClose, onCreate }) => {
+  const { socialWorks: socialWorkOptions } = useClinicConfig();
   const [formData, setFormData] = useState(initialFormState);
   const [error, setError] = useState<string | null>(null);
   const [selectedSobreturno, setSelectedSobreturno] = useState<number | null>(null);
-  const [disponiblesSobreturnos, setDisponiblesSobreturnos] = useState<number[]>([]);
+  const [allSobreturnoSlots, setAllSobreturnoSlots] = useState<SobreturnoSlot[]>([]);
   const [loadingAvailable, setLoadingAvailable] = useState(false);
 
   // Cargar sobreturnos disponibles cuando se selecciona una fecha
@@ -75,7 +63,7 @@ const CreateOverturnDialog: React.FC<CreateOverturnDialogProps> = ({ open, onClo
     if (!open) {
       setFormData(initialFormState);
       setSelectedSobreturno(null);
-      setDisponiblesSobreturnos([]);
+      setAllSobreturnoSlots([]);
       setError(null);
     }
   }, [open]);
@@ -85,16 +73,14 @@ const CreateOverturnDialog: React.FC<CreateOverturnDialogProps> = ({ open, onClo
       setLoadingAvailable(true);
       setError(null);
       const response = await getSobreturnosByDate(date);
-      if (response.success && response.data.disponibles) {
-        const numerosDisponibles = response.data.disponibles.map((s: any) => s.numero);
-        setDisponiblesSobreturnos(numerosDisponibles);
-        console.log('[CreateOverturnDialog] Sobreturnos disponibles:', numerosDisponibles);
+      if (response.success && response.data.todosLosSlots) {
+        setAllSobreturnoSlots(response.data.todosLosSlots);
       } else {
-        setDisponiblesSobreturnos([]);
+        setAllSobreturnoSlots([]);
       }
     } catch (error) {
       console.error('[CreateOverturnDialog] Error al cargar sobreturnos disponibles:', error);
-      setDisponiblesSobreturnos([]);
+      setAllSobreturnoSlots([]);
       setError('Error al cargar sobreturnos disponibles');
     } finally {
       setLoadingAvailable(false);
@@ -106,9 +92,9 @@ const CreateOverturnDialog: React.FC<CreateOverturnDialogProps> = ({ open, onClo
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSobreturnoSelect = (num: number) => {
-    if (disponiblesSobreturnos.includes(num)) {
-      setSelectedSobreturno(num);
+  const handleSobreturnoSelect = (slot: SobreturnoSlot) => {
+    if (slot.disponible) {
+      setSelectedSobreturno(slot.numero);
       setError(null);
     }
   };
@@ -181,94 +167,105 @@ const CreateOverturnDialog: React.FC<CreateOverturnDialogProps> = ({ open, onClo
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                     <CircularProgress size={24} />
                   </Box>
-                ) : disponiblesSobreturnos.length === 0 ? (
+                ) : allSobreturnoSlots.length === 0 ? (
                   <Alert severity="warning">No hay sobreturnos disponibles para esta fecha</Alert>
                 ) : (
                   <>
                     {/* Turno Mañana */}
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 500 }}>
-                      Turno Mañana (11:00-12:00):
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <Box key={num} sx={{ flex: '1 1 calc(20% - 8px)', minWidth: '80px' }}>
-                          <Card
-                            onClick={() => handleSobreturnoSelect(num)}
-                            sx={{
-                              border: selectedSobreturno === num ? '3px solid #2196f3' : '1px solid #e0e0e0',
-                              cursor: disponiblesSobreturnos.includes(num) ? 'pointer' : 'not-allowed',
-                              opacity: disponiblesSobreturnos.includes(num) ? 1 : 0.4,
-                              transition: 'all 0.2s',
-                              '&:hover': {
-                                boxShadow: disponiblesSobreturnos.includes(num) ? 3 : 0,
-                                transform: disponiblesSobreturnos.includes(num) ? 'translateY(-2px)' : 'none'
-                              }
-                            }}
-                          >
-                            <CardContent sx={{ p: 1, textAlign: 'center', '&:last-child': { pb: 1 } }}>
-                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                #{num}
-                              </Typography>
-                              <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
-                                {HORARIOS_SOBRETURNOS[num]}
-                              </Typography>
-                              {!disponiblesSobreturnos.includes(num) && (
-                                <Typography variant="caption" color="error" sx={{ display: 'block', fontSize: '0.65rem' }}>
-                                  Ocupado
-                                </Typography>
-                              )}
-                            </CardContent>
-                          </Card>
+                    {allSobreturnoSlots.filter(s => s.turno === 'mañana').length > 0 && (
+                      <>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 500 }}>
+                          Turno Mañana:
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                          {allSobreturnoSlots.filter(s => s.turno === 'mañana').map((slot) => (
+                            <Box key={slot.numero} sx={{ flex: '1 1 calc(20% - 8px)', minWidth: '80px' }}>
+                              <Card
+                                onClick={() => handleSobreturnoSelect(slot)}
+                                sx={{
+                                  border: selectedSobreturno === slot.numero ? '3px solid #2196f3' : '1px solid #e0e0e0',
+                                  cursor: slot.disponible ? 'pointer' : 'not-allowed',
+                                  opacity: slot.disponible ? 1 : 0.4,
+                                  transition: 'all 0.2s',
+                                  '&:hover': {
+                                    boxShadow: slot.disponible ? 3 : 0,
+                                    transform: slot.disponible ? 'translateY(-2px)' : 'none'
+                                  }
+                                }}
+                              >
+                                <CardContent sx={{ p: 1, textAlign: 'center', '&:last-child': { pb: 1 } }}>
+                                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    #{slot.numero}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                                    {slot.horario}
+                                  </Typography>
+                                  {!slot.disponible && (
+                                    <Typography variant="caption" color="error" sx={{ display: 'block', fontSize: '0.65rem' }}>
+                                      Ocupado
+                                    </Typography>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </Box>
+                          ))}
                         </Box>
-                      ))}
-                    </Box>
+                      </>
+                    )}
 
                     {/* Turno Tarde */}
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 500 }}>
-                      Turno Tarde (19:00-20:00):
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      {[6, 7, 8, 9, 10].map((num) => (
-                        <Box key={num} sx={{ flex: '1 1 calc(20% - 8px)', minWidth: '80px' }}>
-                          <Card
-                            onClick={() => handleSobreturnoSelect(num)}
-                            sx={{
-                              border: selectedSobreturno === num ? '3px solid #2196f3' : '1px solid #e0e0e0',
-                              cursor: disponiblesSobreturnos.includes(num) ? 'pointer' : 'not-allowed',
-                              opacity: disponiblesSobreturnos.includes(num) ? 1 : 0.4,
-                              transition: 'all 0.2s',
-                              '&:hover': {
-                                boxShadow: disponiblesSobreturnos.includes(num) ? 3 : 0,
-                                transform: disponiblesSobreturnos.includes(num) ? 'translateY(-2px)' : 'none'
-                              }
-                            }}
-                          >
-                            <CardContent sx={{ p: 1, textAlign: 'center', '&:last-child': { pb: 1 } }}>
-                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                #{num}
-                              </Typography>
-                              <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
-                                {HORARIOS_SOBRETURNOS[num]}
-                              </Typography>
-                              {!disponiblesSobreturnos.includes(num) && (
-                                <Typography variant="caption" color="error" sx={{ display: 'block', fontSize: '0.65rem' }}>
-                                  Ocupado
-                                </Typography>
-                              )}
-                            </CardContent>
-                          </Card>
+                    {allSobreturnoSlots.filter(s => s.turno === 'tarde').length > 0 && (
+                      <>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 500 }}>
+                          Turno Tarde:
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          {allSobreturnoSlots.filter(s => s.turno === 'tarde').map((slot) => (
+                            <Box key={slot.numero} sx={{ flex: '1 1 calc(20% - 8px)', minWidth: '80px' }}>
+                              <Card
+                                onClick={() => handleSobreturnoSelect(slot)}
+                                sx={{
+                                  border: selectedSobreturno === slot.numero ? '3px solid #2196f3' : '1px solid #e0e0e0',
+                                  cursor: slot.disponible ? 'pointer' : 'not-allowed',
+                                  opacity: slot.disponible ? 1 : 0.4,
+                                  transition: 'all 0.2s',
+                                  '&:hover': {
+                                    boxShadow: slot.disponible ? 3 : 0,
+                                    transform: slot.disponible ? 'translateY(-2px)' : 'none'
+                                  }
+                                }}
+                              >
+                                <CardContent sx={{ p: 1, textAlign: 'center', '&:last-child': { pb: 1 } }}>
+                                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    #{slot.numero}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                                    {slot.horario}
+                                  </Typography>
+                                  {!slot.disponible && (
+                                    <Typography variant="caption" color="error" sx={{ display: 'block', fontSize: '0.65rem' }}>
+                                      Ocupado
+                                    </Typography>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </Box>
+                          ))}
                         </Box>
-                      ))}
-                    </Box>
-
-                    {selectedSobreturno && (
-                      <Alert severity="info" sx={{ mt: 2 }}>
-                        Sobreturno seleccionado: #{selectedSobreturno} - {HORARIOS_SOBRETURNOS[selectedSobreturno]}
-                        {selectedSobreturno <= 5
-                          ? ' (Debe llegar entre 11:00-11:30 hs)'
-                          : ' (Debe llegar entre 19:00-19:30 hs)'}
-                      </Alert>
+                      </>
                     )}
+
+                    {selectedSobreturno && (() => {
+                      const selectedSlot = allSobreturnoSlots.find(s => s.numero === selectedSobreturno);
+                      return (
+                        <Alert severity="info" sx={{ mt: 2 }}>
+                          Sobreturno seleccionado: #{selectedSobreturno} - {selectedSlot?.horario}
+                          {selectedSlot?.turno === 'mañana'
+                            ? ' (Turno mañana)'
+                            : ' (Turno tarde)'}
+                        </Alert>
+                      );
+                    })()}
                   </>
                 )}
               </Box>
