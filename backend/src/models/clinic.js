@@ -34,7 +34,8 @@ const clinicSchema = new mongoose.Schema({
       }
     },
     // Días hábiles: 0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb
-    workingDays: { type: [Number], default: [1, 2, 3, 4, 5, 6] }
+    workingDays: { type: [Number], default: [1, 2, 3, 4, 5, 6] },
+    appointmentLabel: { type: String, default: 'Consulta médica' }
   },
 
   socialWorks: {

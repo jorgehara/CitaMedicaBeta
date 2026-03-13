@@ -13,7 +13,8 @@ async function main() {
         {
             $set: {
                 'googleCalendar.calendarId': CALENDAR_ID,
-                'googleCalendar.connected': true
+                'googleCalendar.connected': true,
+                'settings.appointmentLabel': 'Consulta odontológica'
             }
         },
         { new: true }
@@ -24,9 +25,9 @@ async function main() {
         process.exit(1);
     }
 
-    console.log('✅ Calendar ID actualizado para:', result.name);
+    console.log('✅ Actualizado para:', result.name);
     console.log('   calendarId:', result.googleCalendar.calendarId);
-    console.log('   connected:', result.googleCalendar.connected);
+    console.log('   appointmentLabel:', result.settings.appointmentLabel);
 
     await mongoose.disconnect();
 }

@@ -49,19 +49,20 @@ class GoogleCalendarService {
         }
     }
 
-    async createCalendarEvent(appointment, calendarId) {
+    async createCalendarEvent(appointment, calendarId, appointmentLabel) {
         await this.ensureInitialized();
         const targetCalendarId = calendarId || process.env.CALENDAR_ID;
+        const label = appointmentLabel || 'Consulta médica';
         try {
             const startTime = new Date(`${appointment.date}T${appointment.time}`);
             const endTime = new Date(startTime.getTime() + 15 * 60000); // 15 minutos
 
             const event = {
-                summary: `Consulta médica - ${appointment.clientName}`,
+                summary: `${label} - ${appointment.clientName}`,
                 description: `Paciente: ${appointment.clientName}
 Obra Social: ${appointment.socialWork}
 Teléfono: ${appointment.phone}
-Email: ${appointment.email}`,
+Email: ${appointment.email || 'No informado'}`,
                 start: {
                     dateTime: startTime.toISOString(),
                     timeZone: 'America/Argentina/Buenos_Aires'

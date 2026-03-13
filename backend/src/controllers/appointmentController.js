@@ -390,7 +390,8 @@ exports.createAppointment = async (req, res) => {
     if (appointment.status === 'confirmed') {
       try {
         const clinicCalendarId = req.clinic?.googleCalendar?.calendarId;
-        const eventId = await googleCalendarService.createCalendarEvent(appointment, clinicCalendarId);
+        const appointmentLabel = req.clinic?.settings?.appointmentLabel;
+        const eventId = await googleCalendarService.createCalendarEvent(appointment, clinicCalendarId, appointmentLabel);
         if (eventId) {
           appointment.googleEventId = eventId;
           await appointment.save();
