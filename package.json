@@ -9,7 +9,9 @@
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "start:backend": "npm run start --prefix backend",
-    "deploy:frontend": "npm run build --prefix frontend && sudo rm -rf /var/www/micitamedica/frontend/dist/* && sudo cp -r frontend/dist/* /var/www/micitamedica/frontend/dist/ && sudo chown -R www-data:www-data /var/www/micitamedica/frontend/dist && sudo systemctl reload nginx",
+    "deploy:drkulinka": "npm run build --prefix frontend && sudo rm -rf /var/www/micitamedica/frontend/dist/* && sudo cp -r frontend/dist/* /var/www/micitamedica/frontend/dist/ && sudo chown -R www-data:www-data /var/www/micitamedica/frontend/dist && sudo systemctl reload nginx",
+    "deploy:odontologa": "npm run build --prefix frontend && sudo mkdir -p /var/www/od-melinavillalba/frontend/dist && sudo rm -rf /var/www/od-melinavillalba/frontend/dist/* && sudo cp -r frontend/dist/* /var/www/od-melinavillalba/frontend/dist/ && sudo chown -R www-data:www-data /var/www/od-melinavillalba/frontend/dist && sudo systemctl reload nginx",
+    "deploy:frontend": "npm run deploy:drkulinka && npm run deploy:odontologa",
     "deploy:backend": "pm2 restart cita-medica-backend",
     "deploy:all": "npm run deploy:frontend && npm run deploy:backend"
   },
