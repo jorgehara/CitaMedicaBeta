@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
+    clinicId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Clinic',
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now

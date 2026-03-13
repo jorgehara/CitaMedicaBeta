@@ -11,6 +11,11 @@ const unavailabilitySchema = new mongoose.Schema({
         enum: ['morning', 'afternoon', 'full'],
         required: true
     },
+    clinicId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Clinic',
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now

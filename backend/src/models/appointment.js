@@ -68,9 +68,14 @@ const appointmentSchema = new mongoose.Schema({
         default: false,
         required: true
     },
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
+    clinicId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Clinic',
+        default: null
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     },
     updatedAt: { 
         type: Date,
