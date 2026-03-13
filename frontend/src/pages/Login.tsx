@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import { Alert, CircularProgress } from '@mui/material';
 import { FaUserDoctor, FaEnvelope, FaLock, FaArrowRight, FaUserPlus, FaEye, FaEyeSlash } from 'react-icons/fa6';
 import { useAuth } from '../context/AuthContext';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 import type { LoginCredentials } from '../types/auth';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { clinicName } = useClinicConfig();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -249,19 +251,18 @@ const Login = () => {
           </motion.div>
 
           {/* Footer Info */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-8 text-center"
-          >
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Sistema de Gestión Médica
-            </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              Dr. Daniel Kulinka
-            </p>
-          </motion.div>
+          {clinicName && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="mt-8 text-center"
+            >
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                {clinicName}
+              </p>
+            </motion.div>
+          )}
         </div>
       </motion.div>
     </div>
