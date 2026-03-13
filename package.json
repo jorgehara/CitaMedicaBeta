@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build:all": "npm run build --prefix frontend && echo \"Backend: Node.js (sin compilacion requerida)\"",
+    "start:all": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "install:all": "npm install --prefix frontend && npm install --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
@@ -11,5 +12,8 @@
     "deploy:frontend": "npm run build --prefix frontend && sudo rm -rf /var/www/micitamedica/frontend/dist/* && sudo cp -r frontend/dist/* /var/www/micitamedica/frontend/dist/ && sudo chown -R www-data:www-data /var/www/micitamedica/frontend/dist && sudo systemctl reload nginx",
     "deploy:backend": "pm2 restart cita-medica-backend",
     "deploy:all": "npm run deploy:frontend && npm run deploy:backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
