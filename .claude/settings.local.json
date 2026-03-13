@@ -23,7 +23,8 @@
       "Bash(cd \"C:\\\\Users\\\\JorgeHaraDevs\\\\Desktop\\\\CitaMedicaBeta\" && npm run build:all 2>&1 | tail -15)",
       "mcp__plugin_engram_engram__mem_session_summary",
       "mcp__plugin_engram_engram__mem_save",
-      "Bash(cd \"C:\\\\Users\\\\JorgeHaraDevs\\\\Desktop\\\\CitaMedicaBeta\" && npm run start:all -- --help 2>&1 | head -5)"
+      "Bash(cd \"C:\\\\Users\\\\JorgeHaraDevs\\\\Desktop\\\\CitaMedicaBeta\" && npm run start:all -- --help 2>&1 | head -5)",
+      "Bash(cd \"C:\\\\Users\\\\JorgeHaraDevs\\\\Desktop\\\\CitaMedicaBeta\" && npm run build:all 2>&1 | tail -5)"
     ],
     "deny": [],
     "ask": []
