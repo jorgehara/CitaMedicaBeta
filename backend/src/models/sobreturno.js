@@ -6,12 +6,12 @@ const SobreturnoSchema = new mongoose.Schema({
   time: { type: String, required: true },
   sobreturnoNumber: { type: Number, required: true, min: 1, max: 10 },
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'confirmed' },
-  socialWork: { 
-    type: String, 
-    enum: ['INSSSEP', 'Swiss Medical', 'OSDE', 'Galeno', 'CONSULTA PARTICULAR', 'Otras Obras Sociales'],
+  socialWork: {
+    type: String,
     default: 'CONSULTA PARTICULAR',
     required: true,
-    trim: true 
+    trim: true
+    // Validación de valores válidos delegada al controller usando clinic.socialWorks
   },
   phone: { type: String, required: true },
   email: { type: String },

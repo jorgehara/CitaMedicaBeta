@@ -53,13 +53,30 @@ exports.testCreateEvent = async (req, res) => {
     }
 };
 
-// Horarios posibles de consulta
-const MORNING_HOURS = ['10:00', '10:15', '10:30', '10:45', 
-                      '11:00', '11:15', '11:30', '11:45'];
+// Genera slots de tiempo entre start y end con el intervalo indicado (en minutos)
+function generateTimeSlots(start, end, durationMinutes) {
+    const slots = [];
+    let [h, m] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    const endTotal = endH * 60 + endM;
+    while (h * 60 + m <= endTotal) {
+        slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        m += durationMinutes;
+        if (m >= 60) { h += Math.floor(m / 60); m = m % 60; }
+    }
+    return slots;
+}
 
-const AFTERNOON_HOURS = ['17:00', '17:15', '17:30', '17:45',
-                        '18:00', '18:15', '18:30', '18:45',
-                        '19:00', '19:15', '19:30', '19:45'];
+// Devuelve [morningSlots, afternoonSlots] según la configuración de la clínica
+function getBusinessSlots(clinic) {
+    const duration = clinic.settings.appointmentDuration || 15;
+    const bh = clinic.settings.businessHours;
+    const morning = bh.morning.enabled
+        ? generateTimeSlots(bh.morning.start, bh.morning.end, duration) : [];
+    const afternoon = bh.afternoon.enabled
+        ? generateTimeSlots(bh.afternoon.start, bh.afternoon.end, duration) : [];
+    return { morning, afternoon };
+}
 
 // Función para obtener la fecha actual en formato YYYY-MM-DD
 const getTodayDate = () => {
@@ -226,30 +243,13 @@ exports.getAvailableAppointments = async (req, res) => {
         console.log('[DEBUG] Sincronizando con Google Calendar...');
         await syncWithGoogleCalendar(targetDate, req.clinicId);
 
-        // Crear array con todos los horarios posibles
-        const allPossibleSlots = [];
-        
-        // Horarios de la mañana (10:00 a 11:45)
-        for (let hour = 10; hour < 12; hour++) {
-            for (let minute = 0; minute < 60; minute += 15) {
-                allPossibleSlots.push({
-                    displayTime: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
-                    time: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
-                    status: 'available'
-                });
-            }
-        }
-        
-        // Horarios de la tarde (17:00 a 19:45)
-        for (let hour = 17; hour < 20; hour++) {
-            for (let minute = 0; minute < 60; minute += 15) {
-                allPossibleSlots.push({
-                    displayTime: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
-                    time: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
-                    status: 'available'  // Cambiado de 'disponible' a 'available'
-                });
-            }
-        }        // Obtener las citas existentes para la fecha
+        // Generar slots según la configuración de la clínica (dinámico, no hardcodeado)
+        const { morning: mSlots, afternoon: aSlots } = getBusinessSlots(req.clinic);
+        const allPossibleSlots = [...mSlots, ...aSlots].map(time => ({
+            displayTime: time,
+            time,
+            status: 'available'
+        }));        // Obtener las citas existentes para la fecha
         const existingAppointments = await Appointment.find({
             date,
             clinicId: req.clinicId,
@@ -339,6 +339,15 @@ exports.createAppointment = async (req, res) => {
       isSobreturno,
       clinicId: req.clinicId
     };
+
+    // Validar obra social contra la lista de la clínica
+    if (appointmentData.socialWork && req.clinic.socialWorks.length > 0 &&
+        !req.clinic.socialWorks.includes(appointmentData.socialWork)) {
+        return res.status(400).json({
+            success: false,
+            message: `Obra social no válida. Opciones: ${req.clinic.socialWorks.join(', ')}`
+        });
+    }
 
     // Validar horario entre 08:00 y 22:00
     const [hour, minute] = appointmentData.time.split(':').map(Number);
@@ -672,22 +681,16 @@ exports.getAvailableTimes = async (req, res) => {
       return true;
     };
 
-    // Filtrar horarios disponibles
+    // Filtrar horarios disponibles (dinámico según configuración de la clínica)
+    const { morning: MORNING_HOURS, afternoon: AFTERNOON_HOURS } = getBusinessSlots(req.clinic);
+
     const availableMorning = MORNING_HOURS
       .filter(time => !occupiedTimes.includes(time) && isTimeAvailable(time))
-      .map(time => ({
-        displayTime: time,
-        time: time,
-        period: 'morning'
-      }));
+      .map(time => ({ displayTime: time, time, period: 'morning' }));
 
     const availableAfternoon = AFTERNOON_HOURS
       .filter(time => !occupiedTimes.includes(time) && isTimeAvailable(time))
-      .map(time => ({
-        displayTime: time,
-        time: time,
-        period: 'afternoon'
-      }));
+      .map(time => ({ displayTime: time, time, period: 'afternoon' }));
 
     console.log('[DEBUG getAvailableTimes] Turnos disponibles encontrados:', {
       morning: availableMorning.length,

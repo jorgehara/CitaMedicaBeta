@@ -78,6 +78,32 @@ exports.updatePaymentStatus = async (req, res) => {
 const Sobreturno = require('../models/sobreturno');
 const googleCalendarService = require('../services/googleCalendarService');
 
+// Genera slots de tiempo entre start y end con el intervalo indicado (en minutos)
+function generateTimeSlots(start, end, durationMinutes) {
+    const slots = [];
+    let [h, m] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    const endTotal = endH * 60 + endM;
+    while (h * 60 + m <= endTotal) {
+        slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        m += durationMinutes;
+        if (m >= 60) { h += Math.floor(m / 60); m = m % 60; }
+    }
+    return slots;
+}
+
+// Devuelve todos los slots de sobreturno (morning + afternoon) según la clínica
+// El sobreturnoNumber (1-based) es el índice en este array
+function getSobreturnoSlots(clinic) {
+    const duration = clinic.settings.appointmentDuration || 15;
+    const sh = clinic.settings.sobreturnoHours;
+    const morning = sh.morning.enabled
+        ? generateTimeSlots(sh.morning.start, sh.morning.end, duration) : [];
+    const afternoon = sh.afternoon.enabled
+        ? generateTimeSlots(sh.afternoon.start, sh.afternoon.end, duration) : [];
+    return { morning, afternoon, all: [...morning, ...afternoon] };
+}
+
 // Obtener un sobreturno por ID
 exports.getSobreturno = async (req, res) => {
   try {
@@ -152,6 +178,14 @@ exports.createSobreturno = async (req, res) => {
     // Validar datos requeridos
     const { sobreturnoNumber, date, clientName, socialWork, phone } = req.body;
     
+    // Validar obra social contra la lista de la clínica
+    if (socialWork && req.clinic.socialWorks.length > 0 &&
+        !req.clinic.socialWorks.includes(socialWork)) {
+        return res.status(400).json({
+            error: `Obra social no válida. Opciones: ${req.clinic.socialWorks.join(', ')}`
+        });
+    }
+
     if (!sobreturnoNumber || !date || !clientName || !socialWork || !phone) {
       return res.status(400).json({ 
         error: 'Faltan datos requeridos',
@@ -176,26 +210,11 @@ exports.createSobreturno = async (req, res) => {
       return res.status(409).json({ error: 'Ya existe un sobreturno para ese número y fecha.' });
     }
 
-    // Determinar el horario según el número de sobreturno
-    let sobreturnoTime = '';
-    if (sobreturnoNumber >= 1 && sobreturnoNumber <= 5) {
-      switch(sobreturnoNumber) {
-        case 1: sobreturnoTime = '11:00'; break;
-        case 2: sobreturnoTime = '11:15'; break;
-        case 3: sobreturnoTime = '11:30'; break;
-        case 4: sobreturnoTime = '11:45'; break;
-        case 5: sobreturnoTime = '12:00'; break;
-      }
-    } else if (sobreturnoNumber >= 6 && sobreturnoNumber <= 10) {
-      switch(sobreturnoNumber) {
-        case 6: sobreturnoTime = '19:00'; break;
-        case 7: sobreturnoTime = '19:15'; break;
-        case 8: sobreturnoTime = '19:30'; break;
-        case 9: sobreturnoTime = '19:45'; break;
-        case 10: sobreturnoTime = '20:00'; break;
-      }
-    } else {
-      return res.status(400).json({ error: 'Número de sobreturno inválido' });
+    // Determinar el horario según el número de sobreturno (dinámico por clínica)
+    const { all: allSlots } = getSobreturnoSlots(req.clinic);
+    const sobreturnoTime = allSlots[sobreturnoNumber - 1]; // 1-based index
+    if (!sobreturnoTime) {
+      return res.status(400).json({ error: `Número de sobreturno inválido. Máximo disponible: ${allSlots.length}` });
     }
 
     const sobreturnoData = {
@@ -288,39 +307,23 @@ exports.getSobreturnosByDate = async (req, res) => {
 
     console.log('[DEBUG] Sobreturnos encontrados:', sobreturnos.length);
 
-    // Crear un array con todos los números de sobreturno posibles
-    const allSobreturnos = Array.from({length: 10}, (_, i) => i + 1);
-    
+    // Generar slots según configuración de la clínica (dinámico)
+    const { morning: mSlots, afternoon: aSlots, all: allSlots } = getSobreturnoSlots(req.clinic);
+    const totalSlots = allSlots.length;
+
+    // Crear array con todos los números de sobreturno posibles (1-based)
+    const allSobreturnos = Array.from({ length: totalSlots }, (_, i) => i + 1);
+
     // Filtrar los números de sobreturno que ya están ocupados
     const ocupados = sobreturnos.map(s => s.sobreturnoNumber);
     const disponibles = allSobreturnos.filter(num => !ocupados.includes(num));
 
     // Preparar la respuesta con los horarios correspondientes
-    const sobreturnosDisponibles = disponibles.map(num => {
-      let horario = '';
-      if (num >= 1 && num <= 5) {
-        switch(num) {
-          case 1: horario = '11:00'; break;
-          case 2: horario = '11:15'; break;
-          case 3: horario = '11:30'; break;
-          case 4: horario = '11:45'; break;
-          case 5: horario = '12:00'; break;
-        }
-      } else {
-        switch(num) {
-          case 6: horario = '19:00'; break;
-          case 7: horario = '19:15'; break;
-          case 8: horario = '19:30'; break;
-          case 9: horario = '19:45'; break;
-          case 10: horario = '20:00'; break;
-        }
-      }
-      return {
-        numero: num,
-        horario,
-        turno: num <= 5 ? 'mañana' : 'tarde'
-      };
-    });
+    const sobreturnosDisponibles = disponibles.map(num => ({
+      numero: num,
+      horario: allSlots[num - 1],
+      turno: num <= mSlots.length ? 'mañana' : 'tarde'
+    }));
 
     return res.json({
       success: true,
