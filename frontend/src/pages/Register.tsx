@@ -6,9 +6,11 @@ import { Alert, CircularProgress } from '@mui/material';
 import { FaUserDoctor, FaEnvelope, FaLock, FaUser, FaArrowRight, FaArrowLeft } from 'react-icons/fa6';
 import { authService } from '../services/authService';
 import type { RegisterData } from '../types/auth';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { clinicName } = useClinicConfig();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -385,7 +387,7 @@ const Register = () => {
               Sistema de Gestión Médica
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              Dr. Daniel Kulinka
+              {clinicName || 'Cita Médica'}
             </p>
           </motion.div>
         </div>

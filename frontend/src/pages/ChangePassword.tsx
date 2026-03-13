@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Alert, CircularProgress } from '@mui/material';
 import { FaUserDoctor, FaLock, FaArrowRight, FaEye, FaEyeSlash, FaCheck } from 'react-icons/fa6';
 import { authService } from '../services/authService';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -14,6 +15,7 @@ interface ChangePasswordForm {
 
 const ChangePassword = () => {
   const navigate = useNavigate();
+  const { clinicName } = useClinicConfig();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -349,7 +351,7 @@ const ChangePassword = () => {
               Sistema de Gestión Médica
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              Dr. Daniel Kulinka
+              {clinicName || 'Cita Médica'}
             </p>
           </motion.div>
         </div>

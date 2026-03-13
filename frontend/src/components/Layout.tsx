@@ -30,6 +30,7 @@ import ThemeToggle from './ThemeToggle';
 import CreateAppointmentButton from './CreateAppointmentButton';
 import GlobalCreateAppointmentDialog from './GlobalCreateAppointmentDialog';
 import { useAuth } from '../context/AuthContext';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -42,6 +43,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [openGlobalDialog, setOpenGlobalDialog] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user, logout } = useAuth();
+  const { clinicName } = useClinicConfig();
 
   // Exponer función global para abrir el diálogo desde cualquier parte
   useEffect(() => {
@@ -356,7 +358,7 @@ const Layout = ({ children }: LayoutProps) => {
                 fontSize: { xs: '1.1rem', sm: '1.25rem' }
               }}
             >
-              Dr. Daniel Kulinka
+              {clinicName || 'Cita Médica'}
             </Typography>
           </Box>
           <ThemeToggle />

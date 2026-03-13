@@ -19,6 +19,7 @@ import * as sobreturnoService from '../services/sobreturnoService';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import axiosInstance from '../config/axios';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 interface UnavailabilityBlock {
   _id: string;
@@ -45,6 +46,7 @@ declare global {
 const AUTO_REFRESH_INTERVAL = 60000; // 1 minuto
 
 const Dashboard = () => {
+  const { clinicName } = useClinicConfig();
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [openOverturnDialog, setOpenOverturnDialog] = useState(false);
@@ -409,7 +411,7 @@ const Dashboard = () => {
             <Box className="flex items-center gap-2 mb-4">
               <LockIcon sx={{ color: 'error.main' }} />
               <Typography variant="h6" className="font-semibold">
-                Gestión de Disponibilidad del Dr.
+                {`Gestión de Disponibilidad${clinicName ? ` — ${clinicName}` : ''}`}
               </Typography>
             </Box>
 
