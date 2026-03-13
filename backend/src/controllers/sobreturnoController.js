@@ -236,7 +236,8 @@ exports.createSobreturno = async (req, res) => {
     try {
       // console.log('[DEBUG] Intentando crear evento en Google Calendar...');
       const googleCalendarService = require('../services/googleCalendarService');
-      const eventId = await googleCalendarService.createCalendarEvent(sobreturno);
+      const clinicCalendarId = req.clinic?.googleCalendar?.calendarId;
+      const eventId = await googleCalendarService.createCalendarEvent(sobreturno, clinicCalendarId);
       if (eventId) {
         // console.log('[DEBUG] Evento creado en Google Calendar, actualizando sobreturno...');
         sobreturno.googleEventId = eventId;
@@ -402,7 +403,8 @@ exports.updateSobreturnoStatus = async (req, res) => {
     // Si se confirma, crear evento en Google Calendar
     if (status === 'confirmed') {
       try {
-        await googleCalendarService.createCalendarEvent(sobreturno);
+        const clinicCalendarId = req.clinic?.googleCalendar?.calendarId;
+        await googleCalendarService.createCalendarEvent(sobreturno, clinicCalendarId);
       } catch (calendarError) {
         console.error('Error al crear evento de sobreturno en Google Calendar:', calendarError);
         // No interrumpir el flujo por error de calendar

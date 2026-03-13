@@ -389,7 +389,8 @@ exports.createAppointment = async (req, res) => {
     // Crear el evento en Google Calendar para todas las citas confirmadas
     if (appointment.status === 'confirmed') {
       try {
-        const eventId = await googleCalendarService.createCalendarEvent(appointment);
+        const clinicCalendarId = req.clinic?.googleCalendar?.calendarId;
+        const eventId = await googleCalendarService.createCalendarEvent(appointment, clinicCalendarId);
         if (eventId) {
           appointment.googleEventId = eventId;
           await appointment.save();

@@ -49,8 +49,9 @@ class GoogleCalendarService {
         }
     }
 
-    async createCalendarEvent(appointment) {
+    async createCalendarEvent(appointment, calendarId) {
         await this.ensureInitialized();
+        const targetCalendarId = calendarId || process.env.CALENDAR_ID;
         try {
             const startTime = new Date(`${appointment.date}T${appointment.time}`);
             const endTime = new Date(startTime.getTime() + 15 * 60000); // 15 minutos
@@ -78,7 +79,7 @@ Email: ${appointment.email}`,
             };
 
             const response = await this.calendar.events.insert({
-                calendarId: process.env.CALENDAR_ID,
+                calendarId: targetCalendarId,
                 requestBody: event,
             });
 
@@ -93,15 +94,16 @@ Email: ${appointment.email}`,
         }
     }
 
-    async testConnection() {
+    async testConnection(calendarId) {
         await this.ensureInitialized();
+        const targetCalendarId = calendarId || process.env.CALENDAR_ID;
         try {
-            const calendar = await this.calendar.calendars.get({
-                calendarId: process.env.CALENDAR_ID
+            await this.calendar.calendars.get({
+                calendarId: targetCalendarId
             });
             return {
                 connected: true,
-                calendarId: process.env.CALENDAR_ID,
+                calendarId: targetCalendarId,
                 nextEventsCount: 0
             };
         } catch (error) {
