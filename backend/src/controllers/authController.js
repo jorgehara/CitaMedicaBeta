@@ -63,12 +63,13 @@ exports.register = async (req, res) => {
             });
         }
 
-        // Crear nuevo usuario
+        // Crear nuevo usuario (asignar a la clínica del admin que lo registra)
         const user = new User({
             nombre,
             email,
             password, // Se hasheará automáticamente en el pre-save hook
-            role: role || 'operador'
+            role: role || 'operador',
+            clinicId: req.clinicId || null
         });
 
         await user.save();
@@ -152,15 +153,25 @@ exports.login = async (req, res) => {
             });
         }
 
+        // Verificar que el usuario pertenece a la clínica del request
+        if (req.clinicId && user.clinicId &&
+            user.clinicId.toString() !== req.clinicId.toString()) {
+            return res.status(401).json({
+                success: false,
+                message: 'Credenciales inválidas'
+            });
+        }
+
         // Actualizar último login
         user.lastLogin = new Date();
         await user.save();
 
-        // Generar token
+        // Generar token (incluye clinicId para multi-tenant)
         const token = generateToken({
             userId: user._id,
             email: user.email,
-            role: user.role
+            role: user.role,
+            clinicId: user.clinicId
         });
 
         console.log(`[AUTH] Login exitoso: ${email} (${user.role})`);

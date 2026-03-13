@@ -76,9 +76,9 @@ exports.getAppointments = async (req, res) => {
         
         // console.log('[DEBUG] Buscando citas para la fecha:', queryDate);
         
-        // Construir el filtro
-        const filter = { date: queryDate };
-        
+        // Construir el filtro (scoped por clínica)
+        const filter = { date: queryDate, clinicId: req.clinicId };
+
         // Ejecutar la consulta
         const appointments = await Appointment.find(filter).sort({ time: 1 });
 
@@ -92,7 +92,7 @@ exports.getAppointments = async (req, res) => {
     }
 };
 
-const syncWithGoogleCalendar = async (date) => {
+const syncWithGoogleCalendar = async (date, clinicId) => {
   try {
     const googleCalendarService = require('../services/googleCalendarService');
     const events = await googleCalendarService.syncEventsForDate(date);
@@ -106,14 +106,16 @@ const syncWithGoogleCalendar = async (date) => {
       const timeStr = startTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       const existingAppointment = await Appointment.findOne({
         date: dateStr,
-        time: timeStr
+        time: timeStr,
+        clinicId
       });
 
       if (!existingAppointment) {
         // Si no existe en las citas regulares, buscar en sobreturnos
         const existingSobreturno = await Sobreturno.findOne({
           date: dateStr,
-          time: timeStr
+          time: timeStr,
+          clinicId
         });
 
         if (!existingSobreturno) {
@@ -148,7 +150,8 @@ const syncWithGoogleCalendar = async (date) => {
             date: dateStr,
             time: timeStr,
             status: 'confirmed',
-            googleEventId: event.id || undefined
+            googleEventId: event.id || undefined,
+            clinicId
           };
           await Appointment.create(newAppointment);
           console.log('[DEBUG][SYNC] Evento de Google Calendar insertado en MongoDB:', newAppointment);
@@ -173,23 +176,21 @@ exports.getAllAppointments = async (req, res) => {
     if (date) {
       console.log('[DEBUG] Sincronizando con Google Calendar para la fecha:', date);
       try {
-        await syncWithGoogleCalendar(new Date(date));
+        await syncWithGoogleCalendar(new Date(date), req.clinicId);
       } catch (syncError) {
         console.error('[ERROR] Error al sincronizar con Google Calendar:', syncError);
       }
     }
 
-    let query = {};
-    
+    let query = { clinicId: req.clinicId };
+
     if (showHistory === 'true') {
       // Para el historial, mostrar la semana anterior
       const oneWeekAgo = new Date(today);
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      query = {
-        date: {
-          $gte: oneWeekAgo.toISOString().split('T')[0],
-          $lt: today.toISOString().split('T')[0]
-        }
+      query.date = {
+        $gte: oneWeekAgo.toISOString().split('T')[0],
+        $lt: today.toISOString().split('T')[0]
       };
     } else if (date) {
       // Para una fecha específica: traer todos los turnos del día usando un rango
@@ -197,19 +198,13 @@ exports.getAllAppointments = async (req, res) => {
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      query = {
-        date: {
-          $gte: startOfDay.toISOString().split('T')[0],
-          $lte: endOfDay.toISOString().split('T')[0]
-        }
+      query.date = {
+        $gte: startOfDay.toISOString().split('T')[0],
+        $lte: endOfDay.toISOString().split('T')[0]
       };
     } else {
       // Para turnos futuros (incluyendo hoy)
-      query = {
-        date: {
-          $gte: today.toISOString().split('T')[0]
-        }
-      };
+      query.date = { $gte: today.toISOString().split('T')[0] };
     }
 
     const appointments = await Appointment.find(query).sort({ date: 1, time: 1 });
@@ -229,7 +224,7 @@ exports.getAvailableAppointments = async (req, res) => {
         // Sincronizar con Google Calendar antes de buscar horarios disponibles
         const targetDate = new Date(date);
         console.log('[DEBUG] Sincronizando con Google Calendar...');
-        await syncWithGoogleCalendar(targetDate);
+        await syncWithGoogleCalendar(targetDate, req.clinicId);
 
         // Crear array con todos los horarios posibles
         const allPossibleSlots = [];
@@ -255,9 +250,10 @@ exports.getAvailableAppointments = async (req, res) => {
                 });
             }
         }        // Obtener las citas existentes para la fecha
-        const existingAppointments = await Appointment.find({ 
+        const existingAppointments = await Appointment.find({
             date,
-            status: { $ne: 'cancelled' } // Excluir citas canceladas
+            clinicId: req.clinicId,
+            status: { $ne: 'cancelled' }
         });
 
         // Marcar horarios ocupados
@@ -306,9 +302,10 @@ exports.getReservedAppointments = async (req, res) => {
     const { date } = req.params;
     console.log('1. Backend - getReservedAppointments - fecha solicitada:', date);
     
-    const appointments = await Appointment.find({ 
+    const appointments = await Appointment.find({
       date,
-      status: { $ne: 'cancelled' } // Excluir citas canceladas
+      clinicId: req.clinicId,
+      status: { $ne: 'cancelled' }
     }).select('time');
 
     console.log('2. Backend - Citas reservadas encontradas:', appointments.length);
@@ -338,8 +335,9 @@ exports.createAppointment = async (req, res) => {
       email: req.body.email,
       date: req.body.date,
       time: req.body.time,
-      status: isSobreturno ? 'pending' : 'confirmed', // Las citas normales se confirman automáticamente
-      isSobreturno
+      status: isSobreturno ? 'pending' : 'confirmed',
+      isSobreturno,
+      clinicId: req.clinicId
     };
 
     // Validar horario entre 08:00 y 22:00
@@ -356,6 +354,7 @@ exports.createAppointment = async (req, res) => {
       const existingAppointment = await Appointment.findOne({
         date: appointmentData.date,
         time: appointmentData.time,
+        clinicId: req.clinicId,
         status: { $ne: 'cancelled' },
         isSobreturno: false
       });
@@ -386,13 +385,13 @@ exports.createAppointment = async (req, res) => {
     }
 
     // Notificar al chatbot para enviar confirmación por WhatsApp
-    const isFromPublicBooking = req.publicToken !== undefined; // Detectar si viene del booking público
-    if (isFromPublicBooking) {
+    const isFromPublicBooking = req.publicToken !== undefined;
+    const chatbotActive = req.clinic && req.clinic.chatbot && req.clinic.chatbot.active && req.clinic.chatbot.webhookUrl;
+    if (isFromPublicBooking && chatbotActive) {
       try {
-        const CHATBOT_URL = process.env.CHATBOT_URL || 'http://localhost:3008';
-        console.log('[NOTIFICACIÓN] Enviando notificación al chatbot...');
+        console.log('[NOTIFICACIÓN] Enviando notificación al chatbot de la clínica...');
 
-        await axios.post(`${CHATBOT_URL}/api/notify-appointment`, {
+        await axios.post(req.clinic.chatbot.webhookUrl, {
           appointment: {
             id: appointment._id,
             clientName: appointment.clientName,
@@ -441,8 +440,8 @@ exports.updateDescription = async (req, res) => {
       });
     }
 
-    const appointment = await Appointment.findByIdAndUpdate(
-      id,
+    const appointment = await Appointment.findOneAndUpdate(
+      { _id: id, clinicId: req.clinicId },
       { $set: { description: description.trim() } },
       { new: true }
     );
@@ -481,8 +480,8 @@ exports.updatePaymentStatus = async (req, res) => {
       });
     }
 
-    const appointment = await Appointment.findByIdAndUpdate(
-      id,
+    const appointment = await Appointment.findOneAndUpdate(
+      { _id: id, clinicId: req.clinicId },
       { $set: { isPaid } },
       { new: true }
     );
@@ -517,11 +516,11 @@ exports.updateAppointment = async (req, res) => {
       });
     }
 
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findOne({ _id: req.params.id, clinicId: req.clinicId });
     if (!appointment) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Cita no encontrada' 
+        message: 'Cita no encontrada'
       });
     }
 
@@ -600,11 +599,11 @@ exports.deleteAppointment = async (req, res) => {
       });
     }
 
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findOne({ _id: req.params.id, clinicId: req.clinicId });
     if (!appointment) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Cita no encontrada' 
+        message: 'Cita no encontrada'
       });
     }
 
@@ -653,11 +652,12 @@ exports.getAvailableTimes = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     // Obtener todas las citas para la fecha seleccionada
-    const appointments = await Appointment.find({ 
+    const appointments = await Appointment.find({
       date,
+      clinicId: req.clinicId,
       status: { $ne: 'cancelled' }
     });
-    
+
     // Obtener los horarios ya ocupados
     const occupiedTimes = appointments.map(appointment => appointment.time);
     

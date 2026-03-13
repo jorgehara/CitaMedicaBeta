@@ -25,6 +25,7 @@ const qrRoutes = require('./src/routes/qrRoutes');
 const tokenRoutes = require('./src/routes/tokenRoutes');
 const unavailabilityRoutes = require('./src/routes/unavailabilityRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
+const tenantResolver = require('./src/middleware/tenantResolver');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -39,7 +40,9 @@ const corsOptions = {
             'http://localhost:5174',
             'http://localhost:3000',
             'http://localhost:3008',
-            'https://micitamedica.me'
+            'http://localhost:3009',
+            'https://micitamedica.me',
+            'https://od-melinavillalba.micitamedica.me'
         ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-API-Key'],
@@ -67,6 +70,22 @@ app.get('/api/health', (req, res) => {
         service: 'appointment-backend',
         version: '1.0.0',
         uptime: process.uptime()
+    });
+});
+
+// Tenant resolver — aplica a todas las rutas /api/* (después del health check)
+app.use('/api', tenantResolver);
+
+// Config pública de la clínica — no requiere auth
+app.get('/api/clinic/config', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            name: req.clinic.name,
+            slug: req.clinic.slug,
+            socialWorks: req.clinic.socialWorks,
+            settings: req.clinic.settings
+        }
     });
 });
 

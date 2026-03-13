@@ -56,7 +56,8 @@ const auth = async (req, res, next) => {
                 userId: user._id,
                 email: user.email,
                 nombre: user.nombre,
-                role: user.role
+                role: user.role,
+                clinicId: user.clinicId
             };
 
             next();

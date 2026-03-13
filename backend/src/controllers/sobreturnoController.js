@@ -2,7 +2,7 @@
 exports.deleteSobreturno = async (req, res) => {
   try {
     const { id } = req.params;
-    const sobreturno = await Sobreturno.findByIdAndDelete(id);
+    const sobreturno = await Sobreturno.findOneAndDelete({ _id: id, clinicId: req.clinicId });
     if (!sobreturno) {
       return res.status(404).json({ error: 'Sobreturno no encontrado' });
     }
@@ -27,6 +27,7 @@ exports.validateSobreturno = async (req, res) => {
         const existingSobreturno = await Sobreturno.findOne({
             date,
             sobreturnoNumber: parseInt(sobreturnoNumber),
+            clinicId: req.clinicId,
             status: { $ne: 'cancelled' }
         });
 
@@ -56,10 +57,10 @@ exports.updatePaymentStatus = async (req, res) => {
     // console.log(`[DEBUG] Actualizando estado de pago para sobreturno ${id} a ${isPaid}`);
 
     // Usar findByIdAndUpdate para obtener el documento actualizado y asegurar que existe
-    const sobreturno = await Sobreturno.findByIdAndUpdate(
-      id,
+    const sobreturno = await Sobreturno.findOneAndUpdate(
+      { _id: id, clinicId: req.clinicId },
       { $set: { isPaid: isPaid } },
-      { new: true, runValidators: true, upsert: false }
+      { new: true, runValidators: true }
     );
 
     if (!sobreturno) {
@@ -81,7 +82,7 @@ const googleCalendarService = require('../services/googleCalendarService');
 exports.getSobreturno = async (req, res) => {
   try {
     const { id } = req.params;
-    const sobreturno = await Sobreturno.findById(id);
+    const sobreturno = await Sobreturno.findOne({ _id: id, clinicId: req.clinicId });
     if (!sobreturno) {
       return res.status(404).json({ error: 'Sobreturno no encontrado' });
     }
@@ -96,7 +97,7 @@ exports.updateSobreturno = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    const sobreturno = await Sobreturno.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+    const sobreturno = await Sobreturno.findOneAndUpdate({ _id: id, clinicId: req.clinicId }, updates, { new: true, runValidators: true });
     if (!sobreturno) {
       return res.status(404).json({ error: 'Sobreturno no encontrado' });
     }
@@ -116,8 +117,8 @@ exports.updateSobreturnoDescription = async (req, res) => {
       return res.status(400).json({ error: 'Se requiere un ID de sobreturno' });
     }
     
-    const sobreturno = await Sobreturno.findByIdAndUpdate(
-      id,
+    const sobreturno = await Sobreturno.findOneAndUpdate(
+      { _id: id, clinicId: req.clinicId },
       { $set: { description } },
       { new: true, runValidators: true }
     );
@@ -134,7 +135,7 @@ exports.updateSobreturnoDescription = async (req, res) => {
 exports.getAllSobreturnos = async (req, res) => {
   try {
     // console.log('[DEBUG] Obteniendo todos los sobreturnos');
-    const sobreturnos = await Sobreturno.find({});
+    const sobreturnos = await Sobreturno.find({ clinicId: req.clinicId });
     // console.log(`[DEBUG] Se encontraron ${sobreturnos.length} sobreturnos`);
     res.json(sobreturnos);
   } catch (error) {
@@ -165,9 +166,10 @@ exports.createSobreturno = async (req, res) => {
     }
 
     // Validar que no exista ya un sobreturno con el mismo número y fecha
-    const existente = await Sobreturno.findOne({ 
-      sobreturnoNumber: Number(sobreturnoNumber), 
-      date: new Date(date).toISOString().split('T')[0]
+    const existente = await Sobreturno.findOne({
+      sobreturnoNumber: Number(sobreturnoNumber),
+      date: new Date(date).toISOString().split('T')[0],
+      clinicId: req.clinicId
     });
     
     if (existente) {
@@ -199,7 +201,8 @@ exports.createSobreturno = async (req, res) => {
     const sobreturnoData = {
       ...req.body,
       time: sobreturnoTime,
-      status: 'confirmed' // Los sobreturnos ahora se confirman automáticamente
+      status: 'confirmed',
+      clinicId: req.clinicId
     };
 
     console.log('[DEBUG] Creando sobreturno con datos:', JSON.stringify(sobreturnoData, null, 2));
@@ -251,10 +254,9 @@ exports.getSobreturnos = async (req, res) => {
     }
 
     // Filtrar por fecha, estado y isSobreturno
-    const filter = {};
+    const filter = { clinicId: req.clinicId, isSobreturno: true };
     if (status) filter.status = status;
     if (date) filter.date = date;
-    filter.isSobreturno = true;
     console.log('[DEBUG] Filtro aplicado:', filter);
     const sobreturnos = await Sobreturno.find(filter).sort({ date: 1, time: 1 });
     res.json(sobreturnos);
@@ -277,8 +279,9 @@ exports.getSobreturnosByDate = async (req, res) => {
     }
 
     // Obtener sobreturnos para la fecha especificada
-    const sobreturnos = await Sobreturno.find({ 
+    const sobreturnos = await Sobreturno.find({
       date,
+      clinicId: req.clinicId,
       isSobreturno: true,
       status: { $ne: 'cancelled' }
     });
@@ -343,6 +346,7 @@ exports.getAvailableSobreturnos = async (req, res) => {
     // Buscar sobreturnos disponibles para la fecha
     const disponibles = await Sobreturno.find({
       date,
+      clinicId: req.clinicId,
       isAvailable: true,
       status: { $ne: 'cancelled' },
       isSobreturno: true
@@ -381,7 +385,7 @@ exports.updateSobreturnoStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const sobreturno = await Sobreturno.findByIdAndUpdate(id, { status }, { new: true });
+    const sobreturno = await Sobreturno.findOneAndUpdate({ _id: id, clinicId: req.clinicId }, { status }, { new: true });
     if (!sobreturno) return res.status(404).json({ error: 'Sobreturno no encontrado' });
 
     // Si se confirma, crear evento en Google Calendar

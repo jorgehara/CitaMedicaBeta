@@ -5,7 +5,7 @@ const Unavailability = require('../models/unavailability');
 exports.getAll = async (req, res) => {
     try {
         const { date } = req.query;
-        const filter = date ? { date } : {};
+        const filter = date ? { date, clinicId: req.clinicId } : { clinicId: req.clinicId };
         const blocks = await Unavailability.find(filter).sort({ date: 1 });
         res.json({ success: true, data: blocks });
     } catch (error) {
@@ -24,13 +24,13 @@ exports.create = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Faltan datos: date y period son requeridos' });
         }
 
-        // Evitar duplicados para la misma fecha y período
-        const existing = await Unavailability.findOne({ date, period });
+        // Evitar duplicados para la misma fecha, período y clínica
+        const existing = await Unavailability.findOne({ date, period, clinicId: req.clinicId });
         if (existing) {
             return res.status(409).json({ success: false, message: 'Ya existe un bloqueo para esa fecha y período' });
         }
 
-        const block = new Unavailability({ date, period });
+        const block = new Unavailability({ date, period, clinicId: req.clinicId });
         await block.save();
 
         console.log(`[UNAVAILABILITY] Bloqueo creado: ${date} - ${period}`);
@@ -45,7 +45,7 @@ exports.create = async (req, res) => {
 exports.remove = async (req, res) => {
     try {
         const { id } = req.params;
-        const block = await Unavailability.findByIdAndDelete(id);
+        const block = await Unavailability.findOneAndDelete({ _id: id, clinicId: req.clinicId });
 
         if (!block) {
             return res.status(404).json({ success: false, message: 'Bloqueo no encontrado' });

@@ -4,15 +4,14 @@
  * en el header X-API-Key
  */
 
-const CHATBOT_API_KEY = process.env.CHATBOT_API_KEY || 'chatbot-api-key-2024-change-in-production';
-
 /**
- * Middleware para validar API Key del chatbot
- * Permite acceso a rutas públicas sin necesidad de JWT
+ * Middleware para validar API Key del chatbot.
+ * Valida contra la API Key configurada en la clínica (req.clinic),
+ * con fallback al env var para compatibilidad en desarrollo.
+ * Requiere que tenantResolver haya corrido antes.
  */
 const apiKeyAuth = (req, res, next) => {
     try {
-        // Obtener API Key del header
         const apiKey = req.header('X-API-Key');
 
         if (!apiKey) {
@@ -22,15 +21,19 @@ const apiKeyAuth = (req, res, next) => {
             });
         }
 
-        // Validar API Key
-        if (apiKey !== CHATBOT_API_KEY) {
+        // API Key de la clínica (multi-tenant) con fallback al env var
+        const validKey = (req.clinic && req.clinic.chatbot && req.clinic.chatbot.apiKey)
+            ? req.clinic.chatbot.apiKey
+            : process.env.CHATBOT_API_KEY;
+
+        if (!validKey || apiKey !== validKey) {
             return res.status(403).json({
                 success: false,
                 message: 'API Key inválida.'
             });
         }
 
-        // API Key válida, continuar
+        req.isChatbot = true;
         next();
     } catch (error) {
         console.error('Error en apiKeyAuth middleware:', error);

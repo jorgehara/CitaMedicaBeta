@@ -6,22 +6,24 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const CHATBOT_API_KEY = process.env.CHATBOT_API_KEY || 'chatbot-api-key-2024-change-in-production';
 const JWT_SECRET = process.env.JWT_SECRET || 'cita-medica-secret-key-2024-change-in-production';
 
 /**
- * Middleware que acepta autenticación por API Key O por JWT
- * Útil para rutas que pueden ser accedidas tanto por el chatbot como por usuarios autenticados
+ * Middleware que acepta autenticación por API Key O por JWT.
+ * Requiere que tenantResolver haya corrido antes (para req.clinic).
  */
 const flexibleAuth = async (req, res, next) => {
     try {
         // 1. Intentar autenticación por API Key primero (chatbot)
         const apiKey = req.header('X-API-Key');
-        
+
         if (apiKey) {
-            // Validar API Key
-            if (apiKey === CHATBOT_API_KEY) {
-                // API Key válida, marcar como chatbot y continuar
+            // Validar contra la API Key de la clínica (multi-tenant) con fallback al env var
+            const validKey = (req.clinic && req.clinic.chatbot && req.clinic.chatbot.apiKey)
+                ? req.clinic.chatbot.apiKey
+                : process.env.CHATBOT_API_KEY;
+
+            if (validKey && apiKey === validKey) {
                 req.isChatbot = true;
                 return next();
             } else {
@@ -87,9 +89,10 @@ const flexibleAuth = async (req, res, next) => {
             // Agregar usuario al request
             req.user = {
                 userId: user._id,
-                username: user.username,
-                rol: user.rol,
-                permisos: user.permisos
+                email: user.email,
+                nombre: user.nombre,
+                role: user.role,
+                clinicId: user.clinicId
             };
 
             req.isAuthenticated = true;
