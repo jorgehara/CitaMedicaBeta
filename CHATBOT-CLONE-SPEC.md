@@ -2,7 +2,7 @@
 
 **Objetivo:** Documentar exactamente qué cambiar al duplicar ANITACHATBOT
 para la nueva odontóloga Od. Melina Villalba.
-**Fecha:** 2026-03-12
+**Fecha actualización:** 2026-03-13
 **Prerrequisito:** El backend multi-tenant ya debe estar deployado (REFACTORING-SPEC Fases 0-3 completas).
 
 ---
@@ -12,7 +12,7 @@ para la nueva odontóloga Od. Melina Villalba.
 | # | Chatbot | Número WhatsApp | Backend URL | Puerto local |
 |---|---------|-----------------|-------------|--------------|
 | 1 | ANITACHATBOT (Dr. Kulinka) | Número actual | `https://micitamedica.me/api` | 3008 |
-| 2 | ANITACHATBOT (Od. Villalba) | Número nuevo de la odontóloga | `https://od-melinavillalba.micitamedica.me/api` | **3009** |
+| 2 | ANITACHATBOT (Od. Villalba) | **+5493735123456** *(placeholder — confirmar con la odontóloga)* | `https://od-melinavillalba.micitamedica.me/api` | **3009** |
 
 Ambos son el mismo código. Solo cambian las variables de entorno y los textos de los mensajes.
 
@@ -45,21 +45,24 @@ Crear/editar `.env` en `ANITACHATBOT-odontologa/`:
 PORT=3009
 
 # WhatsApp — número de la odontóloga
-# (Configurar según el proveedor: Twilio, Meta API, etc.)
-WHATSAPP_PHONE_NUMBER=+549XXXXXXXXXX   # número real de la Odontóloga
+# ⚠️ PLACEHOLDER: confirmar número real con la odontóloga antes de deploy
+WHATSAPP_PHONE_NUMBER=+5493735123456
 WHATSAPP_PHONE_NUMBER_ID=XXXXXXXXX     # ID de Meta si usa Cloud API
 WHATSAPP_ACCESS_TOKEN=XXXXXXX          # Token de acceso Meta
 
 # Backend de CitaMedica — apunta al subdominio de la odontóloga
+# ⚠️ CRÍTICO: El backend resuelve el tenant por el subdominio del Host header.
+#    Esto garantiza que todos los datos queden aislados en la clínica correcta.
 CITAMEDICA_API_URL=https://od-melinavillalba.micitamedica.me/api
-CITAMEDICA_API_KEY=GENERAR-API-KEY-ODONTOLOGA  # misma que está en Clinic.chatbot.apiKey
+CITAMEDICA_API_KEY=GENERAR-API-KEY-ODONTOLOGA  # debe coincidir con Clinic.chatbot.apiKey en MongoDB
 
-# Webhook que CitaMedica usará para notificar al chatbot
-# (debe coincidir con Clinic.chatbot.webhookUrl en la DB)
+# Webhook que CitaMedica usará para notificar al chatbot cuando un paciente
+# reserva un turno desde el formulario público (link enviado por el chatbot)
+# (debe coincidir exactamente con Clinic.chatbot.webhookUrl en la DB)
 CHATBOT_WEBHOOK_PORT=3009
 CHATBOT_WEBHOOK_URL=http://localhost:3009/api/notify-appointment
 
-# Identificación del chatbot (para logs)
+# Identificación del chatbot (para logs y URLs generadas)
 CLINIC_NAME=Od. Melina Villalba
 CLINIC_SLUG=od-melinavillalba
 ```
@@ -90,25 +93,31 @@ Buscar y reemplazar los textos que mencionan al doctor/consultorio:
 
 ### Mensaje de obras sociales
 ```javascript
-// El chatbot muestra opciones de obras sociales
-// ANTES (médico):
-"¿Con qué obra social? OSDE / Swiss Medical / INSSSEP / Galeno / Consulta particular"
-
-// DESPUÉS (odontóloga):
-"¿Con qué obra social? OSDE Dental / Swiss Medical Dental / OMINT / Galeno Dental / Consulta particular"
+// ✅ CONFIRMADO: La Od. Villalba trabaja SOLO de manera particular.
+// No acepta obras sociales.
+//
+// Por ahora la única opción es:
+// - "CONSULTA PARTICULAR"
+//
+// (La opción "CONSULTA CON FACTURA" puede agregarse en el futuro si la profesional lo desea)
+//
+// ✅ RECOMENDADO: No hardcodearla en el código del chatbot.
+//   Usar: GET /api/clinic/config → data.socialWorks
+//   Así el chatbot siempre muestra la lista que tenga la DB.
 ```
-
-> ⚠️ Las obras sociales disponibles también se pueden obtener dinámicamente desde la API:
-> `GET /api/clinic/config` → `data.socialWorks`
-> Si el chatbot hace esta llamada en el arranque, no necesita tenerlas hardcodeadas.
 
 ### Duración de turnos en mensajes
 ```javascript
-// ANTES (médico, turnos de 15 min):
+// La duración real está en: GET /api/clinic/config → data.settings.appointmentDuration
+// Para la odontóloga está configurada en 30 minutos en la DB.
+//
+// ANTES (médico, 15 min):
 "Cada consulta dura aproximadamente 15 minutos."
 
-// DESPUÉS (odontóloga, turnos de 30 min):
+// DESPUÉS (odontóloga, 30 min):
 "Cada consulta dura aproximadamente 30 minutos."
+//
+// ✅ MEJOR: leerlo desde clinic config en el arranque para no hardcodearlo.
 ```
 
 ---
@@ -120,24 +129,62 @@ Reemplazar toda referencia a la URL del backend:
 ```javascript
 // Buscar: micitamedica.me/api
 // Reemplazar con: od-melinavillalba.micitamedica.me/api
-// O mejor: usar process.env.CITAMEDICA_API_URL en todo el código
+// ✅ MEJOR: usar process.env.CITAMEDICA_API_URL en todo el código (ya debería estar así)
 ```
 
-### 4.2 Generación de token público
-Si el chatbot genera tokens públicos para el link de reserva:
-```javascript
-// La llamada ya usa la URL del .env, verificar que el link generado use el subdominio correcto
-const bookingUrl = `https://od-melinavillalba.micitamedica.me/reservar?token=${token}`;
-// O dinámicamente: `https://${process.env.CLINIC_SLUG}.micitamedica.me/reservar?token=${token}`
-```
-
-### 4.3 Header X-API-Key
-El chatbot debe incluir su API Key en las llamadas al backend:
+### 4.2 Header X-API-Key (OBLIGATORIO en todas las llamadas)
+El chatbot debe incluir su API Key en TODAS las llamadas al backend:
 ```javascript
 // En todas las llamadas a la API de CitaMedica:
 headers: {
-  'X-API-Key': process.env.CITAMEDICA_API_KEY
+  'X-API-Key': process.env.CITAMEDICA_API_KEY,
+  'Content-Type': 'application/json'
 }
+// Sin este header, el backend responde 403 Forbidden.
+```
+
+### 4.3 Generación de token público para link de reserva
+El flujo completo cuando el chatbot quiere que el paciente elija turno:
+```javascript
+// PASO 1: El chatbot genera un token temporal (válido 7 horas)
+const response = await axios.post(
+  `${process.env.CITAMEDICA_API_URL}/tokens/generate-public-token`,
+  {},
+  { headers: { 'X-API-Key': process.env.CITAMEDICA_API_KEY } }
+);
+const { token } = response.data.data;
+
+// PASO 2: El chatbot envía al paciente el link de reserva
+// ✅ Usar el CLINIC_SLUG del .env para que el link sea dinámico
+const bookingUrl = `https://${process.env.CLINIC_SLUG}.micitamedica.me/reservar?token=${token}`;
+// Resultado: https://od-melinavillalba.micitamedica.me/reservar?token=eyJhbG...
+
+// PASO 3: El backend notifica al chatbot cuando el paciente completa la reserva
+// (via webhook — ver sección 4.4)
+```
+
+### 4.4 Recibir notificación de reserva completada (Webhook entrante)
+El backend llama al chatbot cuando un paciente reserva desde el formulario público:
+```javascript
+// El chatbot debe tener un endpoint activo en:
+// POST http://localhost:3009/api/notify-appointment
+// (este valor se configura en Clinic.chatbot.webhookUrl en MongoDB)
+
+// Payload que el backend envía:
+{
+  "appointment": {
+    "id": "ObjectId",
+    "clientName": "nombre del paciente",
+    "phone": "+54 911 ...",
+    "date": "2026-03-15",
+    "time": "14:30",
+    "socialWork": "OSDE"
+  }
+}
+
+// El chatbot recibe esto y puede enviar un mensaje de confirmación por WhatsApp al paciente.
+// Timeout del backend para esta llamada: 5 segundos.
+// Si el chatbot no responde, el turno igual se guarda — solo se pierde la notificación.
 ```
 
 ---
@@ -163,17 +210,31 @@ pm2 list
 
 ## Paso 6: Actualizar la Clinic en MongoDB
 
-Una vez que el chatbot esté corriendo, actualizar los datos en la DB:
-
+### 6A — Configurar el chatbot
 ```javascript
-// Ejecutar en Mongo shell o como script:
 db.clinics.updateOne(
   { slug: 'od-melinavillalba' },
   {
     $set: {
       'chatbot.webhookUrl': 'http://localhost:3009/api/notify-appointment',
-      'chatbot.apiKey': 'GENERAR-API-KEY-ODONTOLOGA',
+      'chatbot.apiKey': 'GENERAR-API-KEY-ODONTOLOGA',  // misma que CITAMEDICA_API_KEY en .env
       'chatbot.active': true
+    }
+  }
+);
+```
+
+### 6B — Configurar obras sociales y datos de la clínica
+```javascript
+// ✅ CONFIRMADO: la Od. Villalba trabaja solo de manera particular.
+// No acepta obras sociales. Puede emitir factura.
+db.clinics.updateOne(
+  { slug: 'od-melinavillalba' },
+  {
+    $set: {
+      'socialWorks': ['CONSULTA PARTICULAR'],
+      'settings.appointmentDuration': 30,          // turnos de 30 minutos
+      'settings.appointmentLabel': 'Consulta odontológica'
     }
   }
 );
@@ -218,33 +279,160 @@ db.clinics.updateOne(
 # 1. El chatbot nuevo responde
 curl http://localhost:3009/health
 
-# 2. El chatbot puede crear un turno de prueba
+# 2. El backend reconoce la clínica correctamente (sin auth)
+curl https://od-melinavillalba.micitamedica.me/api/clinic/config
+
+# 3. El chatbot puede generar un token público
+curl -X POST https://od-melinavillalba.micitamedica.me/api/tokens/generate-public-token \
+  -H "X-API-Key: GENERAR-API-KEY-ODONTOLOGA"
+
+# 4. El chatbot puede crear un turno de prueba
 curl -X POST https://od-melinavillalba.micitamedica.me/api/appointments \
   -H "X-API-Key: GENERAR-API-KEY-ODONTOLOGA" \
   -H "Content-Type: application/json" \
-  -d '{"clientName":"Test Paciente","phone":"1111111111","date":"2026-03-20","time":"09:00","socialWork":"CONSULTA PARTICULAR"}'
+  -d '{"clientName":"Test Paciente","phone":"3735000000","date":"2026-03-20","time":"09:00","socialWork":"CONSULTA PARTICULAR"}'
 
-# 3. El turno aparece en el dashboard de la odontóloga
+# 5. El turno aparece en el dashboard de la odontóloga
 # Ir a https://od-melinavillalba.micitamedica.me
 
-# 4. El turno NO aparece en el dashboard del Dr. Kulinka
+# 6. El turno NO aparece en el dashboard del Dr. Kulinka
 # Ir a https://micitamedica.me
 
-# 5. Google Calendar sincroniza (si está configurado)
+# 7. Google Calendar sincroniza (si está configurado)
 curl https://od-melinavillalba.micitamedica.me/api/test-calendar
 ```
+
+---
+
+## 🤖 Sección especial: Notas para la IA que programe el chatbot
+
+> **Para copiar y pegar al iniciar el desarrollo del chatbot clonado.**
+> Estas notas explican cómo funciona el backend al que se conecta este chatbot.
+
+### Arquitectura multi-tenant
+
+El backend es **multi-tenant**. La clínica activa se determina automáticamente por el **subdominio del Host header** de cada request.
+
+- Llamada a `https://od-melinavillalba.micitamedica.me/api/...` → datos de la Od. Villalba
+- Llamada a `https://micitamedica.me/api/...` → datos del Dr. Kulinka
+- **No se pasa ningun ID de clínica en el body ni en los headers.** El subdominio lo resuelve todo.
+
+### Autenticación del chatbot
+
+El chatbot se autentica con un header `X-API-Key` en todas las llamadas:
+
+```
+X-API-Key: <valor de CITAMEDICA_API_KEY en .env>
+```
+
+Sin este header → `403 Forbidden`. No usar JWT (eso es para el dashboard de la odontóloga).
+
+### Endpoint de configuración pública (sin auth)
+
+```
+GET https://od-melinavillalba.micitamedica.me/api/clinic/config
+```
+
+Devuelve (sin autenticación):
+```json
+{
+  "success": true,
+  "data": {
+    "name": "Od. Melina Villalba",
+    "slug": "od-melinavillalba",
+    "socialWorks": ["CONSULTA PARTICULAR"],
+    // ✅ La odontóloga trabaja solo de forma particular — sin obras sociales
+    "settings": {
+      "timezone": "America/Argentina/Buenos_Aires",
+      "appointmentDuration": 30,
+      "maxSobreturnos": 10,
+      "businessHours": { "morning": {...}, "afternoon": {...} },
+      "workingDays": [1, 2, 3, 4, 5, 6],
+      "appointmentLabel": "Consulta odontológica"
+    }
+  }
+}
+```
+
+**Recomendación:** Llamar a este endpoint al iniciar el chatbot y cachear la configuración. Así las obras sociales y la duración de turnos siempre están actualizadas.
+
+### Flujo de reserva de turno (el más importante)
+
+```
+1. Paciente escribe al chatbot por WhatsApp
+
+2. Chatbot consulta horarios disponibles:
+   GET /api/appointments/available/{fecha}
+   Headers: { X-API-Key: ... }
+   → Devuelve array de horarios libres
+
+3. Chatbot genera token temporal para formulario web:
+   POST /api/tokens/generate-public-token
+   Headers: { X-API-Key: ... }
+   → Devuelve: { token: "eyJ...", expiresIn: "7h" }
+
+4. Chatbot envía link al paciente:
+   https://od-melinavillalba.micitamedica.me/reservar?token={token}
+
+5. Paciente llena el formulario en la web y confirma el turno
+   (el frontend usa el token para llamar a POST /api/appointments/public/book)
+
+6. Backend crea el turno y llama al webhook del chatbot:
+   POST http://localhost:3009/api/notify-appointment
+   Body: { appointment: { clientName, phone, date, time, socialWork } }
+
+7. Chatbot recibe el webhook y envía confirmación por WhatsApp al paciente
+```
+
+### Flujo alternativo: sobreturno directo por chatbot
+
+Si el chatbot reserva un sobreturno directamente (sin formulario web):
+
+```
+POST /api/sobreturnos
+Headers: { X-API-Key: ..., Content-Type: application/json }
+Body: {
+  "sobreturnoNumber": 1,         // 1 al 10
+  "date": "2026-03-15",          // YYYY-MM-DD
+  "clientName": "Juan Pérez",    // requerido
+  "socialWork": "OSDE",          // requerido — debe estar en la lista de socialWorks
+  "phone": "3735000000",         // requerido
+  "email": "juan@example.com"    // opcional
+}
+→ El campo "time" se calcula automáticamente según la configuración del slot
+→ Se crea evento en Google Calendar automáticamente
+```
+
+Para ver qué sobreturnos están disponibles en una fecha:
+```
+GET /api/sobreturnos/available/{fecha}
+Headers: { X-API-Key: ... }
+```
+
+### CORS
+
+El backend ya tiene habilitado `http://localhost:3009` en sus orígenes CORS. No hay que configurar nada en el servidor.
+
+### Sobre el webhook entrante (endpoint que el chatbot debe implementar)
+
+El chatbot necesita exponer este endpoint:
+```
+POST /api/notify-appointment
+```
+
+El backend lo llama con timeout de **5 segundos**. Si el chatbot tarda más o está caído, el turno igual se guarda — solo se pierde la confirmación por WhatsApp. El chatbot debe responder con status 200 lo más rápido posible y procesar la lógica de WhatsApp de forma asíncrona.
 
 ---
 
 ## Checklist de onboarding completo — Od. Melina Villalba
 
 ### Infraestructura
-- [ ] DNS: `od-melinavillalba.micitamedica.me` apunta al VPS
+- [ ] DNS: `od-melinavillalba.micitamedica.me` apunta al VPS ✅ *(subdominio confirmado)*
 - [ ] SSL: Certificado Let's Encrypt instalado para el subdominio
 - [ ] Nginx: Configuración del subdominio habilitada
 
 ### Base de datos
-- [ ] Clinic #2 creada con obras sociales de odontología
+- [ ] Clinic #2 creada (`slug: 'od-melinavillalba'`, `appointmentDuration: 30`, `socialWorks: ['CONSULTA PARTICULAR']`)
 - [ ] Admin user creado (email + password temporal entregado a la odontóloga)
 - [ ] Script de migración ejecutado
 
@@ -256,17 +444,20 @@ curl https://od-melinavillalba.micitamedica.me/api/test-calendar
 
 ### Chatbot
 - [ ] Repositorio duplicado en `/var/www/ANITACHATBOT-odontologa`
-- [ ] `.env` configurado con número nuevo y URL del subdominio
-- [ ] Textos personalizados (bienvenida, confirmación, obras sociales)
+- [ ] `.env` configurado — **PENDIENTE**: confirmar número WhatsApp real (placeholder: +5493735123456)
+- [ ] Textos personalizados (bienvenida, confirmación)
 - [ ] PM2 corriendo en puerto 3009
-- [ ] `Clinic.chatbot` actualizado en DB con webhookUrl y apiKey
+- [ ] `Clinic.chatbot` actualizado en DB con `webhookUrl` y `apiKey`
 
 ### Verificación
 - [ ] Login funciona en `od-melinavillalba.micitamedica.me`
 - [ ] Dashboard muestra 0 turnos (clínica nueva, aislada)
+- [ ] `GET /api/clinic/config` devuelve datos de la odontóloga
+- [ ] Generar token público con API Key funciona
 - [ ] Crear turno de prueba → aparece solo en esta clínica
 - [ ] Google Calendar recibe el evento de prueba
-- [ ] Chatbot envía link correcto (subdominio de la odontóloga)
+- [ ] Chatbot envía link correcto (`od-melinavillalba.micitamedica.me/reservar?token=...`)
+- [ ] Webhook entrante recibe notificación al completar reserva pública
 - [ ] `micitamedica.me` sigue funcionando sin cambios
 
 ---
