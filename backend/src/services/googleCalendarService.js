@@ -49,20 +49,38 @@ class GoogleCalendarService {
         }
     }
 
-    async createCalendarEvent(appointment, calendarId, appointmentLabel) {
+    async createCalendarEvent(appointment, calendarId, appointmentLabel, defaultDuration) {
         await this.ensureInitialized();
         const targetCalendarId = calendarId || process.env.CALENDAR_ID;
         const label = appointmentLabel || 'Consulta médica';
+
+        // Extraer tipo de consulta y duración desde el campo description si viene del chatbot
+        const descriptionParts = appointment.description ? appointment.description.split(' | ') : [];
+        const appointmentType = descriptionParts[0] || label;
+        const notes = descriptionParts.slice(1).join(' | ');
+
+        // Duración: parsear desde description "(60 min)", sino usar defaultDuration, sino 30 min
+        const durationMatch = appointment.description?.match(/\((\d+) min\)/);
+        const durationMinutes = durationMatch ? parseInt(durationMatch[1]) : (defaultDuration || 30);
+
+        // Emoji según tipo de consultorio
+        const emoji = /odontol/i.test(label) ? '🦷' : /médic/i.test(label) ? '🩺' : '📋';
+
         try {
             const startTime = new Date(`${appointment.date}T${appointment.time}`);
-            const endTime = new Date(startTime.getTime() + 15 * 60000); // 15 minutos
+            const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
+
+            const descriptionLines = [
+                `Paciente: ${appointment.clientName}`,
+                `Teléfono: ${appointment.phone}`,
+                `Obra Social: ${appointment.socialWork}`,
+                notes ? `Notas: ${notes}` : null,
+                appointment.email ? `Email: ${appointment.email}` : null,
+            ].filter(Boolean).join('\n');
 
             const event = {
-                summary: `${label} - ${appointment.clientName}`,
-                description: `Paciente: ${appointment.clientName}
-Obra Social: ${appointment.socialWork}
-Teléfono: ${appointment.phone}
-Email: ${appointment.email || 'No informado'}`,
+                summary: `${emoji} ${appointment.clientName} — ${appointmentType}`,
+                description: descriptionLines,
                 start: {
                     dateTime: startTime.toISOString(),
                     timeZone: 'America/Argentina/Buenos_Aires'

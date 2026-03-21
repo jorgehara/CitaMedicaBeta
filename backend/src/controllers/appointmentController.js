@@ -391,7 +391,8 @@ exports.createAppointment = async (req, res) => {
       try {
         const clinicCalendarId = req.clinic?.googleCalendar?.calendarId;
         const appointmentLabel = req.clinic?.settings?.appointmentLabel;
-        const eventId = await googleCalendarService.createCalendarEvent(appointment, clinicCalendarId, appointmentLabel);
+        const defaultDuration = req.clinic?.settings?.appointmentDuration;
+        const eventId = await googleCalendarService.createCalendarEvent(appointment, clinicCalendarId, appointmentLabel, defaultDuration);
         if (eventId) {
           appointment.googleEventId = eventId;
           await appointment.save();

@@ -239,9 +239,24 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
               primary={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 0.5 }}>
-                      {appointment.clientName}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                        {appointment.clientName}
+                      </Typography>
+                      {appointment.description && (
+                        <Chip
+                          label={appointment.description.split(' | ')[0]}
+                          size="small"
+                          sx={{
+                            height: '20px',
+                            fontSize: '0.7rem',
+                            backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                            color: 'primary.main',
+                            fontWeight: 600,
+                          }}
+                        />
+                      )}
+                    </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                       <Chip
                         label={appointment.status}
