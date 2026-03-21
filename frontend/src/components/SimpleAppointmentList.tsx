@@ -202,23 +202,34 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
     
     const desc = description.toLowerCase().trim();
     
-    // Prioridad 1: Primera cita (más específico primero)
-    if (desc.includes('primera') || desc.includes('nuevo') || desc.includes('atm') || desc.includes('bruxismo')) {
-      return 'Primera cita';
-    }
+    // Detectar duración desde description
+    const is30min = desc.includes('30 min') || desc.includes('30min');
+    const is60min = desc.includes('60 min') || desc.includes('60min') || desc.includes('1 hora');
     
-    // Prioridad 2: Control (incluye variantes)
-    if (desc.includes('control') || desc.includes('seguimiento') || desc.includes('segunda') || desc.includes('placa') || desc.includes('ajuste') || desc.includes('reparación')) {
+    // 30 minutos → siempre es Control
+    if (is30min) {
       return 'Control';
     }
     
-    // Prioridad 3: Emergencia
-    if (desc.includes('dolor') || desc.includes('urgencia') || desc.includes('emergencia')) {
-      return 'Emergencia';
+    // 60 minutos → puede ser Primera cita o Tratamiento
+    if (is60min) {
+      // Si menciona "primera" o "nuevo" → Primera cita
+      if (desc.includes('primera') || desc.includes('nuevo') || desc.includes('atm') || desc.includes('bruxismo')) {
+        return 'Primera cita';
+      }
+      // Si es reparación u otro tratamiento de 60min → Tratamiento
+      return 'Tratamiento';
     }
     
-    // Fallback: mostrar el description completo (puede ser útil para debug)
-    return description;
+    // Fallback por keywords (si no hay duración explícita)
+    if (desc.includes('primera') || desc.includes('nuevo') || desc.includes('atm') || desc.includes('bruxismo')) {
+      return 'Primera cita';
+    }
+    if (desc.includes('control') || desc.includes('seguimiento') || desc.includes('segunda') || desc.includes('ajuste')) {
+      return 'Control';
+    }
+    
+    return 'Sin especificar';
   };
 
   const getTypeBadgeStyle = (type: string) => {
@@ -233,10 +244,10 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
           backgroundColor: 'rgba(33, 150, 243, 0.15)', 
           color: '#2196f3'
         };
-      case 'Emergencia':
+      case 'Tratamiento':
         return { 
-          backgroundColor: 'rgba(244, 67, 54, 0.15)', 
-          color: '#f44336'
+          backgroundColor: 'rgba(255, 152, 0, 0.15)', 
+          color: '#ff9800'
         };
       default:
         return { 
