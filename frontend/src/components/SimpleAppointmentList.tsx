@@ -195,6 +195,55 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
     return { text: '', color: '' };
   };
 
+  const getAppointmentTypeLabel = (description?: string): string => {
+    if (!description) return 'Sin especificar';
+    
+    const desc = description.toLowerCase();
+    
+    // Prioridad 1: Emergencia (palabras clave de dolor/urgencia)
+    if (desc.includes('dolor') || desc.includes('urgencia') || desc.includes('emergencia')) {
+      return 'Emergencia';
+    }
+    
+    // Prioridad 2: Primera cita
+    if (desc.includes('primera') || desc.includes('nuevo') || desc.includes('atm') || desc.includes('bruxismo')) {
+      return 'Primera cita';
+    }
+    
+    // Prioridad 3: Control
+    if (desc.includes('control') || desc.includes('seguimiento') || desc.includes('segunda visita') || desc.includes('placa')) {
+      return 'Control';
+    }
+    
+    // Fallback: mostrar el primer fragmento
+    return description.split(' | ')[0];
+  };
+
+  const getTypeBadgeStyle = (type: string) => {
+    switch (type) {
+      case 'Primera cita':
+        return { 
+          backgroundColor: 'rgba(76, 175, 80, 0.15)', 
+          color: '#4caf50'
+        };
+      case 'Control':
+        return { 
+          backgroundColor: 'rgba(33, 150, 243, 0.15)', 
+          color: '#2196f3'
+        };
+      case 'Emergencia':
+        return { 
+          backgroundColor: 'rgba(244, 67, 54, 0.15)', 
+          color: '#f44336'
+        };
+      default:
+        return { 
+          backgroundColor: 'rgba(158, 158, 158, 0.15)', 
+          color: '#9e9e9e'
+        };
+    }
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -243,19 +292,23 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                       <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
                         {appointment.clientName}
                       </Typography>
-                      {appointment.description && (
-                        <Chip
-                          label={appointment.description.split(' | ')[0]}
-                          size="small"
-                          sx={{
-                            height: '20px',
-                            fontSize: '0.7rem',
-                            backgroundColor: 'rgba(33, 150, 243, 0.15)',
-                            color: 'primary.main',
-                            fontWeight: 600,
-                          }}
-                        />
-                      )}
+                      {(() => {
+                        const typeLabel = getAppointmentTypeLabel(appointment.description);
+                        const badgeStyle = getTypeBadgeStyle(typeLabel);
+                        return (
+                          <Chip
+                            label={typeLabel}
+                            size="small"
+                            sx={{
+                              height: '20px',
+                              fontSize: '0.7rem',
+                              backgroundColor: badgeStyle.backgroundColor,
+                              color: badgeStyle.color,
+                              fontWeight: 600,
+                            }}
+                          />
+                        );
+                      })()}
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                       <Chip
