@@ -9,6 +9,7 @@ import AppointmentDrawer from './AppointmentDrawer';
 import * as sobreturnoService from '../services/sobreturnoService';
 import { appointmentService } from '../services/appointmentService';
 import type { Appointment } from '../types/appointment';
+import { useClinicConfig } from '../context/ClinicConfigContext';
 
 interface SimpleAppointmentListProps {
   appointments: Appointment[];
@@ -19,6 +20,7 @@ interface SimpleAppointmentListProps {
 }
 
 const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateButton = false, buttonLabel }: SimpleAppointmentListProps) => {
+  const { clinicName } = useClinicConfig();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   // Actualizar cuando cambien los appointments desde el padre
 
@@ -196,27 +198,27 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
   };
 
   const getAppointmentTypeLabel = (description?: string): string => {
-    if (!description) return 'Sin especificar';
+    if (!description || description.trim() === '') return 'Sin especificar';
     
-    const desc = description.toLowerCase();
+    const desc = description.toLowerCase().trim();
     
-    // Prioridad 1: Emergencia (palabras clave de dolor/urgencia)
-    if (desc.includes('dolor') || desc.includes('urgencia') || desc.includes('emergencia')) {
-      return 'Emergencia';
-    }
-    
-    // Prioridad 2: Primera cita
+    // Prioridad 1: Primera cita (más específico primero)
     if (desc.includes('primera') || desc.includes('nuevo') || desc.includes('atm') || desc.includes('bruxismo')) {
       return 'Primera cita';
     }
     
-    // Prioridad 3: Control
-    if (desc.includes('control') || desc.includes('seguimiento') || desc.includes('segunda visita') || desc.includes('placa')) {
+    // Prioridad 2: Control (incluye variantes)
+    if (desc.includes('control') || desc.includes('seguimiento') || desc.includes('segunda') || desc.includes('placa') || desc.includes('ajuste') || desc.includes('reparación')) {
       return 'Control';
     }
     
-    // Fallback: mostrar el primer fragmento
-    return description.split(' | ')[0];
+    // Prioridad 3: Emergencia
+    if (desc.includes('dolor') || desc.includes('urgencia') || desc.includes('emergencia')) {
+      return 'Emergencia';
+    }
+    
+    // Fallback: mostrar el description completo (puede ser útil para debug)
+    return description;
   };
 
   const getTypeBadgeStyle = (type: string) => {
@@ -292,7 +294,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                       <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
                         {appointment.clientName}
                       </Typography>
-                      {(() => {
+                      {clinicName === 'Od. Melina Villalba' && (() => {
                         const typeLabel = getAppointmentTypeLabel(appointment.description);
                         const badgeStyle = getTypeBadgeStyle(typeLabel);
                         return (

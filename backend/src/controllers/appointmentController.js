@@ -343,6 +343,7 @@ exports.createAppointment = async (req, res) => {
       email: req.body.email,
       date: req.body.date,
       time: req.body.time,
+      description: req.body.description || '',
       status: isSobreturno ? 'pending' : 'confirmed',
       isSobreturno,
       clinicId: req.clinicId
