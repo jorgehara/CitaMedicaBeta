@@ -211,19 +211,14 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
       return 'Control';
     }
     
-    // 60 minutos → puede ser Primera cita o Tratamiento
+    // 60 minutos → Primera Cita/Tratamiento
     if (is60min) {
-      // Si menciona "primera" o "nuevo" → Primera cita
-      if (desc.includes('primera') || desc.includes('nuevo') || desc.includes('atm') || desc.includes('bruxismo')) {
-        return 'Primera cita';
-      }
-      // Si es reparación u otro tratamiento de 60min → Tratamiento
-      return 'Tratamiento';
+      return 'Primera Cita/Tratamiento';
     }
     
     // Fallback por keywords (si no hay duración explícita)
     if (desc.includes('primera') || desc.includes('nuevo') || desc.includes('atm') || desc.includes('bruxismo')) {
-      return 'Primera cita';
+      return 'Primera Cita/Tratamiento';
     }
     if (desc.includes('control') || desc.includes('seguimiento') || desc.includes('segunda') || desc.includes('ajuste')) {
       return 'Control';
@@ -234,7 +229,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
 
   const getTypeBadgeStyle = (type: string) => {
     switch (type) {
-      case 'Primera cita':
+      case 'Primera Cita/Tratamiento':
         return { 
           backgroundColor: 'rgba(76, 175, 80, 0.15)', 
           color: '#4caf50'
@@ -243,11 +238,6 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
         return { 
           backgroundColor: 'rgba(33, 150, 243, 0.15)', 
           color: '#2196f3'
-        };
-      case 'Tratamiento':
-        return { 
-          backgroundColor: 'rgba(255, 152, 0, 0.15)', 
-          color: '#ff9800'
         };
       default:
         return { 
