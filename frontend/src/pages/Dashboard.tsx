@@ -6,6 +6,7 @@ import {
   AccessTime as AccessTimeIcon,
   Lock as LockIcon,
   Delete as DeleteIcon,
+  People as PeopleIcon, // Task 4.7: Pacientes button icon
 } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +21,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import axiosInstance from '../config/axios';
 import { useClinicConfig } from '../context/ClinicConfigContext';
+import { useNavigate } from 'react-router-dom'; // Task 4.7: For navigation to Pacientes
 
 interface UnavailabilityBlock {
   _id: string;
@@ -47,6 +49,7 @@ const AUTO_REFRESH_INTERVAL = 60000; // 1 minuto
 
 const Dashboard = () => {
   const { clinicName } = useClinicConfig();
+  const navigate = useNavigate(); // Task 4.7: For navigation to Pacientes
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [openOverturnDialog, setOpenOverturnDialog] = useState(false);
@@ -265,7 +268,7 @@ const Dashboard = () => {
         </Box>
 
         {/* Estadísticas rápidas */}
-        <Box className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Box className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <ScaleIn delay={0.1}>
             <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
               <CardContent className="p-4">
@@ -300,6 +303,21 @@ const Dashboard = () => {
                 </Typography>
                 <Typography variant="body2" className="opacity-90">
                   Total del día
+                </Typography>
+              </CardContent>
+            </Card>
+          </ScaleIn>
+
+          {/* Task 4.7: Pacientes button */}
+          <ScaleIn delay={0.4}>
+            <Card 
+              className="bg-gradient-to-br from-teal-500 to-teal-600 text-white cursor-pointer hover:scale-105 transition-transform duration-200"
+              onClick={() => navigate('/pacientes')}
+            >
+              <CardContent className="p-4 flex flex-col items-center justify-center h-full">
+                <PeopleIcon sx={{ fontSize: 40, mb: 1 }} />
+                <Typography variant="body2" className="opacity-90 font-semibold">
+                  Ver Pacientes
                 </Typography>
               </CardContent>
             </Card>

@@ -15,6 +15,7 @@ export interface BaseAppointment {
   attended?: boolean; // indica si el paciente asistió a la cita
   isSobreturno?: boolean; // indica si es sobreturno
   isPaid?: boolean; // indica si el paciente realizó el pago
+  patientId?: string; // Task 3.5: Optional link to patient in clinical history module
 }
 
 export interface Appointment extends BaseAppointment {

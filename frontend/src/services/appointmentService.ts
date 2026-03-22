@@ -148,6 +148,22 @@ class AppointmentService {
       throw new Error('Error al obtener horarios disponibles');
     }
   }
+
+  /**
+   * Task 3.6: Get patient linked to an appointment
+   */
+  async getPatientByAppointment(appointmentId: string): Promise<{ _id: string; firstName: string; lastName: string; clinicNumber: string } | null> {
+    try {
+      const response = await axiosInstance.get(`/appointments/${appointmentId}/patient`);
+      return response.data.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null; // No patient linked
+      }
+      console.error('[ERROR] Error al obtener paciente de la cita:', error);
+      throw new Error('Error al obtener paciente de la cita');
+    }
+  }
 }
 
 // Crear y exportar una única instancia del servicio y sus funciones auxiliares

@@ -11,6 +11,7 @@ Este documento proporciona una visión general del proyecto CitaMedicaBeta para 
 - Sincronización automática con Google Calendar
 - Panel de administración web
 - Sistema de tokens públicos para reservas desde chatbot
+- Módulo de historias clínicas ATM/Bruxismo con seguimiento longitudinal
 
 ## Arquitectura del Sistema
 
@@ -86,6 +87,53 @@ El sistema maneja **dos tipos** de citas:
 - Modelo: `backend/src/models/sobreturno.js`
 - Servicio: `frontend/src/services/sobreturnoService.ts`
 
+## Módulo de Historias Clínicas ATM
+
+El sistema incluye un módulo completo de historias clínicas para pacientes ATM/Bruxismo:
+
+### 1. Pacientes (`Patient`)
+- Demografía: nombre, DNI, fecha de nacimiento, género, obra social
+- Contacto: teléfono, email, dirección
+- Historia médica: alergias, enfermedades crónicas, medicamentos
+- **Número clínico auto-generado**: PAC-0001, PAC-0002, etc.
+- Endpoint: `/api/patients`
+- Modelo: `backend/src/models/patient.js`
+- Servicio: `frontend/src/services/patientService.ts`
+
+### 2. Historias Clínicas (`ClinicalHistory`)
+- Anamnesis: motivo de consulta, enfermedad actual
+- **Índices Helkimo**: AI (Anamnesis Index) y DI (Dysfunction Index)
+- **Clasificación automática**: Sin síntomas / Leve / Moderado / Severo
+- Examen clínico: extraoral, intraoral, palpación ATM/muscular, oclusión
+- Síntomas: dolor, ruidos articulares, limitaciones
+- Odontograma básico
+- Diagnóstico y plan de tratamiento
+- Endpoint: `/api/clinical-histories`
+- Modelo: `backend/src/models/clinicalHistory.js`
+- Servicio: `frontend/src/services/clinicalHistoryService.ts`
+
+### 3. Seguimientos (`FollowUp`)
+- Evolución del paciente por fecha
+- Actualización de síntomas (mejorado/empeorado/estable)
+- Actualizaciones de tratamiento
+- Prescripciones
+- Fotos de seguimiento
+- Endpoint: `/api/follow-ups`
+- Modelo: `backend/src/models/followUp.js`
+- Servicio: `frontend/src/services/followUpService.ts`
+
+### Relación con Citas
+- Cada cita puede estar vinculada a un paciente (campo `patientId`)
+- Desde `SimpleAppointmentList` hay botón "Historia Clínica" para acceso directo
+- Permite ver/editar historia clínica desde el contexto de la cita
+
+### Páginas Frontend
+- **`/patients`**: Lista de pacientes con búsqueda por nombre/DNI/número clínico
+- **`/patients/:id`**: Detalle del paciente con 3 tabs:
+  - Info del paciente (demografía + historia médica)
+  - Historias clínicas (lista + formulario de creación)
+  - Seguimientos (timeline + formulario de evolución)
+
 ## Estructura de Directorios
 
 ### Backend (`backend/`)
@@ -94,13 +142,22 @@ backend/
 ├── src/
 │   ├── models/           # Mongoose schemas
 │   │   ├── appointment.js      # Citas regulares
-│   │   └── sobreturno.js       # Sobreturnos
+│   │   ├── sobreturno.js       # Sobreturnos
+│   │   ├── patient.js          # Pacientes (historias clínicas)
+│   │   ├── clinicalHistory.js  # Historias clínicas ATM
+│   │   └── followUp.js         # Seguimientos longitudinales
 │   ├── controllers/      # Request handlers
 │   │   ├── appointmentController.js
-│   │   └── sobreturnoController.js
+│   │   ├── sobreturnoController.js
+│   │   ├── patientController.js
+│   │   ├── clinicalHistoryController.js
+│   │   └── followUpController.js
 │   ├── routes/           # Express routes
 │   │   ├── appointmentRoutes.js
-│   │   └── sobreturnoRoutes.js
+│   │   ├── sobreturnoRoutes.js
+│   │   ├── patientRoutes.js
+│   │   ├── clinicalHistoryRoutes.js
+│   │   └── followUpRoutes.js
 │   ├── services/         # Business logic
 │   │   ├── googleCalendarService.js  # Singleton service
 │   │   └── calendarSync.js
@@ -122,16 +179,24 @@ frontend/
 │   │   ├── Schedule.tsx          # Schedule management
 │   │   ├── History.tsx           # Appointment history
 │   │   ├── BookAppointment.tsx   # Public booking (citas)
-│   │   └── SelectOverturn.tsx    # Public booking (sobreturnos)
+│   │   ├── SelectOverturn.tsx    # Public booking (sobreturnos)
+│   │   ├── PatientList.tsx       # Patient list with search
+│   │   └── PatientDetail.tsx     # Patient detail with clinical histories
 │   ├── components/       # Reusable UI components
 │   │   ├── Layout.tsx                      # Main layout
 │   │   ├── AppointmentList.tsx             # Full list
 │   │   ├── SimpleAppointmentList.tsx       # Compact list
 │   │   ├── CreateOverturnDialog.tsx        # Sobreturno dialog
-│   │   └── GlobalCreateAppointmentDialog.tsx
+│   │   ├── GlobalCreateAppointmentDialog.tsx
+│   │   ├── ClinicalHistoryForm.tsx         # Clinical history form
+│   │   ├── FollowUpForm.tsx                # Follow-up form
+│   │   └── CreatePatientDialog.tsx         # Patient creation dialog
 │   ├── services/         # API client services
 │   │   ├── appointmentService.ts
-│   │   └── sobreturnoService.ts
+│   │   ├── sobreturnoService.ts
+│   │   ├── patientService.ts
+│   │   ├── clinicalHistoryService.ts
+│   │   └── followUpService.ts
 │   ├── config/
 │   │   └── axios.ts      # Axios config (30s timeout, retry)
 │   ├── types/
@@ -386,8 +451,9 @@ Para información más detallada sobre áreas específicas:
 
 ## Última Actualización
 
-- **Fecha**: 2026-01-19
-- **Cambio**: Agregada página SelectOverturn.tsx para selección manual de sobreturnos desde chatbot
-- **Archivos nuevos**: `frontend/src/pages/SelectOverturn.tsx`
-- **Funciones nuevas**: `sobreturnoService.getSobreturnosByDate()`
-- **Rutas nuevas**: `/seleccionar-sobreturno`
+- **Fecha**: 2026-03-22
+- **Cambio**: Agregado módulo completo de Historias Clínicas ATM/Bruxismo
+- **Archivos nuevos**: 28 archivos (3 modelos backend, 3 controllers, 3 routes, 3 services frontend, 2 páginas, 7 componentes)
+- **Funciones nuevas**: Gestión de pacientes, historias clínicas con índices Helkimo, seguimientos longitudinales
+- **Rutas nuevas**: `/patients`, `/patients/:id`
+- **Endpoints nuevos**: 11 endpoints REST (5 patients, 4 clinical-histories, 2 follow-ups)

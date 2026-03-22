@@ -9,6 +9,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ChangePassword from './pages/ChangePassword';
 import BookAppointment from './pages/BookAppointment';
+import PatientList from './pages/PatientList'; // Task 4.10: Patient module routes
+import PatientDetail from './pages/PatientDetail'; // Task 4.10: Patient module routes
 import ProtectedRoute from './components/ProtectedRoute';
 import { ColorModeContext } from './context/ColorModeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -171,6 +173,59 @@ const App = () => {
                         }}
                       >
                         <History />
+                      </Box>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Task 4.10: Patient module routes */}
+              <Route
+                path="/pacientes"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          p: 3,
+                          width: '1200px',
+                          maxWidth: '1200px',
+                          mx: 'auto',
+                          '@media (max-width: 1200px)': {
+                            maxWidth: '100%',
+                            px: { xs: 2, sm: 3 }
+                          }
+                        }}
+                      >
+                        <PatientList />
+                      </Box>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/pacientes/:id"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          p: 3,
+                          width: '1200px',
+                          maxWidth: '1200px',
+                          mx: 'auto',
+                          '@media (max-width: 1200px)': {
+                            maxWidth: '100%',
+                            px: { xs: 2, sm: 3 }
+                          }
+                        }}
+                      >
+                        <PatientDetail />
                       </Box>
                     </Layout>
                   </ProtectedRoute>

@@ -24,6 +24,9 @@ const authRoutes = require('./src/routes/authRoutes');
 const qrRoutes = require('./src/routes/qrRoutes');
 const tokenRoutes = require('./src/routes/tokenRoutes');
 const unavailabilityRoutes = require('./src/routes/unavailabilityRoutes');
+const patientRoutes = require('./src/routes/patientRoutes');
+const clinicalHistoryRoutes = require('./src/routes/clinicalHistoryRoutes');
+const followUpRoutes = require('./src/routes/followUpRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 const tenantResolver = require('./src/middleware/tenantResolver');
 
@@ -98,6 +101,9 @@ app.use('/api/tokens', tokenRoutes);
 // Rutas principales (se protegerán con middleware auth después)
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/sobreturnos', sobreturnoRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/clinical-histories', clinicalHistoryRoutes);
+app.use('/api/follow-ups', followUpRoutes);
 app.use('/api', unavailabilityRoutes);
 app.use('/api', qrRoutes);
 
