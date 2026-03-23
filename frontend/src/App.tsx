@@ -12,6 +12,7 @@ import BookAppointment from './pages/BookAppointment';
 import PatientList from './pages/PatientList'; // Task 4.10: Patient module routes
 import PatientDetail from './pages/PatientDetail'; // Task 4.10: Patient module routes
 import ProtectedRoute from './components/ProtectedRoute';
+import TenantSwitcher from './components/TenantSwitcher'; // Dev mode tenant switcher
 import { ColorModeContext } from './context/ColorModeContext';
 import { AuthProvider } from './context/AuthContext';
 import { ClinicConfigProvider } from './context/ClinicConfigContext';
@@ -82,6 +83,7 @@ const App = () => {
       <ColorModeContext.Provider value={colorMode}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          <TenantSwitcher />
           <Router>
             <Routes>
               {/* Rutas públicas */}
