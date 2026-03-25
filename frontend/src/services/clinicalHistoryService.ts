@@ -11,6 +11,52 @@ interface ApiResponse<T> {
 
 class ClinicalHistoryService {
   /**
+   * Get all clinical histories (optionally filtered by date range)
+   */
+  async getAll(startDate?: string, endDate?: string): Promise<ClinicalHistory[]> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      const queryString = params.toString();
+      const url = queryString ? `/clinical-histories?${queryString}` : '/clinical-histories';
+      
+      const response = await axiosInstance.get<ApiResponse<ClinicalHistory[]>>(url);
+      return response.data.data;
+    } catch (error) {
+      console.error('[ClinicalHistoryService] Error fetching all clinical histories:', error);
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Error al obtener historias clínicas');
+      }
+      throw new Error('Error al obtener historias clínicas');
+    }
+  }
+
+  /**
+   * Get all clinical histories with patient data (for list view)
+   */
+  async getAllWithPatient(startDate?: string, endDate?: string): Promise<ClinicalHistory[]> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      const queryString = params.toString();
+      const url = queryString ? `/clinical-histories?${queryString}` : '/clinical-histories';
+      
+      const response = await axiosInstance.get<ApiResponse<ClinicalHistory[]>>(url);
+      return response.data.data;
+    } catch (error) {
+      console.error('[ClinicalHistoryService] Error fetching all clinical histories:', error);
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Error al obtener historias clínicas');
+      }
+      throw new Error('Error al obtener historias clínicas');
+    }
+  }
+
+  /**
    * Get all clinical histories for a patient
    */
   async getByPatient(patientId: string): Promise<ClinicalHistory[]> {

@@ -23,7 +23,8 @@ import {
   Logout as LogoutIcon,
   Lock as LockIcon,
   KeyboardArrowDown as ArrowDownIcon,
-  People as PeopleIcon, // Task 4.11: Pacientes menu icon
+  People as PeopleIcon,
+  MedicalServices as MedicalServicesIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -84,7 +85,8 @@ const Layout = ({ children }: LayoutProps) => {
   const menuItems = [
     { text: 'Inicio', icon: <HomeIcon />, path: '/', disabled: false },
     { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios', disabled: false },
-    { text: 'Pacientes', icon: <PeopleIcon />, path: '/pacientes', disabled: false }, // Task 4.11: Enabled Pacientes menu
+    { text: 'Pacientes', icon: <PeopleIcon />, path: '/pacientes', disabled: false },
+    { text: 'Historias Clínicas', icon: <MedicalServicesIcon />, path: '/historias-clinicas', disabled: false },
     { text: 'Historial', icon: <HistoryIcon />, path: '/historial', disabled: false },
     // { text: 'QR WhatsApp', icon: <QrCodeIcon />, path: '/qr', disabled: true },
     // { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion', disabled: true },
@@ -430,7 +432,7 @@ const Layout = ({ children }: LayoutProps) => {
           position: 'relative'
         }}
       >
-        {(location.pathname === '/' || location.pathname === '/horarios' || location.pathname === '/historial' || location.pathname.startsWith('/pacientes')) && (
+        {(location.pathname === '/' || location.pathname === '/horarios' || location.pathname === '/historial' || location.pathname.startsWith('/pacientes') || location.pathname === '/historias-clinicas') && (
           <Box sx={{ position: 'absolute', top: 0, right: 0, mt: '12px', mr: 8, zIndex: 10 }}>
             <CreateAppointmentButton onClick={() => setOpenGlobalDialog(true)} size="small" />
           </Box>

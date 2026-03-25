@@ -11,6 +11,7 @@ import ChangePassword from './pages/ChangePassword';
 import BookAppointment from './pages/BookAppointment';
 import PatientList from './pages/PatientList'; // Task 4.10: Patient module routes
 import PatientDetail from './pages/PatientDetail'; // Task 4.10: Patient module routes
+import ClinicalHistoryList from './pages/ClinicalHistoryList';
 import ProtectedRoute from './components/ProtectedRoute';
 import TenantSwitcher from './components/TenantSwitcher'; // Dev mode tenant switcher
 import { ColorModeContext } from './context/ColorModeContext';
@@ -228,6 +229,32 @@ const App = () => {
                         }}
                       >
                         <PatientDetail />
+                      </Box>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/historias-clinicas"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          p: 3,
+                          width: '1200px',
+                          maxWidth: '1200px',
+                          mx: 'auto',
+                          '@media (max-width: 1200px)': {
+                            maxWidth: '100%',
+                            px: { xs: 2, sm: 3 }
+                          }
+                        }}
+                      >
+                        <ClinicalHistoryList />
                       </Box>
                     </Layout>
                   </ProtectedRoute>
