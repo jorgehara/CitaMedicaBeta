@@ -37,6 +37,48 @@ interface RetryConfig extends InternalAxiosRequestConfig {
     _retryDelay?: number;
 }
 
+// Clave para guardar el tenant seleccionado en localStorage
+const TENANT_SUBDOMAIN_KEY = 'tenant_subdomain';
+
+// Función para obtener el subdominio del tenant desde la URL o localStorage
+function getTenantSubdomain(): string | null {
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    
+    // Si es localhost o 127.0.0.1, usar localStorage si está seteado
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return localStorage.getItem(TENANT_SUBDOMAIN_KEY);
+    }
+    
+    // Si tiene formato *.localhost (desarrollo con subdominio)
+    if (parts[parts.length - 1] === 'localhost') {
+        const subdomain = parts.length >= 2 ? parts[0] : null;
+        // Guardar en localStorage para persistir
+        if (subdomain) {
+            localStorage.setItem(TENANT_SUBDOMAIN_KEY, subdomain);
+        }
+        return subdomain;
+    }
+    
+    // Dominio normal: *.micitamedica.me
+    if (parts.length >= 3) {
+        const subdomain = parts[0];
+        localStorage.setItem(TENANT_SUBDOMAIN_KEY, subdomain);
+        return subdomain;
+    }
+    
+    return localStorage.getItem(TENANT_SUBDOMAIN_KEY);
+}
+
+// Exportar función para que otros componentes puedan setear el tenant
+export const setTenantSubdomain = (subdomain: string | null) => {
+    if (subdomain) {
+        localStorage.setItem(TENANT_SUBDOMAIN_KEY, subdomain);
+    } else {
+        localStorage.removeItem(TENANT_SUBDOMAIN_KEY);
+    }
+};
+
 // Interceptor de peticiones - Agregar JWT token o token público
 axiosInstance.interceptors.request.use(
     (config) => {
@@ -53,9 +95,16 @@ axiosInstance.interceptors.request.use(
             config.headers.Authorization = `Bearer ${publicToken}`;
         }
 
+        // Agregar header de subdominio para multi-tenant
+        const subdomain = getTenantSubdomain();
+        if (subdomain) {
+            config.headers['X-Tenant-Subdomain'] = subdomain;
+        }
+
         console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
             hasUserToken: !!userToken,
-            hasPublicToken: !!publicToken
+            hasPublicToken: !!publicToken,
+            tenantSubdomain: subdomain
         });
 
         return config;

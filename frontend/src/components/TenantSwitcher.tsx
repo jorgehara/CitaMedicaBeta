@@ -30,21 +30,38 @@ const TenantSwitcher = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    // Solo mostrar en localhost
-    const isDev = window.location.hostname.includes('localhost');
+    const hostname = window.location.hostname;
+    const isDev = hostname.includes('localhost') || hostname.includes('.trycloudflare.com');
     setIsDevMode(isDev);
 
     if (isDev) {
-      // Detectar tenant actual
-      const hostname = window.location.hostname;
-      const detected = TENANTS.find(t => hostname.includes(t.subdomain)) || TENANTS[0];
-      setCurrentTenant(detected);
+      const isTunnel = hostname.includes('.trycloudflare.com');
+      if (isTunnel) {
+        // En tunnel: leer tenant desde cookie (el proxy de Vite la lee para inyectar Host header)
+        const match = document.cookie.match(/dev-tenant=([^;]+)/);
+        const stored = match ? decodeURIComponent(match[1]) : null;
+        const detected = TENANTS.find(t => t.subdomain === stored) || TENANTS[0];
+        setCurrentTenant(detected);
+      } else {
+        const detected = TENANTS.find(t => hostname.includes(t.subdomain)) || TENANTS[0];
+        setCurrentTenant(detected);
+      }
     }
   }, []);
 
   const handleSwitchTenant = (tenant: Tenant) => {
-    const currentPath = window.location.pathname + window.location.search;
-    window.location.href = tenant.url + currentPath;
+    const hostname = window.location.hostname;
+    const isTunnel = hostname.includes('.trycloudflare.com');
+
+    if (isTunnel) {
+      // En tunnel: guardar en cookie y recargar — el proxy de Vite la leerá
+      // para inyectar el Host header correcto hacia el backend
+      document.cookie = `dev-tenant=${encodeURIComponent(tenant.subdomain)}; path=/; max-age=86400`;
+      window.location.reload();
+    } else {
+      const currentPath = window.location.pathname + window.location.search;
+      window.location.href = tenant.url + currentPath;
+    }
   };
 
   if (!isDevMode) return null;

@@ -3,10 +3,16 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { Alert, CircularProgress } from '@mui/material';
-import { FaUserDoctor, FaEnvelope, FaLock, FaArrowRight, FaUserPlus, FaEye, FaEyeSlash } from 'react-icons/fa6';
+import { FaUserDoctor, FaEnvelope, FaLock, FaArrowRight, FaUserPlus, FaEye, FaEyeSlash, FaCode } from 'react-icons/fa6';
 import { useAuth } from '../context/AuthContext';
 import { useClinicConfig } from '../context/ClinicConfigContext';
 import type { LoginCredentials } from '../types/auth';
+
+const DEV_USERS = [
+  { label: 'Dr. Kulinka', email: 'dr-kulinka@citamedica.com', password: '123456', subdomain: 'dr-kulinka' },
+  { label: 'Od. Villalba', email: 'melina@od-melinavillalba.com', password: '123456', subdomain: 'od-melinavillalba' },
+  { label: 'Operador', email: 'operador@test.com', password: '123456', subdomain: 'od-melinavillalba' },
+];
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,6 +25,7 @@ const Login = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginCredentials>({
     defaultValues: {
@@ -26,6 +33,15 @@ const Login = () => {
       password: '',
     },
   });
+
+  const fillDevCredentials = (email: string, password: string, subdomain: string | null) => {
+    setValue('email', email);
+    setValue('password', password);
+    // Guardar subdomain para requests multi-tenant
+    if (subdomain) {
+      localStorage.setItem('tenant_subdomain', subdomain);
+    }
+  };
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
@@ -250,13 +266,42 @@ const Login = () => {
             </Link>
           </motion.div>
 
+          {/* Dev Quick Login — solo visible en desarrollo */}
+          {import.meta.env.DEV && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="mt-6 pt-4 border-t border-dashed border-purple-300 dark:border-purple-700"
+            >
+              <div className="flex items-center justify-center gap-1 mb-3">
+                <FaCode className="text-purple-400 text-xs" />
+                <span className="text-xs font-mono text-purple-400 dark:text-purple-500">
+                  DEV — Quick Login
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {DEV_USERS.map((u) => (
+                  <button
+                    key={u.email}
+                    type="button"
+                    onClick={() => fillDevCredentials(u.email, u.password, u.subdomain)}
+                    className="flex-1 text-xs py-2 px-3 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800/60 border border-purple-200 dark:border-purple-700 transition-all duration-200 font-medium"
+                  >
+                    {u.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Footer Info */}
           {clinicName && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="mt-8 text-center"
+              transition={{ delay: 0.8 }}
+              className="mt-4 text-center"
             >
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 {clinicName}

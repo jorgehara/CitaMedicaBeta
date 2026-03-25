@@ -34,21 +34,38 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 
 // Configuración de CORS mejorada
+const staticAllowedOrigins = process.env.CORS_ORIGINS && process.env.CORS_ORIGINS !== '*'
+    ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+    : [
+        'http://localhost:4173',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:3000',
+        'http://localhost:3008',
+        'http://localhost:3009',
+        'https://micitamedica.me',
+        'https://od-melinavillalba.micitamedica.me'
+    ];
+
 const corsOptions = {
-    origin: process.env.CORS_ORIGINS && process.env.CORS_ORIGINS !== '*'
-        ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
-        : [
-            'http://localhost:4173',
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'http://localhost:3000',
-            'http://localhost:3008',
-            'http://localhost:3009',
-            'https://micitamedica.me',
-            'https://od-melinavillalba.micitamedica.me'
-        ],
+    origin: (origin, callback) => {
+        // Permitir requests sin origin (mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+
+        // Verificar origen exacto en la lista
+        if (staticAllowedOrigins.includes(origin)) return callback(null, true);
+
+        // Permitir cualquier subdominio de localhost en desarrollo
+        if (/^https?:\/\/[^.]+\.localhost(:\d+)?$/.test(origin)) return callback(null, true);
+
+        // Permitir cualquier subdominio de micitamedica.me en producción
+        if (/^https:\/\/[^.]+\.micitamedica\.me$/.test(origin)) return callback(null, true);
+
+        console.warn(`[CORS] Origen bloqueado: ${origin}`);
+        callback(new Error(`CORS: origen no permitido: ${origin}`));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-API-Key'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-API-Key', 'X-Tenant-Subdomain'],
     credentials: true,
     optionsSuccessStatus: 200,
     preflightContinue: false

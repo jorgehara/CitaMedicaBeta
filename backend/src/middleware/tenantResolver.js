@@ -28,8 +28,27 @@ module.exports = async function tenantResolver(req, res, next) {
         const host = (req.headers.host || '').split(':')[0]; // quitar puerto si existe
         const parts = host.split('.');
 
-        // Subdominio: solo si hay 3+ partes y la primera no es "www" ni "localhost"
-        const subdomain = (parts.length >= 3 && parts[0] !== 'www') ? parts[0] : null;
+        // SOPORTE PARA DESARROLLO: permitir forzar tenant via header X-Tenant-Subdomain
+        // Esto es útil cuando el browser no manda el subdominio en el Host (localhost)
+        let subdomain = req.headers['x-tenant-subdomain'] || null;
+        
+        if (!subdomain) {
+            // Detectar subdominio: manejar *.localhost y dominios normales
+            if (host === 'localhost' || host === '127.0.0.1') {
+                // localhost puro -> clínica por defecto (dr-kulinka con subdomain: null)
+                subdomain = null;
+            } else if (parts[parts.length - 2] === 'localhost' || parts[parts.length - 1] === 'localhost') {
+                // *.localhost:5173 -> extraer subdominio (od-melinavillalba.localhost)
+                if (parts.length >= 2 && parts[0] !== 'www') {
+                    subdomain = parts[0];
+                }
+            } else if (parts.length >= 3 && parts[0] !== 'www') {
+                // Dominio normal: *.micitamedica.me
+                subdomain = parts[0];
+            }
+        }
+
+        console.log(`[TENANT] Host: ${host} -> Subdomain: ${subdomain} (header: ${req.headers['x-tenant-subdomain'] || 'none'})`);
 
         const clinic = await getClinicBySubdomain(subdomain);
 

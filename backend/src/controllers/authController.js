@@ -125,10 +125,13 @@ exports.login = async (req, res) => {
 
         const { email, password } = req.body;
 
+        console.log(`[AUTH] Login attempt: ${email}, clinicId from request: ${req.clinicId}`);
+
         // Buscar usuario por email (incluir password explícitamente)
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
+            console.log(`[AUTH] User not found: ${email}`);
             return res.status(401).json({
                 success: false,
                 message: 'Credenciales inválidas'
@@ -145,6 +148,7 @@ exports.login = async (req, res) => {
 
         // Verificar contraseña
         const isPasswordValid = await user.comparePassword(password);
+        console.log(`[AUTH] Password valid: ${isPasswordValid}, user.clinicId: ${user.clinicId}`);
 
         if (!isPasswordValid) {
             return res.status(401).json({
@@ -154,12 +158,24 @@ exports.login = async (req, res) => {
         }
 
         // Verificar que el usuario pertenece a la clínica del request
-        if (req.clinicId && user.clinicId &&
-            user.clinicId.toString() !== req.clinicId.toString()) {
-            return res.status(401).json({
-                success: false,
-                message: 'Credenciales inválidas'
-            });
+        // En desarrollo, si no hay match de clínica, permitir login si el usuario es admin
+        console.log(`[AUTH] Clinic check: req.clinicId=${req.clinicId}, user.clinicId=${user.clinicId}`);
+        
+        const isDevMode = process.env.NODE_ENV !== 'production';
+        const clinicMatch = !req.clinicId || !user.clinicId || 
+            user.clinicId.toString() === req.clinicId.toString();
+        
+        if (!clinicMatch) {
+            if (isDevMode && user.role === 'admin') {
+                console.log(`[AUTH] DEV MODE: Allow admin login despite clinic mismatch`);
+                // En dev, admin puede entrar desde cualquier clínica
+            } else {
+                console.log(`[AUTH] Clinic mismatch!`);
+                return res.status(401).json({
+                    success: false,
+                    message: 'Credenciales inválidas'
+                });
+            }
         }
 
         // Actualizar último login
