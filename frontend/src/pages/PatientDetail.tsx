@@ -459,186 +459,223 @@ const PatientDetail = () => {
         </ScaleIn>
       </Box>
 
-      {/* Clinical Histories Section */}
+      {/* Clinical Histories Section - TRELLO STYLE */}
       <ScaleIn delay={0.4}>
-        <Card>
-          <CardContent>
-            <Box className="flex items-center justify-between mb-4">
-              <Typography variant="h6" className="font-semibold">
-                Historias Clínicas ({clinicalHistories.length})
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleCreateClinicalHistory}
-                className="bg-blue-500 hover:bg-blue-600"
-              >
-                Nueva Historia Clínica
-              </Button>
-            </Box>
+        <Box className="mb-6">
+          <Box className="flex items-center justify-between mb-4">
+            <Typography variant="h6" className="font-semibold">
+              Historias Clínicas ({clinicalHistories.length})
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateClinicalHistory}
+              size="small"
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Nueva Visita
+            </Button>
+          </Box>
 
-            {clinicalHistories.length === 0 ? (
-              <Box className="text-center py-8">
-                <LocalHospitalIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+          {clinicalHistories.length === 0 ? (
+            <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
+              <CardContent className="text-center py-8">
+                <LocalHospitalIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
                 <Typography variant="body1" color="text.secondary">
-                  No hay historias clínicas registradas
+                  No hay visitas registradas
                 </Typography>
-                <Typography variant="body2" color="text.secondary" className="mt-1">
-                  Comienza creando la primera historia clínica de {patient.firstName}
+                <Typography variant="body2" color="text.secondary">
+                  Agregá la primera visita de {patient.firstName}
                 </Typography>
-              </Box>
-            ) : (
-              <Box className="space-y-3">
-                {clinicalHistories.map((history) => {
-                  const isExpanded = expandedHistoryId === history._id;
-                  const helkimoAiColor = history.helkimoAiClassification === 'Ai0' ? 'success' : 
-                                         history.helkimoAiClassification === 'AiI' ? 'warning' : 'error';
-                  const helkimoDiColor = history.helkimoDiClassification === 'Di0' ? 'success' : 
-                                         history.helkimoDiClassification === 'DiI' ? 'info' :
-                                         history.helkimoDiClassification === 'DiII' ? 'warning' : 'error';
-                  
-                  return (
-                    <Card key={history._id} className="border border-gray-200 dark:border-gray-700">
-                      <CardContent>
-                        {/* History Header - Always visible */}
-                        <Box className="flex items-start justify-between mb-3">
+              </CardContent>
+            </Card>
+          ) : (
+            /* TRELLO-STYLE CARD STACK */
+            <Box 
+              className="space-y-3"
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              {clinicalHistories.map((history, index) => {
+                const isExpanded = expandedHistoryId === history._id;
+                const helkimoAiColor = history.helkimoAiClassification === 'Ai0' ? 'success' : 
+                                       history.helkimoAiClassification === 'AiI' ? 'warning' : 'error';
+                const helkimoDiColor = history.helkimoDiClassification === 'Di0' ? 'success' : 
+                                       history.helkimoDiClassification === 'DiI' ? 'info' :
+                                       history.helkimoDiClassification === 'DiII' ? 'warning' : 'error';
+                
+                return (
+                  <motion.div
+                    key={history._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    {/* TRELLO CARD */}
+                    <Card 
+                      className={`
+                        transition-all duration-200 cursor-pointer
+                        hover:shadow-lg hover:-translate-y-0.5
+                        ${isExpanded ? 'ring-2 ring-blue-500 shadow-lg' : 'shadow-md border border-gray-200 dark:border-gray-700'}
+                      `}
+                      onClick={() => handleClinicalHistoryClick(history._id)}
+                      sx={{
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <CardContent className="p-3">
+                        {/* Card Header - Always visible */}
+                        <Box className="flex items-start justify-between">
                           <Box className="flex-1">
-                            <Typography variant="h6" className="font-semibold mb-1">
+                            {/* Date Badge */}
+                            <Chip
+                              icon={<span>📅</span>}
+                              label={format(new Date(history.date), "dd MMM yyyy", { locale: es })}
+                              size="small"
+                              className="mb-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-medium"
+                              sx={{ borderRadius: '4px' }}
+                            />
+                            
+                            {/* Chief Complaint - Main Title */}
+                            <Typography 
+                              variant="subtitle1" 
+                              className="font-semibold mb-1 leading-tight"
+                              sx={{ fontSize: '1rem' }}
+                            >
                               {history.chiefComplaint}
                             </Typography>
-                            <Typography variant="body2" className="text-gray-600 dark:text-gray-400 mb-2">
-                              {format(new Date(history.date), "d 'de' MMMM 'de' yyyy", { locale: es })}
-                            </Typography>
-                            <Box className="flex gap-2 flex-wrap">
+                            
+                            {/* Helkimo Indices */}
+                            <Box className="flex gap-1.5 flex-wrap mt-2">
                               <Chip
-                                label={`Helkimo AI: ${history.helkimoAiClassification}`}
+                                label={`AI: ${history.helkimoAiClassification}`}
                                 size="small"
                                 color={helkimoAiColor}
-                                className="font-semibold"
+                                className="font-semibold text-xs"
+                                sx={{ height: '22px', fontSize: '0.7rem' }}
                               />
                               <Chip
-                                label={`Helkimo DI: ${history.helkimoDiClassification}`}
+                                label={`DI: ${history.helkimoDiClassification}`}
                                 size="small"
                                 color={helkimoDiColor}
-                                className="font-semibold"
+                                className="font-semibold text-xs"
+                                sx={{ height: '22px', fontSize: '0.7rem' }}
                               />
                             </Box>
                           </Box>
+
+                          {/* Quick Actions */}
+                          <Box className="flex flex-col gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                            <Tooltip title="Editar">
+                              <IconButton 
+                                size="small" 
+                                className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                onClick={() => handleClinicalHistoryClick(history._id)}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Agregar Seguimiento">
+                              <IconButton 
+                                size="small" 
+                                className="text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenFollowUpDialog(history._id);
+                                }}
+                              >
+                                <AddIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
                         </Box>
 
-                        <Divider className="my-3" />
-
-                        {/* Action Buttons */}
-                        <Box className="flex gap-2 flex-wrap">
-                          <Button
-                            size="small"
-                            variant={isExpanded ? "contained" : "outlined"}
-                            onClick={() => handleClinicalHistoryClick(history._id)}
-                            disabled={loadingHistoryDetails}
-                          >
-                            {loadingHistoryDetails && isExpanded ? (
-                              <CircularProgress size={16} className="mr-2" />
-                            ) : null}
-                            {isExpanded ? 'Ocultar Detalles' : 'Ver Detalles'}
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => handleOpenFollowUpDialog(history._id)}
-                          >
-                            Agregar Seguimiento
-                          </Button>
-                        </Box>
-
-                        {/* Expanded Details */}
+                        {/* Expanded Details - TRELLO CARD BACK */}
                         {isExpanded && expandedHistoryDetails && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="mt-4"
+                            transition={{ duration: 0.2 }}
+                            className="mt-3"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <Divider className="mb-4" />
+                            <Divider className="my-3" />
                             
-                            {/* Diagnosis Section */}
-                            <Box className="mb-4">
-                              <Typography variant="subtitle2" className="font-semibold mb-2">
+                            {/* Diagnosis */}
+                            <Box className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+                              <Typography variant="caption" className="text-yellow-700 dark:text-yellow-400 font-semibold uppercase">
                                 Diagnóstico
                               </Typography>
-                              <Typography variant="body2" className="text-gray-700 dark:text-gray-300">
-                                <strong>Principal:</strong> {expandedHistoryDetails.diagnosis.primary}
+                              <Typography variant="body2" className="text-gray-800 dark:text-gray-200">
+                                {expandedHistoryDetails.diagnosis.primary}
                               </Typography>
                               {expandedHistoryDetails.diagnosis.secondary && expandedHistoryDetails.diagnosis.secondary.length > 0 && (
-                                <Typography variant="body2" className="text-gray-700 dark:text-gray-300 mt-1">
-                                  <strong>Secundario:</strong> {expandedHistoryDetails.diagnosis.secondary.join(', ')}
+                                <Typography variant="caption" className="text-gray-600 dark:text-gray-400 mt-1 block">
+                                  Secundario: {expandedHistoryDetails.diagnosis.secondary.join(', ')}
                                 </Typography>
                               )}
                             </Box>
 
-                            {/* Treatment Plan Section */}
-                            {expandedHistoryDetails.treatmentPlan && (
-                              <Box className="mb-4">
-                                <Typography variant="subtitle2" className="font-semibold mb-2">
+                            {/* Treatment Plan */}
+                            {expandedHistoryDetails.treatmentPlan && expandedHistoryDetails.treatmentPlan.notes && (
+                              <Box className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                                <Typography variant="caption" className="text-blue-700 dark:text-blue-400 font-semibold uppercase">
                                   Plan de Tratamiento
                                 </Typography>
-                                <Typography variant="body2" className="text-gray-700 dark:text-gray-300">
+                                <Typography variant="body2" className="text-gray-800 dark:text-gray-200">
                                   {expandedHistoryDetails.treatmentPlan.notes}
                                 </Typography>
-                                {expandedHistoryDetails.treatmentPlan.estimatedDuration && (
-                                  <Typography variant="caption" className="text-gray-500 mt-1 block">
-                                    Duración estimada: {expandedHistoryDetails.treatmentPlan.estimatedDuration}
-                                  </Typography>
-                                )}
                               </Box>
                             )}
 
-                            {/* Follow-ups Section */}
-                            <Box className="mt-4">
-                              <Typography variant="subtitle2" className="font-semibold mb-2">
+                            {/* Follow-ups as mini cards */}
+                            <Box className="mt-3">
+                              <Typography variant="caption" className="text-gray-500 font-semibold uppercase mb-2 block">
                                 Seguimientos ({followUpsByHistory[history._id]?.length || 0})
                               </Typography>
                               
                               {followUpsByHistory[history._id] && followUpsByHistory[history._id].length > 0 ? (
                                 <Box className="space-y-2">
-                                  {followUpsByHistory[history._id].map((followUp) => (
-                                    <Card key={followUp._id} variant="outlined" className="bg-gray-50 dark:bg-gray-800">
-                                      <CardContent className="py-2">
-                                        <Box className="flex items-start justify-between mb-2">
-                                          <Typography variant="caption" className="text-gray-500 font-semibold">
-                                            {format(new Date(followUp.date), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                                  {followUpsByHistory[history._id].map((followUp, idx) => (
+                                    <Card 
+                                      key={followUp._id} 
+                                      variant="outlined" 
+                                      className="bg-white dark:bg-gray-800 border-l-4 border-l-green-500"
+                                      sx={{ borderRadius: '4px' }}
+                                    >
+                                      <CardContent className="py-2 px-2">
+                                        <Box className="flex items-center justify-between mb-1">
+                                          <Typography variant="caption" className="text-green-600 dark:text-green-400 font-semibold">
+                                            📅 {format(new Date(followUp.date), "dd/MM/yyyy", { locale: es })}
                                           </Typography>
                                         </Box>
-                                        <Typography variant="body2" className="text-gray-700 dark:text-gray-300 mb-2">
+                                        <Typography variant="body2" className="text-gray-700 dark:text-gray-300 text-sm">
                                           {followUp.evolution}
                                         </Typography>
-                                        {followUp.symptomsUpdate && (
-                                          <Box className="flex gap-2 flex-wrap">
-                                            {followUp.symptomsUpdate.status && (
-                                              <Chip
-                                                label={`Síntomas: ${followUp.symptomsUpdate.status === 'improved' ? 'Mejoraron' : 
-                                                                      followUp.symptomsUpdate.status === 'worsened' ? 'Empeoraron' :
-                                                                      followUp.symptomsUpdate.status === 'resolved' ? 'Resueltos' : 'Estables'}`}
-                                                size="small"
-                                                color={followUp.symptomsUpdate.status === 'improved' || followUp.symptomsUpdate.status === 'resolved' ? 'success' : 
-                                                       followUp.symptomsUpdate.status === 'worsened' ? 'error' : 'default'}
-                                              />
-                                            )}
-                                          </Box>
-                                        )}
-                                        {followUp.treatmentUpdates && followUp.treatmentUpdates.length > 0 && (
-                                          <Typography variant="caption" className="text-gray-500 mt-2 block">
-                                            {followUp.treatmentUpdates.length} actualización(es) de tratamiento
-                                          </Typography>
+                                        {followUp.symptomsUpdate?.status && (
+                                          <Chip
+                                            label={`Síntomas: ${followUp.symptomsUpdate.status === 'improved' ? '✓ Mejoraron' : 
+                                                                  followUp.symptomsUpdate.status === 'worsened' ? '✗ Empeoraron' :
+                                                                  followUp.symptomsUpdate.status === 'resolved' ? '✓ Resueltos' : '→ Estables'}`}
+                                            size="small"
+                                            color={followUp.symptomsUpdate.status === 'improved' || followUp.symptomsUpdate.status === 'resolved' ? 'success' : 
+                                                   followUp.symptomsUpdate.status === 'worsened' ? 'error' : 'default'}
+                                            className="mt-1 text-xs"
+                                            sx={{ height: '20px', fontSize: '0.65rem' }}
+                                          />
                                         )}
                                       </CardContent>
                                     </Card>
                                   ))}
                                 </Box>
                               ) : (
-                                <Typography variant="body2" color="text.secondary" className="italic">
-                                  No hay seguimientos registrados
+                                <Typography variant="caption" color="text.secondary" className="italic">
+                                  Sin seguimientos aún
                                 </Typography>
                               )}
                             </Box>
@@ -646,12 +683,12 @@ const PatientDetail = () => {
                         )}
                       </CardContent>
                     </Card>
-                  );
-                })}
-              </Box>
-            )}
-          </CardContent>
-        </Card>
+                  </motion.div>
+                );
+              })}
+            </Box>
+          )}
+        </Box>
       </ScaleIn>
 
       {/* Delete Confirmation Dialog */}
