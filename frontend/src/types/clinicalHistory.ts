@@ -133,6 +133,7 @@ export interface TreatmentProcedure {
 }
 
 export interface TreatmentPlan {
+  description?: string; // General treatment plan description
   procedures: TreatmentProcedure[];
   estimatedDuration?: string;
   totalCost?: number;
@@ -178,6 +179,7 @@ export interface ClinicalHistory {
   attachments?: Attachment[];
   
   // Metadata
+  consultationDate?: string; // YYYY-MM-DD (optional, defaults to createdAt)
   createdAt: string;
   updatedAt: string;
 }
@@ -197,6 +199,7 @@ export interface FollowUp {
   symptomsUpdate?: {
     status: 'improved' | 'worsened' | 'stable' | 'resolved';
     notes?: string;
+    painLevel?: number; // 0-10 scale
   };
   
   treatmentUpdates?: Array<{

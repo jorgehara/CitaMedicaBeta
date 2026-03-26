@@ -10,7 +10,7 @@ import Register from './pages/Register';
 import ChangePassword from './pages/ChangePassword';
 import BookAppointment from './pages/BookAppointment';
 import PatientList from './pages/PatientList'; // Task 4.10: Patient module routes
-import PatientDetail from './pages/PatientDetail'; // Task 4.10: Patient module routes
+import PatientDetailFeed from './pages/PatientDetailFeed'; // Facebook-style feed with clinical histories
 import ClinicalHistoryList from './pages/ClinicalHistoryList';
 import ProtectedRoute from './components/ProtectedRoute';
 import TenantSwitcher from './components/TenantSwitcher'; // Dev mode tenant switcher
@@ -228,7 +228,7 @@ const App = () => {
                           }
                         }}
                       >
-                        <PatientDetail />
+                        <PatientDetailFeed />
                       </Box>
                     </Layout>
                   </ProtectedRoute>

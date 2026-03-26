@@ -93,8 +93,22 @@ class ClinicalHistoryService {
    */
   async getSummariesByPatient(patientId: string): Promise<ClinicalHistorySummary[]> {
     try {
-      const response = await axiosInstance.get<ApiResponse<ClinicalHistorySummary[]>>(`/clinical-histories/patient/${patientId}/summaries`);
-      return response.data.data;
+      // Use the correct endpoint that exists in the backend
+      const response = await axiosInstance.get<ApiResponse<ClinicalHistory[]>>(`/patients/${patientId}/clinical-histories`);
+      
+      // Transform full clinical histories to summaries
+      const histories = response.data.data;
+      return histories.map(h => ({
+        _id: h._id,
+        patient: h.patient,
+        chiefComplaint: h.chiefComplaint,
+        date: h.consultationDate || h.createdAt,
+        helkimoAiClassification: h.helkimoIndex?.ai?.classification || 'Sin clasificación',
+        helkimoDiClassification: h.helkimoIndex?.di?.classification || 'Sin clasificación',
+        diagnosis: h.diagnosis,
+        createdAt: h.createdAt,
+        updatedAt: h.updatedAt,
+      }));
     } catch (error) {
       console.error('[ClinicalHistoryService] Error fetching clinical history summaries:', error);
       if (axios.isAxiosError(error)) {
