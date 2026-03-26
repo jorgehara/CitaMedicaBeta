@@ -421,7 +421,14 @@ const PatientDetailFeed = () => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               InputProps={{
-                startAdornment: <SearchIcon className="mr-2 text-gray-400" />,
+                startAdornment: (
+                  <SearchIcon 
+                    sx={{ 
+                      color: 'text.secondary',
+                      mr: 1 
+                    }} 
+                  />
+                ),
               }}
             />
 

@@ -183,7 +183,7 @@ const PatientList = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon className="text-gray-400" />
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
                 </InputAdornment>
               ),
             }}
@@ -272,14 +272,14 @@ const PatientList = () => {
                     <Box className="space-y-1">
                       {patient.dni && (
                         <Box className="flex items-center gap-2 text-sm">
-                          <BadgeIcon className="text-gray-400" fontSize="small" />
+                          <BadgeIcon sx={{ color: 'text.secondary' }} fontSize="small" />
                           <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
                             DNI: {patient.dni}
                           </Typography>
                         </Box>
                       )}
                       <Box className="flex items-center gap-2 text-sm">
-                        <PhoneIcon className="text-gray-400" fontSize="small" />
+                        <PhoneIcon sx={{ color: 'text.secondary' }} fontSize="small" />
                         <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
                           {patient.phone}
                         </Typography>

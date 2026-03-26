@@ -43,13 +43,33 @@ const App = () => {
           text: {
             primary: mode === 'dark' ? '#ffffff' : '#2c3e50',
             secondary: mode === 'dark' ? '#b0bec5' : '#7f8c8d',
+            disabled: mode === 'dark' ? '#757575' : '#9e9e9e',
           },
           background: {
             default: mode === 'dark' ? '#0a1929' : '#f5f5f5',
             paper: mode === 'dark' ? '#1e1e2f' : '#ffffff',
           },
+          divider: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
         },
         components: {
+          MuiTextField: {
+            styleOverrides: {
+              root: {
+                '& .MuiInputBase-input': {
+                  color: mode === 'dark' ? '#ffffff' : '#2c3e50',
+                },
+                '& .MuiInputBase-input::placeholder': {
+                  color: mode === 'dark' ? '#b0bec5' : '#7f8c8d',
+                  opacity: 0.7,
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : 'rgba(0, 0, 0, 0.23)',
+                  },
+                },
+              },
+            },
+          },
           MuiIconButton: {
             styleOverrides: {
               root: {
@@ -61,6 +81,13 @@ const App = () => {
             styleOverrides: {
               h6: {
                 color: mode === 'dark' ? '#ffffff' : '#2c3e50',
+              },
+            },
+          },
+          MuiChip: {
+            styleOverrides: {
+              root: {
+                backgroundColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
               },
             },
           },

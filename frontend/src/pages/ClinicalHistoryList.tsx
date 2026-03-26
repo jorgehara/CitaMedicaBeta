@@ -385,7 +385,7 @@ const ClinicalHistoryList = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon className="text-gray-400" />
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
                 </InputAdornment>
               ),
             }}
@@ -490,7 +490,7 @@ const ClinicalHistoryList = () => {
                         
                         {history.patientData && (
                           <Box className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                            <PersonIcon fontSize="small" className="text-gray-400" />
+                            <PersonIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                             <span 
                               className="cursor-pointer hover:text-blue-500"
                               onClick={() => handlePatientClick(history.patient)}
