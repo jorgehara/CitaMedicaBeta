@@ -15,11 +15,14 @@
 
 ## 🏥 Otras Clínicas Disponibles
 
-### Od. Melina Villalba
+### Od. Melina Villalba ✅ (CON DATOS)
 - **Email:** `melina@od-melinavillalba.com`
 - **Password:** `123456`
 - **URL:** http://od-melinavillalba.localhost:5173
-- **Datos:** 1 Paciente (PAC-0001)
+- **Datos disponibles:**
+  - ✅ 21 Pacientes (PAC-0001, PAC-0050 a PAC-0069)
+  - ✅ 47 Historias Clínicas
+  - ✅ 20 Seguimientos
 
 ### Dr. Kulinka (clínica secundaria)
 - **Email:** `dr-kulinka@citamedica.com`
@@ -41,8 +44,9 @@
 | Clínica | Pacientes | Historias | Seguimientos |
 |---------|-----------|-----------|--------------|
 | **micitamedica** (Principal) | 48 | 109 | 54 |
-| od-melinavillalba | 1 | 0 | 0 |
+| **od-melinavillalba** ✅ | 21 | 47 | 20 |
 | dr-kulinka | 0 | 0 | 0 |
+| **TOTAL** | **69** | **156** | **74** |
 
 ---
 
