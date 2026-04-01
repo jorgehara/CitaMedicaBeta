@@ -20,8 +20,9 @@ const ChatbotQR: React.FC = () => {
       const token = authService.getToken();
       if (!token) throw new Error('Sin sesión activa');
 
-      // Dr. Kulinka usa /api/qr, Odontología usa /api/qr/odontologia
-      const endpoint = isOdontologia ? `/api/qr/odontologia?t=${Date.now()}` : `/api/qr?t=${Date.now()}`;
+      // Dr. Kulinka → proxy Nginx al chatbot (sirve QR como PNG directo)
+      // Odontología → backend sirve bot.qr.png del disco
+      const endpoint = isOdontologia ? `/api/qr/odontologia?t=${Date.now()}` : `/api/chatbot-qr?t=${Date.now()}`;
 
       const response = await fetch(endpoint, {
         headers: { 'Authorization': `Bearer ${token}` },
