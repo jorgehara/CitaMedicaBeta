@@ -10,6 +10,9 @@ router.get('/unavailability', flexibleAuth, unavailabilityController.getAll);
 // POST - Crear bloqueo (solo JWT - usuario autenticado del dashboard)
 router.post('/unavailability', auth, unavailabilityController.create);
 
+// POST - Crear bloqueos masivos (solo JWT - usuario autenticado del dashboard)
+router.post('/unavailability/bulk', auth, unavailabilityController.createBulk);
+
 // DELETE - Eliminar bloqueo (solo JWT - usuario autenticado del dashboard)
 router.delete('/unavailability/:id', auth, unavailabilityController.remove);
 

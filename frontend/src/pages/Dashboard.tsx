@@ -62,7 +62,8 @@ const Dashboard = () => {
 
   // Estado de gestión de disponibilidad
   const [unavailBlocks, setUnavailBlocks] = useState<UnavailabilityBlock[]>([]);
-  const [unavailDate, setUnavailDate] = useState(today);
+  const [unavailStartDate, setUnavailStartDate] = useState(today);
+  const [unavailEndDate, setUnavailEndDate] = useState(today);
   const [unavailPeriod, setUnavailPeriod] = useState<'morning' | 'afternoon' | 'full'>('full');
   const [unavailLoading, setUnavailLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -173,13 +174,52 @@ const Dashboard = () => {
 
   useEffect(() => { loadUnavailBlocks(); }, [loadUnavailBlocks]);
 
-  // Crear bloqueo
+  // Generar array de fechas entre startDate y endDate (solo días hábiles)
+  const generateDateRange = (start: string, end: string): string[] => {
+    const dates: string[] = [];
+    const startD = new Date(start + 'T00:00:00');
+    const endD = new Date(end + 'T00:00:00');
+    
+    let currentDate = new Date(startD);
+    while (currentDate <= endD) {
+      const dayOfWeek = currentDate.getDay();
+      // Solo días hábiles (lunes a sábado: 1-6, excluyendo domingo: 0)
+      if (dayOfWeek !== 0) {
+        dates.push(currentDate.toISOString().split('T')[0]);
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dates;
+  };
+
+  // Crear bloqueo (único o múltiple)
   const handleCreateBlock = async () => {
-    if (!unavailDate) return;
+    if (!unavailStartDate) return;
     setUnavailLoading(true);
     try {
-      await axiosInstance.post('/unavailability', { date: unavailDate, period: unavailPeriod });
-      setSnackbar({ open: true, message: `Bloqueo creado: ${PERIOD_LABELS[unavailPeriod]} del ${unavailDate}`, severity: 'success' });
+      const dates = generateDateRange(unavailStartDate, unavailEndDate);
+      
+      if (dates.length === 0) {
+        setSnackbar({ open: true, message: 'No hay días hábiles en el rango seleccionado', severity: 'error' });
+        setUnavailLoading(false);
+        return;
+      }
+
+      if (dates.length === 1) {
+        // Crear bloqueo único
+        await axiosInstance.post('/unavailability', { date: dates[0], period: unavailPeriod });
+        setSnackbar({ open: true, message: `Bloqueo creado: ${PERIOD_LABELS[unavailPeriod]} del ${dates[0]}`, severity: 'success' });
+      } else {
+        // Crear bloqueos masivos
+        const response = await axiosInstance.post('/unavailability/bulk', { dates, period: unavailPeriod });
+        const created = response.data.data?.length || 0;
+        const skipped = response.data.skipped?.length || 0;
+        let msg = `${created} bloqueos creados (${PERIOD_LABELS[unavailPeriod]})`;
+        if (skipped > 0) msg += ` — ${skipped} ya existían`;
+        setSnackbar({ open: true, message: msg, severity: 'success' });
+      }
+      
       await loadUnavailBlocks();
     } catch (e: any) {
       const msg = e?.response?.data?.message || 'Error al crear bloqueo';
@@ -437,12 +477,28 @@ const Dashboard = () => {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-end', mb: 3 }}>
               <TextField
                 type="date"
-                label="Fecha a bloquear"
+                label="Desde"
                 size="small"
-                value={unavailDate}
-                onChange={(e) => setUnavailDate(e.target.value)}
+                value={unavailStartDate}
+                onChange={(e) => {
+                  setUnavailStartDate(e.target.value);
+                  // Si la fecha de fin es anterior, ajustarla
+                  if (unavailEndDate < e.target.value) {
+                    setUnavailEndDate(e.target.value);
+                  }
+                }}
                 InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 160 }}
+                sx={{ minWidth: 150 }}
+              />
+              <TextField
+                type="date"
+                label="Hasta"
+                size="small"
+                value={unavailEndDate}
+                onChange={(e) => setUnavailEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: unavailStartDate }}
+                sx={{ minWidth: 150 }}
               />
               <FormControl size="small" sx={{ minWidth: 160 }}>
                 <InputLabel>Período</InputLabel>
@@ -461,12 +517,17 @@ const Dashboard = () => {
                 color="error"
                 startIcon={<LockIcon />}
                 onClick={handleCreateBlock}
-                disabled={unavailLoading || !unavailDate}
+                disabled={unavailLoading || !unavailStartDate}
                 sx={{ textTransform: 'none' }}
               >
                 {unavailLoading ? 'Bloqueando...' : 'Bloquear turnos'}
               </Button>
             </Box>
+            
+            {/* Ayuda visual */}
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              💡 Seleccioná un rango de fechas para bloquear múltiples días (solo días hábiles de lunes a sábado)
+            </Typography>
 
             {/* Lista de bloqueos activos */}
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
