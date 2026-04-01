@@ -14,19 +14,36 @@ const JWT_SECRET = process.env.JWT_SECRET || 'cita-medica-secret-key-2024-change
  */
 const flexibleAuth = async (req, res, next) => {
     try {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('[FLEXIBLE_AUTH] 🔍 Iniciando autenticación');
+        console.log('[FLEXIBLE_AUTH] URL:', req.url);
+        console.log('[FLEXIBLE_AUTH] Method:', req.method);
+        console.log('[FLEXIBLE_AUTH] Headers:', JSON.stringify(req.headers, null, 2));
+        
         // 1. Intentar autenticación por API Key primero (chatbot)
         const apiKey = req.header('X-API-Key');
+        console.log('[FLEXIBLE_AUTH] X-API-Key header:', apiKey ? '***DEFINIDA***' : '(NO PRESENTE)');
 
         if (apiKey) {
+            console.log('[FLEXIBLE_AUTH] → Autenticación por API Key detectada');
             // Validar contra la API Key de la clínica (multi-tenant) con fallback al env var
-            const validKey = (req.clinic && req.clinic.chatbot && req.clinic.chatbot.apiKey)
+            const clinicKey = (req.clinic && req.clinic.chatbot && req.clinic.chatbot.apiKey)
                 ? req.clinic.chatbot.apiKey
-                : process.env.CHATBOT_API_KEY;
+                : null;
+            const envKey = process.env.CHATBOT_API_KEY;
+            const validKey = clinicKey || envKey;
+            
+            console.log('[FLEXIBLE_AUTH] Clinic API Key:', clinicKey ? '***DEFINIDA***' : '(no configurada)');
+            console.log('[FLEXIBLE_AUTH] Env API Key:', envKey ? '***DEFINIDA***' : '(no configurada)');
+            console.log('[FLEXIBLE_AUTH] Key utilizada:', validKey ? '***DEFINIDA***' : '(NINGUNA)');
+            console.log('[FLEXIBLE_AUTH] Comparación:', apiKey === validKey ? '✅ COINCIDE' : '❌ NO COINCIDE');
 
             if (validKey && apiKey === validKey) {
+                console.log('[FLEXIBLE_AUTH] ✅ Autenticación por API Key EXITOSA');
                 req.isChatbot = true;
                 return next();
             } else {
+                console.log('[FLEXIBLE_AUTH] ❌ API Key inválida');
                 return res.status(403).json({
                     success: false,
                     message: 'API Key inválida.'

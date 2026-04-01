@@ -333,7 +333,13 @@ exports.getReservedAppointments = async (req, res) => {
 };
 
 exports.createAppointment = async (req, res) => {
-  console.log('BODY RECIBIDO EN BACKEND:', req.body);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('[APPOINTMENT_CONTROLLER] 🚀 INICIO createAppointment');
+  console.log('[APPOINTMENT_CONTROLLER] Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('[APPOINTMENT_CONTROLLER] Body recibido:', JSON.stringify(req.body, null, 2));
+  console.log('[APPOINTMENT_CONTROLLER] ClinicId:', req.clinicId || '(no definido)');
+  console.log('[APPOINTMENT_CONTROLLER] Clinic:', req.clinic?.name || '(no definido)');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   try {
     const isSobreturno = req.body.isSobreturno === true;
     const appointmentData = {
