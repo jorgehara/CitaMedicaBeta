@@ -5,36 +5,8 @@ import authService from '../services/authService';
 
 const isOdontologia = window.location.hostname.includes('od-melinavillalba');
 
-// ─── Kulinka: usa el sistema existente /status (json con qr base64) ──────────
-const fetchKulinkaStatus = async (): Promise<{ connected: boolean; qr: string | null; botNumber?: string }> => {
-  const response = await fetch('/status');
-  if (!response.ok) throw new Error('Error al obtener el estado');
-  return response.json();
-};
-
-// ─── Odontología: lee bot.qr.png del disco vía backend ───────────────────────
-const fetchOdontologiaQR = async (): Promise<string> => {
-  const token = authService.getToken();
-  if (!token) throw new Error('Sin sesión activa');
-
-  const response = await fetch(`/api/qr/odontologia?t=${Date.now()}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.error || 'QR no disponible');
-  }
-
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
-};
-
-// ─── Componente ───────────────────────────────────────────────────────────────
 const ChatbotQR: React.FC = () => {
   const [qrImage, setQrImage] = useState<string | null>(null);
-  const [message, setMessage] = useState('Cargando código QR...');
-  const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
@@ -43,57 +15,38 @@ const ChatbotQR: React.FC = () => {
   const loadQR = async () => {
     setLoading(true);
     try {
-      if (isOdontologia) {
-        // Limpiar blob anterior para evitar memory leak
-        if (blobUrl) URL.revokeObjectURL(blobUrl);
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
 
-        const url = await fetchOdontologiaQR();
-        setBlobUrl(url);
-        setQrImage(url);
-        setIsConnected(false);
-        setMessage('Escaneá el código QR con WhatsApp');
-      } else {
-        const data = await fetchKulinkaStatus();
-        setIsConnected(data.connected);
-        if (data.connected) {
-          setQrImage(null);
-          setMessage(`WhatsApp conectado${data.botNumber ? ` al número: ${data.botNumber}` : ''}`);
-        } else if (data.qr) {
-          setQrImage(data.qr);
-          setMessage('Escaneá el código QR con WhatsApp');
-        } else {
-          setQrImage(null);
-          setMessage('Esperando código QR...');
-        }
+      const token = authService.getToken();
+      if (!token) throw new Error('Sin sesión activa');
+
+      // Dr. Kulinka usa /api/qr, Odontología usa /api/qr/odontologia
+      const endpoint = isOdontologia ? `/api/qr/odontologia?t=${Date.now()}` : `/api/qr?t=${Date.now()}`;
+
+      const response = await fetch(endpoint, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'QR no disponible');
       }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setBlobUrl(url);
+      setQrImage(url);
     } catch (err: any) {
       setQrImage(null);
-      setMessage(err.message || 'Error de conexión al servidor');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      const response = await fetch('/disconnect', { method: 'POST' });
-      if (response.ok) {
-        setIsConnected(false);
-        setQrImage(null);
-        setMessage('Desconectado. Esperando nuevo código QR...');
-      } else {
-        const data = await response.json();
-        setMessage(data.message || 'Error al desconectar');
-      }
-    } catch {
-      setMessage('Error al desconectar');
     }
   };
 
   const handleFullscreen = () => {
     if (!qrImage) return;
     const win = window.open('', '_blank');
-    if (!win) { alert('Habilitá los popups para ver el QR en pantalla completa'); return; }
+    if (!win) { alert('Habilitá los popups'); return; }
     win.document.write(`
       <!DOCTYPE html><html>
       <head>
@@ -115,7 +68,7 @@ const ChatbotQR: React.FC = () => {
           <h2>🔗 Vincular WhatsApp</h2>
           <p>${doctorName}</p>
           <img src="${qrImage}" alt="QR"/>
-          <div class="warn">⏱️ El QR expira en ~60 segundos. Si venció, cerrá esta ventana y hacé clic en <b>Actualizar</b>.</div>
+          <div class="warn">⏱️ El QR expira en ~60 segundos. Si venció, cerrá y hacé clic en <b>Actualizar</b>.</div>
         </div>
       </body></html>`);
     win.document.close();
@@ -123,7 +76,7 @@ const ChatbotQR: React.FC = () => {
 
   useEffect(() => {
     loadQR();
-    const interval = setInterval(loadQR, isOdontologia ? 30000 : 5000);
+    const interval = setInterval(loadQR, 5000);
     return () => {
       clearInterval(interval);
       if (blobUrl) URL.revokeObjectURL(blobUrl);
@@ -133,7 +86,6 @@ const ChatbotQR: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3 }}>
       <Paper elevation={3} sx={{ p: 4, textAlign: 'center', maxWidth: 480, width: '100%' }}>
-
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
           <QrCode2Icon sx={{ fontSize: 28, color: 'primary.main' }} />
           <Typography variant="h6" fontWeight="bold">
@@ -167,21 +119,13 @@ const ChatbotQR: React.FC = () => {
         )}
 
         {!loading && !qrImage && (
-          <Typography color={message.toLowerCase().includes('error') ? 'error' : 'text.secondary'} sx={{ py: 4 }}>
-            {message}
+          <Typography color="error" sx={{ py: 4 }}>
+            QR no disponible. Verificá que el chatbot esté corriendo.
           </Typography>
         )}
 
-        {!loading && isConnected && (
-          <Button variant="contained" color="error" onClick={handleDisconnect} sx={{ mt: 2 }}>
-            Desconectar WhatsApp
-          </Button>
-        )}
-
         <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
-          {isConnected
-            ? 'WhatsApp conectado correctamente'
-            : `El QR se actualiza cada ${isOdontologia ? '30' : '5'} segundos`}
+          El QR se actualiza cada 5 segundos
         </Typography>
       </Paper>
     </Box>

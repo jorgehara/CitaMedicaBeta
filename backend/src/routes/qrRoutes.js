@@ -3,7 +3,7 @@ const router = express.Router();
 const qrcode = require('qrcode');
 const fs = require('fs');
 
-// ---- Chatbot Dr. Kulinka (sistema existente — no tocar) ----
+// ── Dr. Kulinka: chatbot envía QR string → backend lo convierte a PNG ──────
 let latestQR = null;
 
 router.post('/qr', (req, res) => {
@@ -29,19 +29,13 @@ router.get('/qr', async (req, res) => {
     }
 });
 
-// ---- Chatbot Od. Melina Villalba (sirve bot.qr.png directo del disco) ----
+// ── Od. Villalba: sirve bot.qr.png directo del disco ──────────────────────
 const QR_PATH_ODONTOLOGIA = process.env.QR_PATH_ODONTOLOGIA || '/root/AnitaChatBot-Odontologia/bot.qr.png';
 
 router.get('/qr/odontologia', (req, res) => {
     try {
         if (!fs.existsSync(QR_PATH_ODONTOLOGIA)) {
             return res.status(404).json({ error: 'QR no disponible. El chatbot puede no estar corriendo.' });
-        }
-
-        const stats = fs.statSync(QR_PATH_ODONTOLOGIA);
-        const fileAgeMs = Date.now() - stats.mtimeMs;
-        if (fileAgeMs > 2 * 60 * 1000) {
-            console.log(`[QR] QR de Odontología tiene ${Math.floor(fileAgeMs / 1000)}s — puede estar vencido`);
         }
 
         res.setHeader('Content-Type', 'image/png');
