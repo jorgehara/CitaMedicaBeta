@@ -25,6 +25,7 @@ import {
   KeyboardArrowDown as ArrowDownIcon,
   People as PeopleIcon,
   MedicalServices as MedicalServicesIcon,
+  QrCode as QrCodeIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -82,13 +83,18 @@ const Layout = ({ children }: LayoutProps) => {
     setMobileOpen(false);
   };
 
+  const handleChatbotQR = () => {
+    setAnchorEl(null);
+    navigate('/chatbot-qr');
+    setMobileOpen(false);
+  };
+
   const menuItems = [
     { text: 'Inicio', icon: <HomeIcon />, path: '/', disabled: false },
     { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios', disabled: false },
     { text: 'Pacientes', icon: <PeopleIcon />, path: '/pacientes', disabled: false },
     { text: 'Historias Clínicas', icon: <MedicalServicesIcon />, path: '/historias-clinicas', disabled: false },
     { text: 'Historial', icon: <HistoryIcon />, path: '/historial', disabled: false },
-    // { text: 'QR WhatsApp', icon: <QrCodeIcon />, path: '/qr', disabled: true },
     // { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion', disabled: true },
   ];
 
@@ -282,6 +288,35 @@ const Layout = ({ children }: LayoutProps) => {
               />
             </ListItemIcon>
             <ListItemText>Cambiar Contraseña</ListItemText>
+          </MenuItem>
+          <MenuItem 
+            onClick={handleChatbotQR}
+            sx={{
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: 'success.light',
+                transform: 'translateX(4px)',
+                '& .MuiListItemIcon-root': {
+                  transform: 'scale(1.2)',
+                  color: 'success.dark'
+                },
+                '& .MuiListItemText-primary': {
+                  color: 'success.dark',
+                  fontWeight: 'bold'
+                }
+              }
+            }}
+          >
+            <ListItemIcon>
+              <QrCodeIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: 'success.main',
+                  transition: 'all 0.2s ease'
+                }} 
+              />
+            </ListItemIcon>
+            <ListItemText>QR WhatsApp</ListItemText>
           </MenuItem>
           <Divider sx={{ my: 0.5 }} />
           <MenuItem 

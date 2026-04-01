@@ -17,6 +17,7 @@ import TenantSwitcher from './components/TenantSwitcher'; // Dev mode tenant swi
 import { ColorModeContext } from './context/ColorModeContext';
 import { AuthProvider } from './context/AuthContext';
 import { ClinicConfigProvider } from './context/ClinicConfigContext';
+import ChatbotQR from './components/ChatbotQR';
 
 const App = () => {
   const [mode, setMode] = useState<'light' | 'dark'>('dark');
@@ -290,6 +291,33 @@ const App = () => {
 
               {/* Redirect cualquier ruta no encontrada a login */}
               <Route path="*" element={<Navigate to="/login" replace />} />
+
+              {/* QR Chatbot - detecta tenant por hostname */}
+              <Route
+                path="/chatbot-qr"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Box
+                        component="main"
+                        sx={{
+                          flexGrow: 1,
+                          p: 3,
+                          width: '1200px',
+                          maxWidth: '1200px',
+                          mx: 'auto',
+                          '@media (max-width: 1200px)': {
+                            maxWidth: '100%',
+                            px: { xs: 2, sm: 3 }
+                          }
+                        }}
+                      >
+                        <ChatbotQR />
+                      </Box>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </Router>
         </ThemeProvider>
