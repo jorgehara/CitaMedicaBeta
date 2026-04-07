@@ -412,6 +412,11 @@ Para entender rápidamente el sistema, lee estos archivos en orden:
 
 Para información más detallada sobre áreas específicas:
 
+- **Deploy completo** (backend, frontend, chatbot): [`docs/ops/deploy.md`](docs/ops/deploy.md)
+- **Seguridad y API pública**: [`docs/ops/security.md`](docs/ops/security.md)
+- **Configuración API Key y tokens del chatbot**: [`docs/chatbot/api-config.md`](docs/chatbot/api-config.md)
+- **Testing**: [`docs/dev/testing.md`](docs/dev/testing.md)
+- **PRD Historia Clínica ATM**: [`docs/specs/historia-clinica.md`](docs/specs/historia-clinica.md)
 - **Frontend**: Ver `frontend/SUBAGENTS-FRONTEND.md`
 - **Backend**: Ver `backend/SUBAGENTS-BACKEND.md`
 - **Chatbot**: Proyecto separado en `C:\Users\JorgeHaraDevs\Desktop\AnitaByCitaMedica`

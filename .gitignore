@@ -184,3 +184,7 @@ backend/detailed-analysis.js
 backend/test-*.js
 backend/mock/
 backend/scripts/resetDatabase.js
+
+# Documentation (local only)
+docs/
+.archive/
