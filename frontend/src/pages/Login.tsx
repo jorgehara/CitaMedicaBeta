@@ -9,9 +9,9 @@ import { useClinicConfig } from '../context/ClinicConfigContext';
 import type { LoginCredentials } from '../types/auth';
 
 const DEV_USERS = [
-  { label: 'Dr. Kulinka', email: 'dr-kulinka@citamedica.com', password: '123456', subdomain: 'dr-kulinka' },
-  { label: 'Od. Villalba', email: 'melina@od-melinavillalba.com', password: '123456', subdomain: 'od-melinavillalba' },
-  { label: 'Operador', email: 'operador@test.com', password: '123456', subdomain: 'od-melinavillalba' },
+  { label: 'Clínica A', email: 'admin@clinica-a.dev', password: 'dev-password', subdomain: 'clinica-a' },
+  { label: 'Clínica B', email: 'admin@clinica-b.dev', password: 'dev-password', subdomain: 'clinica-b' },
+  { label: 'Operador', email: 'operador@clinica-b.dev', password: 'dev-password', subdomain: 'clinica-b' },
 ];
 
 const Login = () => {
@@ -154,7 +154,7 @@ const Login = () => {
                     },
                   })}
                   type="email"
-                  placeholder="admin@cita-medica.com"
+                  placeholder="correo@ejemplo.com"
                   className={`w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border ${
                     errors.email
                       ? 'border-red-500 focus:ring-red-500'
