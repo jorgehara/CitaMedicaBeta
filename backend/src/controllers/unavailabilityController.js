@@ -5,7 +5,14 @@ const Unavailability = require('../models/unavailability');
 exports.getAll = async (req, res) => {
     try {
         const { date } = req.query;
-        const filter = date ? { date, clinicId: req.clinicId } : { clinicId: req.clinicId };
+
+        // Fecha de hoy en Buenos Aires (YYYY-MM-DD) para filtrar bloqueos vencidos
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+
+        const filter = date
+            ? { date, clinicId: req.clinicId }
+            : { clinicId: req.clinicId, date: { $gte: today } };
+
         const blocks = await Unavailability.find(filter).sort({ date: 1 });
         res.json({ success: true, data: blocks });
     } catch (error) {
