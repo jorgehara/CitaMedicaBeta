@@ -286,7 +286,9 @@ exports.getSobreturnos = async (req, res) => {
   }
 };
 
-// Corregir el método getSobreturnosByDate que tiene bloques mal cerrados
+// Obtener sobreturnos disponibles por fecha
+// Regla de corte de bloque: si la fecha es hoy, los slots de mañana se ocultan
+// a partir de las 12:16 y los de tarde a partir de las 20:16 (aunque no hayan sido tomados)
 exports.getSobreturnosByDate = async (req, res) => {
   try {
     const { date } = req.params;
@@ -313,12 +315,37 @@ exports.getSobreturnosByDate = async (req, res) => {
     const { morning: mSlots, afternoon: aSlots, all: allSlots } = getSobreturnoSlots(req.clinic);
     const totalSlots = allSlots.length;
 
+    // --- Lógica de corte de bloque por hora (solo para el día actual) ---
+    const timezone = req.clinic.settings.timezone || 'America/Argentina/Buenos_Aires';
+    const nowInClinicTZ = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+    const todayStr = `${nowInClinicTZ.getFullYear()}-${String(nowInClinicTZ.getMonth() + 1).padStart(2, '0')}-${String(nowInClinicTZ.getDate()).padStart(2, '0')}`;
+    const isToday = date === todayStr;
+
+    const currentMinutes = nowInClinicTZ.getHours() * 60 + nowInClinicTZ.getMinutes();
+
+    // Corte fijo: mañana se quema a las 12:16, tarde a las 20:16
+    const MORNING_CUTOFF = 12 * 60 + 16; // 12:16 → 736 minutos
+    const AFTERNOON_CUTOFF = 20 * 60 + 16; // 20:16 → 1216 minutos
+
+    const morningBlocked = isToday && currentMinutes >= MORNING_CUTOFF;
+    const afternoonBlocked = isToday && currentMinutes >= AFTERNOON_CUTOFF;
+
+    console.log('[DEBUG] isToday:', isToday, '| currentMinutes:', currentMinutes, '| morningBlocked:', morningBlocked, '| afternoonBlocked:', afternoonBlocked);
+
     // Crear array con todos los números de sobreturno posibles (1-based)
     const allSobreturnos = Array.from({ length: totalSlots }, (_, i) => i + 1);
 
-    // Filtrar los números de sobreturno que ya están ocupados
+    // Filtrar ocupados
     const ocupados = sobreturnos.map(s => s.sobreturnoNumber);
-    const disponibles = allSobreturnos.filter(num => !ocupados.includes(num));
+
+    // Filtrar disponibles: no ocupados + bloque no quemado
+    const disponibles = allSobreturnos.filter(num => {
+      if (ocupados.includes(num)) return false;
+      const isMorningSlot = num <= mSlots.length;
+      if (isMorningSlot && morningBlocked) return false;
+      if (!isMorningSlot && afternoonBlocked) return false;
+      return true;
+    });
 
     // Preparar la respuesta con los horarios correspondientes
     const sobreturnosDisponibles = disponibles.map(num => ({
@@ -327,12 +354,17 @@ exports.getSobreturnosByDate = async (req, res) => {
       turno: num <= mSlots.length ? 'mañana' : 'tarde'
     }));
 
-    const todosLosSlots = allSlots.map((horario, i) => ({
-      numero: i + 1,
-      horario,
-      turno: i < mSlots.length ? 'mañana' : 'tarde',
-      disponible: !ocupados.includes(i + 1)
-    }));
+    const todosLosSlots = allSlots.map((horario, i) => {
+      const num = i + 1;
+      const isMorningSlot = num <= mSlots.length;
+      const bloqueQuemado = isMorningSlot ? morningBlocked : afternoonBlocked;
+      return {
+        numero: num,
+        horario,
+        turno: isMorningSlot ? 'mañana' : 'tarde',
+        disponible: !ocupados.includes(num) && !bloqueQuemado
+      };
+    });
 
     return res.json({
       success: true,
