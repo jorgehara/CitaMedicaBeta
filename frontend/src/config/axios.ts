@@ -101,11 +101,14 @@ axiosInstance.interceptors.request.use(
             config.headers['X-Tenant-Subdomain'] = subdomain;
         }
 
-        console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
-            hasUserToken: !!userToken,
-            hasPublicToken: !!publicToken,
-            tenantSubdomain: subdomain
-        });
+        // Solo mostrar logs en desarrollo
+        if (import.meta.env.DEV) {
+            console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
+                hasUserToken: !!userToken,
+                hasPublicToken: !!publicToken,
+                tenantSubdomain: subdomain
+            });
+        }
 
         return config;
     },
@@ -141,8 +144,10 @@ axiosInstance.interceptors.response.use(
         if (shouldRetry) {
             config._retry += 1;
 
+            if (import.meta.env.DEV) {
             console.warn(`[RETRY] Intento ${config._retry}/${maxRetries} para ${config.method?.toUpperCase()} ${config.url}`);
             console.warn(`[RETRY] Razón: ${error.code || error.message}`);
+        }
 
             // Esperar antes de reintentar (exponential backoff)
             await delay(config._retryDelay);
@@ -166,14 +171,14 @@ axiosInstance.interceptors.response.use(
                 // Verificar si es un token público expirado
                 const publicToken = localStorage.getItem(PUBLIC_TOKEN_KEY);
                 if (publicToken && isTokenExpired) {
-                    console.warn('[AUTH] Token público expirado');
+                    if (import.meta.env.DEV) console.warn('[AUTH] Token público expirado');
                     localStorage.removeItem(PUBLIC_TOKEN_KEY);
                     alert('Tu enlace de reserva ha expirado (7 horas). Por favor, solicita uno nuevo al chatbot de WhatsApp.');
                     return Promise.reject(error);
                 }
 
                 // Token de usuario expirado
-                console.warn('[AUTH] Token de usuario inválido o expirado');
+                if (import.meta.env.DEV) console.warn('[AUTH] Token de usuario inválido o expirado');
                 localStorage.removeItem(TOKEN_KEY);
 
                 // Mostrar mensaje al usuario si el token expiró
@@ -190,23 +195,28 @@ axiosInstance.interceptors.response.use(
 
             // 403 Forbidden - Sin permisos
             if (status === 403) {
-                console.warn('[AUTH] Sin permisos para esta acción');
-                // Aquí podrías mostrar un mensaje al usuario o redirigir a una página de "Sin permisos"
+                if (import.meta.env.DEV) console.warn('[AUTH] Sin permisos para esta acción');
             }
 
-            console.error('[API ERROR] Error de respuesta:', {
-                status: error.response.status,
-                data: error.response.data,
-                url: config.url
-            });
+            if (import.meta.env.DEV) {
+                console.error('[API ERROR] Error de respuesta:', {
+                    status: error.response.status,
+                    data: error.response.data,
+                    url: config.url
+                });
+            }
         } else if (error.request) {
-            console.error('[API ERROR] No se recibió respuesta del servidor:', {
-                url: config.url,
-                code: error.code,
-                message: error.message
-            });
+            if (import.meta.env.DEV) {
+                console.error('[API ERROR] No se recibió respuesta del servidor:', {
+                    url: config.url,
+                    code: error.code,
+                    message: error.message
+                });
+            }
         } else {
-            console.error('[API ERROR] Error al configurar la petición:', error.message);
+            if (import.meta.env.DEV) {
+                console.error('[API ERROR] Error al configurar la petición:', error.message);
+            }
         }
 
         return Promise.reject(error);

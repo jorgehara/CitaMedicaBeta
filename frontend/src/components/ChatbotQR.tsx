@@ -4,13 +4,14 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import authService from '../services/authService';
 
 const isOdontologia = window.location.hostname.includes('od-melinavillalba');
+const isDrJorgeHara = window.location.hostname.includes('dr-jorgehara');
 
 const ChatbotQR: React.FC = () => {
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  const doctorName = isOdontologia ? 'Od. Melina Villalba' : 'Dr. Kulinka';
+  const doctorName = isOdontologia ? 'Od. Melina Villalba' : isDrJorgeHara ? 'Dr. Jorge Hara' : 'Dr. Kulinka';
 
   const loadQR = async () => {
     setLoading(true);
@@ -22,7 +23,12 @@ const ChatbotQR: React.FC = () => {
 
       // Dr. Kulinka → proxy Nginx al chatbot (sirve QR como PNG directo)
       // Odontología → backend sirve bot.qr.png del disco
-      const endpoint = isOdontologia ? `/api/qr/odontologia?t=${Date.now()}` : `/api/chatbot-qr?t=${Date.now()}`;
+      // Dr. Jorge Hara → backend sirve bot.qr.png del disco
+      const endpoint = isOdontologia
+        ? `/api/qr/odontologia?t=${Date.now()}`
+        : isDrJorgeHara
+          ? `/api/qr/drjorgehara?t=${Date.now()}`
+          : `/api/chatbot-qr?t=${Date.now()}`;
 
       const response = await fetch(endpoint, {
         headers: { 'Authorization': `Bearer ${token}` },

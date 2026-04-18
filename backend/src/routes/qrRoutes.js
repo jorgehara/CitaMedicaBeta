@@ -47,4 +47,22 @@ router.get('/qr/odontologia', (req, res) => {
     }
 });
 
+// ── Dr. Jorge Hara: sirve bot.qr.png directo del disco ──────────────────────
+const QR_PATH_DRJORGEHARA = process.env.QR_PATH_DRJORGEHARA || '/root/AnitaChatBot-DrJorgeHara/bot.qr.png';
+
+router.get('/qr/drjorgehara', (req, res) => {
+    try {
+        if (!fs.existsSync(QR_PATH_DRJORGEHARA)) {
+            return res.status(404).json({ error: 'QR no disponible. El chatbot puede no estar corriendo.' });
+        }
+
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.sendFile(QR_PATH_DRJORGEHARA);
+    } catch (error) {
+        console.error('[QR ERROR - Dr. Jorge Hara]:', error);
+        res.status(500).json({ error: 'Error al cargar QR' });
+    }
+});
+
 module.exports = router;
