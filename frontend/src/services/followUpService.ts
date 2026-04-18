@@ -18,7 +18,7 @@ class FollowUpService {
       const response = await axiosInstance.get<ApiResponse<FollowUp[]>>(`/follow-ups/clinical-history/${clinicalHistoryId}`);
       return response.data.data;
     } catch (error) {
-      console.error('[FollowUpService] Error fetching follow-ups:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error fetching follow-ups:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener seguimientos');
       }
@@ -34,7 +34,7 @@ class FollowUpService {
       const response = await axiosInstance.get<ApiResponse<FollowUp>>(`/follow-ups/${id}`);
       return response.data.data;
     } catch (error) {
-      console.error('[FollowUpService] Error fetching follow-up:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error fetching follow-up:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener seguimiento');
       }
@@ -50,7 +50,7 @@ class FollowUpService {
       const response = await axiosInstance.post<ApiResponse<FollowUp>>('/follow-ups', followUpData);
       return response.data.data;
     } catch (error) {
-      console.error('[FollowUpService] Error creating follow-up:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error creating follow-up:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al crear seguimiento');
       }
@@ -66,7 +66,7 @@ class FollowUpService {
       const response = await axiosInstance.put<ApiResponse<FollowUp>>(`/follow-ups/${id}`, updateData);
       return response.data.data;
     } catch (error) {
-      console.error('[FollowUpService] Error updating follow-up:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error updating follow-up:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al actualizar seguimiento');
       }
@@ -81,7 +81,7 @@ class FollowUpService {
     try {
       await axiosInstance.delete(`/follow-ups/${id}`);
     } catch (error) {
-      console.error('[FollowUpService] Error deleting follow-up:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error deleting follow-up:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al eliminar seguimiento');
       }
@@ -111,7 +111,7 @@ class FollowUpService {
       );
       return response.data.data;
     } catch (error) {
-      console.error('[FollowUpService] Error uploading photo:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error uploading photo:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al subir foto');
       }
@@ -132,7 +132,7 @@ class FollowUpService {
       );
       return response.data.data;
     } catch (error) {
-      console.error('[FollowUpService] Error deleting photo:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error deleting photo:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al eliminar foto');
       }
@@ -150,7 +150,7 @@ class FollowUpService {
       });
       return response.data.data;
     } catch (error) {
-      console.error('[FollowUpService] Error fetching follow-ups by date range:', error);
+      if (import.meta.env.DEV) console.error('[FollowUpService] Error fetching follow-ups by date range:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener seguimientos por rango de fechas');
       }

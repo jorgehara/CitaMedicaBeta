@@ -94,13 +94,13 @@ const Dashboard = () => {
       setOverturnAppointments(sobreturnosData);
       setLastUpdate(new Date());
 
-      console.log('[DASHBOARD] Datos actualizados:', {
+      if (import.meta.env.DEV) console.log('[DASHBOARD] Datos actualizados:', {
         citas: appointmentsData.length,
         sobreturnos: sobreturnosData.length,
         timestamp: new Date().toISOString()
       });
     } catch (e) {
-      console.error('[DASHBOARD] Error al cargar datos:', e);
+      if (import.meta.env.DEV) console.error('[DASHBOARD] Error al cargar datos:', e);
     } finally {
       if (showLoadingState) {
         setIsRefreshing(false);
@@ -133,7 +133,7 @@ const Dashboard = () => {
 
     // Configurar auto-refresh
     const interval = setInterval(() => {
-      console.log('[AUTO-REFRESH] Actualizando datos automáticamente...');
+      if (import.meta.env.DEV) console.log('[AUTO-REFRESH] Actualizando datos automáticamente...');
       fetchAllData(false); // No mostrar loading spinner en auto-refresh
     }, AUTO_REFRESH_INTERVAL);
 
@@ -168,7 +168,7 @@ const Dashboard = () => {
       const res = await axiosInstance.get('/unavailability');
       if (res.data.success) setUnavailBlocks(res.data.data);
     } catch (e) {
-      console.error('[UNAVAILABILITY] Error al cargar bloqueos:', e);
+      if (import.meta.env.DEV) console.error('[UNAVAILABILITY] Error al cargar bloqueos:', e);
     }
   }, []);
 
@@ -247,7 +247,7 @@ const Dashboard = () => {
       // Refrescar datos
       await fetchAllData(true);
     } catch (e) {
-      console.error('[DASHBOARD] Error al crear sobreturno:', e);
+      if (import.meta.env.DEV) console.error('[DASHBOARD] Error al crear sobreturno:', e);
     }
   };
 

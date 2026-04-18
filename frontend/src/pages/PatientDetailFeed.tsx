@@ -101,7 +101,7 @@ const PatientDetailFeed = () => {
           const followUps = await followUpService.getByClinicalHistory(history._id);
           followUpsMap[history._id] = followUps;
         } catch (err) {
-          console.error(`Error loading follow-ups for history ${history._id}:`, err);
+          if (import.meta.env.DEV) console.error(`Error loading follow-ups for history ${history._id}:`, err);
           followUpsMap[history._id] = [];
         }
       }
@@ -109,7 +109,7 @@ const PatientDetailFeed = () => {
       
       setError('');
     } catch (err: any) {
-      console.error('[PatientDetailFeed] Error fetching patient data:', err);
+      if (import.meta.env.DEV) console.error('[PatientDetailFeed] Error fetching patient data:', err);
       setError(err.message || 'Error al cargar datos del paciente');
     } finally {
       if (showLoadingState) {
@@ -210,7 +210,7 @@ const PatientDetailFeed = () => {
       setDeleteItemName('');
       fetchPatientData(false);
     } catch (err: any) {
-      console.error('[PatientDetailFeed] Error deleting:', err);
+      if (import.meta.env.DEV) console.error('[PatientDetailFeed] Error deleting:', err);
       setError(err.message || 'Error al eliminar');
       setOpenDeleteDialog(false);
     }

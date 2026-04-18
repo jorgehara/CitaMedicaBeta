@@ -113,7 +113,7 @@ const ClinicalHistoryList = () => {
       setFilteredHistories(historiesWithPatient);
       setError('');
     } catch (err: any) {
-      console.error('[ClinicalHistoryList] Error fetching histories:', err);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryList] Error fetching histories:', err);
       setError(err.message || 'Error al cargar historias clínicas');
     } finally {
       if (showLoadingState) {
@@ -129,7 +129,7 @@ const ClinicalHistoryList = () => {
       const data = await patientService.getAll();
       setPatients(data);
     } catch (err: any) {
-      console.error('[ClinicalHistoryList] Error fetching patients:', err);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryList] Error fetching patients:', err);
     }
   }, []);
 
@@ -232,7 +232,7 @@ const ClinicalHistoryList = () => {
       setCreateDialogOpen(false);
       await fetchHistories(true);
     } catch (err: any) {
-      console.error('[ClinicalHistoryList] Error creating history:', err);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryList] Error creating history:', err);
       setError(err.message || 'Error al crear historia clínica');
     } finally {
       setSaving(false);
@@ -260,7 +260,7 @@ const ClinicalHistoryList = () => {
       setEditDialogOpen(false);
       await fetchHistories(true);
     } catch (err: any) {
-      console.error('[ClinicalHistoryList] Error updating history:', err);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryList] Error updating history:', err);
       setError(err.message || 'Error al actualizar historia clínica');
     } finally {
       setSaving(false);
@@ -278,7 +278,7 @@ const ClinicalHistoryList = () => {
       setDeleteDialogOpen(false);
       await fetchHistories(true);
     } catch (err: any) {
-      console.error('[ClinicalHistoryList] Error deleting history:', err);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryList] Error deleting history:', err);
       setError(err.message || 'Error al eliminar historia clínica');
     } finally {
       setSaving(false);

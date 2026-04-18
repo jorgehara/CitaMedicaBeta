@@ -29,7 +29,7 @@ const QRCode: React.FC = () => {
       setQrImage(null);
     }
   } catch (error) {
-    console.error('Error al obtener el estado:', error);
+    if (import.meta.env.DEV) console.error('Error al obtener el estado:', error);
     setQrMessage("Error de conexión al servidor");
   }
 };
@@ -49,7 +49,7 @@ const QRCode: React.FC = () => {
         setQrMessage(data.message || 'Error al desconectar');
       }
     } catch (error) {
-      console.error('Error al desconectar:', error);
+      if (import.meta.env.DEV) console.error('Error al desconectar:', error);
       setQrMessage('Error al desconectar');
     }
   };

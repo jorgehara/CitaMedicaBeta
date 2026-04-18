@@ -229,7 +229,7 @@ const FollowUpForm = ({ clinicalHistoryId, onSubmit, onCancel }: FollowUpFormPro
 
       await onSubmit(formData);
     } catch (err: any) {
-      console.error('[FollowUpForm] Error submitting form:', err);
+      if (import.meta.env.DEV) console.error('[FollowUpForm] Error submitting form:', err);
       setError(err.message || 'Error al guardar el seguimiento');
     } finally {
       setLoading(false);

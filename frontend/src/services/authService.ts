@@ -26,7 +26,7 @@ class AuthService {
 
       return response.data;
     } catch (error: any) {
-      console.error('[AUTH] Error en login:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error en login:', error);
       throw error.response?.data || {
         success: false,
         message: 'Error al iniciar sesión'
@@ -42,7 +42,7 @@ class AuthService {
       const response = await axiosInstance.post<AuthResponse>('/auth/register', data);
       return response.data;
     } catch (error: any) {
-      console.error('[AUTH] Error en registro:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error en registro:', error);
       throw error.response?.data || {
         success: false,
         message: 'Error al registrar usuario'
@@ -58,7 +58,7 @@ class AuthService {
       const response = await axiosInstance.get<VerifyResponse>('/auth/verify');
       return response.data;
     } catch (error: any) {
-      console.error('[AUTH] Error en verificación:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error en verificación:', error);
       // Limpiar token inválido
       this.removeToken();
       throw error.response?.data || {
@@ -76,7 +76,7 @@ class AuthService {
       const response = await axiosInstance.get<VerifyResponse>('/auth/me');
       return response.data;
     } catch (error: any) {
-      console.error('[AUTH] Error al obtener usuario:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error al obtener usuario:', error);
       throw error.response?.data || {
         success: false,
         message: 'Error al obtener datos del usuario'
@@ -91,7 +91,7 @@ class AuthService {
     try {
       await axiosInstance.post('/auth/logout');
     } catch (error) {
-      console.error('[AUTH] Error en logout:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error en logout:', error);
     } finally {
       // Siempre limpiar token local
       this.removeToken();
@@ -109,7 +109,7 @@ class AuthService {
       });
       return response.data;
     } catch (error: any) {
-      console.error('[AUTH] Error al cambiar contraseña:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error al cambiar contraseña:', error);
       throw error.response?.data || {
         success: false,
         message: 'Error al cambiar contraseña'
@@ -160,7 +160,7 @@ class AuthService {
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
-      console.error('[AUTH] Error al decodificar token:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error al decodificar token:', error);
       return null;
     }
   }

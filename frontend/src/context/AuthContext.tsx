@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Verificar si el token está expirado localmente antes de hacer la petición
       if (authService.isTokenExpired()) {
-        console.warn('[AUTH] Token expirado detectado localmente');
+        if (import.meta.env.DEV) console.warn('[AUTH] Token expirado detectado localmente');
         authService.removeToken();
         setUser(null);
         setIsAuthenticated(false);
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (response.success && response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
-        console.log('[AUTH] Sesión restaurada:', response.data.user.email);
+        if (import.meta.env.DEV) console.log('[AUTH] Sesión restaurada:', response.data.user.email);
       } else {
         // Token inválido
         authService.removeToken();
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('[AUTH] Error al verificar sesión:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error al verificar sesión:', error);
       // Limpiar datos si hay error
       authService.removeToken();
       setUser(null);
@@ -78,12 +78,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (response.success && response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
-        console.log('[AUTH] Login exitoso:', response.data.user.email, `(${response.data.user.role})`);
+        if (import.meta.env.DEV) console.log('[AUTH] Login exitoso:', response.data.user.email, `(${response.data.user.role})`);
       } else {
         throw new Error('Respuesta de login inválida');
       }
     } catch (error: any) {
-      console.error('[AUTH] Error en login:', error);
+      if (import.meta.env.DEV) console.error('[AUTH] Error en login:', error);
       setUser(null);
       setIsAuthenticated(false);
       throw error; // Re-lanzar para que el componente Login lo maneje
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setLoading(true);
       await authService.logout();
-      console.log('[AUTH] Logout exitoso');
+      if (import.meta.env.DEV) console.log('[AUTH] Logout exitoso');
     } catch (error) {
       console.error('[AUTH] Error en logout:', error);
     } finally {
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const intervalId = setInterval(() => {
       if (authService.isTokenExpired()) {
-        console.warn('[AUTH] Token expirado detectado. Cerrando sesión automáticamente...');
+        if (import.meta.env.DEV) console.warn('[AUTH] Token expirado detectado. Cerrando sesión automáticamente...');
         logout();
         alert('Tu sesión ha expirado después de 3 días de inactividad. Por favor, inicia sesión nuevamente.');
         window.location.href = '/login';

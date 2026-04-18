@@ -119,7 +119,7 @@ const CreatePatientDialog = ({ open, onClose, onPatientCreated }: CreatePatientD
       setBirthDate(null);
       onPatientCreated();
     } catch (err: any) {
-      console.error('[CreatePatientDialog] Error creating patient:', err);
+      if (import.meta.env.DEV) console.error('[CreatePatientDialog] Error creating patient:', err);
       setError(err.message || 'Error al crear paciente');
     } finally {
       setLoading(false);

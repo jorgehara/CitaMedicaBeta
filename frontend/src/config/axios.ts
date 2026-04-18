@@ -103,17 +103,19 @@ axiosInstance.interceptors.request.use(
 
         // Solo mostrar logs en desarrollo
         if (import.meta.env.DEV) {
+if (import.meta.env.DEV) {
             console.log(`[DEBUG] Enviando petición ${config.method?.toUpperCase()} a ${config.url}`, {
-                hasUserToken: !!userToken,
-                hasPublicToken: !!publicToken,
-                tenantSubdomain: subdomain
+              hasUserToken: !!userToken,
+              hasPublicToken: !!publicToken,
+              tenantSubdomain: subdomain
             });
+          }
         }
 
         return config;
     },
     (error) => {
-        console.error('[DEBUG] Error en la petición:', error);
+        if (import.meta.env.DEV) console.error('[DEBUG] Error en la petición:', error);
         return Promise.reject(error);
     }
 );
@@ -144,10 +146,8 @@ axiosInstance.interceptors.response.use(
         if (shouldRetry) {
             config._retry += 1;
 
-            if (import.meta.env.DEV) {
-            console.warn(`[RETRY] Intento ${config._retry}/${maxRetries} para ${config.method?.toUpperCase()} ${config.url}`);
-            console.warn(`[RETRY] Razón: ${error.code || error.message}`);
-        }
+            if (import.meta.env.DEV) console.warn(`[RETRY] Intento ${config._retry}/${maxRetries} para ${config.method?.toUpperCase()} ${config.url}`);
+            if (import.meta.env.DEV) console.warn(`[RETRY] Razón: ${error.code || error.message}`);
 
             // Esperar antes de reintentar (exponential backoff)
             await delay(config._retryDelay);
@@ -198,13 +198,11 @@ axiosInstance.interceptors.response.use(
                 if (import.meta.env.DEV) console.warn('[AUTH] Sin permisos para esta acción');
             }
 
-            if (import.meta.env.DEV) {
-                console.error('[API ERROR] Error de respuesta:', {
+            if (import.meta.env.DEV) console.error('[API ERROR] Error de respuesta:', {
                     status: error.response.status,
                     data: error.response.data,
                     url: config.url
                 });
-            }
         } else if (error.request) {
             if (import.meta.env.DEV) {
                 console.error('[API ERROR] No se recibió respuesta del servidor:', {
@@ -214,9 +212,7 @@ axiosInstance.interceptors.response.use(
                 });
             }
         } else {
-            if (import.meta.env.DEV) {
-                console.error('[API ERROR] Error al configurar la petición:', error.message);
-            }
+            if (import.meta.env.DEV) console.error('[API ERROR] Error al configurar la petición:', error.message);
         }
 
         return Promise.reject(error);

@@ -89,7 +89,7 @@ const PatientDetail = () => {
       setClinicalHistories(historiesData);
       setError('');
     } catch (err: any) {
-      console.error('[PatientDetail] Error fetching patient data:', err);
+      if (import.meta.env.DEV) console.error('[PatientDetail] Error fetching patient data:', err);
       setError(err.message || 'Error al cargar datos del paciente');
     } finally {
       if (showLoadingState) {
@@ -124,7 +124,7 @@ const PatientDetail = () => {
       setCreateHistoryDialogOpen(false);
       await fetchPatientData(true); // Refresh data
     } catch (err: any) {
-      console.error('[PatientDetail] Error creating clinical history:', err);
+      if (import.meta.env.DEV) console.error('[PatientDetail] Error creating clinical history:', err);
       setError(err.message || 'Error al crear historia clínica');
     } finally {
       setCreatingHistory(false);
@@ -151,7 +151,7 @@ const PatientDetail = () => {
       setExpandedHistoryDetails(historyDetails);
       setFollowUpsByHistory(prev => ({ ...prev, [historyId]: followUps }));
     } catch (err: any) {
-      console.error('[PatientDetail] Error fetching clinical history details:', err);
+      if (import.meta.env.DEV) console.error('[PatientDetail] Error fetching clinical history details:', err);
       setError(err.message || 'Error al cargar detalles de historia clínica');
     } finally {
       setLoadingHistoryDetails(false);
@@ -178,7 +178,7 @@ const PatientDetail = () => {
       const updatedFollowUps = await followUpService.getByClinicalHistory(selectedHistoryForFollowUp);
       setFollowUpsByHistory(prev => ({ ...prev, [selectedHistoryForFollowUp]: updatedFollowUps }));
     } catch (err: any) {
-      console.error('[PatientDetail] Error creating follow-up:', err);
+      if (import.meta.env.DEV) console.error('[PatientDetail] Error creating follow-up:', err);
       setError(err.message || 'Error al crear seguimiento');
     } finally {
       setCreatingFollowUp(false);
@@ -193,7 +193,7 @@ const PatientDetail = () => {
       await patientService.delete(id);
       navigate('/pacientes');
     } catch (err: any) {
-      console.error('[PatientDetail] Error deleting patient:', err);
+      if (import.meta.env.DEV) console.error('[PatientDetail] Error deleting patient:', err);
       setError(err.message || 'Error al eliminar paciente');
       setDeleteDialogOpen(false);
     } finally {

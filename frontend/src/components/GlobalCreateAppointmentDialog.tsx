@@ -64,7 +64,7 @@ const GlobalCreateAppointmentDialog: React.FC<GlobalCreateAppointmentDialogProps
           delete dataToSend[key];
         }
       });
-      console.log('Creando cita normal (GlobalDialog):', dataToSend);
+      if (import.meta.env.DEV) console.log('Creando cita normal (GlobalDialog):', dataToSend);
       await appointmentService.create(dataToSend);
       setSnackbar({
         open: true,

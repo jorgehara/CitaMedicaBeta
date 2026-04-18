@@ -62,7 +62,7 @@ const BookAppointment = () => {
   useEffect(() => {
     const urlToken = searchParams.get('token');
     if (urlToken) {
-      console.log('[DEBUG] Token recibido en URL, almacenando en localStorage');
+      if (import.meta.env.DEV) console.log('[DEBUG] Token recibido en URL, almacenando en localStorage');
       localStorage.setItem('public_token', urlToken);
 
       // Limpiar URL quitando el token por seguridad
@@ -71,9 +71,9 @@ const BookAppointment = () => {
       // Verificar si ya hay un token almacenado
       const storedToken = localStorage.getItem('public_token');
       if (storedToken) {
-        console.log('[DEBUG] Token encontrado en localStorage');
+        if (import.meta.env.DEV) console.log('[DEBUG] Token encontrado en localStorage');
       } else {
-        console.warn('[WARN] No hay token de acceso. Solicita un nuevo enlace al chatbot.');
+        if (import.meta.env.DEV) console.warn('[WARN] No hay token de acceso. Solicita un nuevo enlace al chatbot.');
       }
     }
   }, [searchParams]);
@@ -142,14 +142,14 @@ const BookAppointment = () => {
               setError('No hay turnos ni sobreturnos disponibles para esta fecha');
             }
           } catch (sobreturnoErr) {
-            console.error('[ERROR] Error al cargar sobreturnos:', sobreturnoErr);
+            if (import.meta.env.DEV) console.error('[ERROR] Error al cargar sobreturnos:', sobreturnoErr);
             if (allTimes.length === 0) {
               setError('No hay horarios disponibles para esta fecha');
             }
           }
         }
       } catch (err) {
-        console.error('Error al cargar horarios:', err);
+        if (import.meta.env.DEV) console.error('Error al cargar horarios:', err);
         setError('Error al cargar los horarios disponibles');
         setAvailableTimes([]);
       } finally {
@@ -284,7 +284,7 @@ const BookAppointment = () => {
 
       setSuccess(true);
     } catch (err: any) {
-      console.error('Error al crear la cita:', err);
+      if (import.meta.env.DEV) console.error('Error al crear la cita:', err);
       setError(err.message || 'Error al agendar el turno. Por favor intenta nuevamente.');
     } finally {
       setLoading(false);

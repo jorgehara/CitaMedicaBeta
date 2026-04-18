@@ -39,7 +39,7 @@ class AppointmentService {
         });
       }
     } catch (error) {
-      console.error('Error al obtener las citas:', error);
+      if (import.meta.env.DEV) console.error('Error al obtener las citas:', error);
       throw new Error('Error al obtener las citas');
     }
   }
@@ -54,7 +54,7 @@ class AppointmentService {
         const publicToken = localStorage.getItem('public_token');
         if (publicToken) {
           params.token = publicToken;
-          console.log('[DEBUG] Agregando token público para crear cita');
+          if (import.meta.env.DEV) console.log('[DEBUG] Agregando token público para crear cita');
         }
       }
 
@@ -101,7 +101,7 @@ class AppointmentService {
 
   async updateDescription(id: string, description: string): Promise<Appointment> {
     try {
-      console.log(`[DEBUG] Actualizando descripción para cita ${id}`);
+      if (import.meta.env.DEV) console.log(`[DEBUG] Actualizando descripción para cita ${id}`);
       const response = await axiosInstance.patch(`/appointments/${id}/description`, { description });
       return response.data;
     } catch (error) {
@@ -114,7 +114,7 @@ class AppointmentService {
 
   async updatePaymentStatus(id: string, isPaid: boolean): Promise<Appointment> {
     try {
-      console.log(`[DEBUG] Actualizando estado de pago para cita ${id} a ${isPaid}`);
+      if (import.meta.env.DEV) console.log(`[DEBUG] Actualizando estado de pago para cita ${id} a ${isPaid}`);
       const response = await axiosInstance.patch(`/appointments/${id}/payment`, { isPaid });
       return response.data;
     } catch (error) {
@@ -127,7 +127,7 @@ class AppointmentService {
 
   async getAvailableTimes(date: string, isPublic: boolean = false): Promise<AvailableTimesResponse> {
     try {
-      console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
+      if (import.meta.env.DEV) console.log('[DEBUG] Solicitando horarios disponibles para la fecha:', date);
       const endpoint = isPublic ? '/appointments/public/available-times' : '/appointments/available-times';
 
       // Si es público, agregar el token como query parameter
@@ -136,15 +136,15 @@ class AppointmentService {
         const publicToken = localStorage.getItem('public_token');
         if (publicToken) {
           params.token = publicToken;
-          console.log('[DEBUG] Agregando token público como query parameter');
+          if (import.meta.env.DEV) console.log('[DEBUG] Agregando token público como query parameter');
         }
       }
 
       const response = await axiosInstance.get(endpoint, { params });
-      console.log('[DEBUG] Horarios disponibles recibidos:', response.data);
+      if (import.meta.env.DEV) console.log('[DEBUG] Horarios disponibles recibidos:', response.data);
       return response.data;
     } catch (error) {
-      console.error('[ERROR] Error al obtener horarios disponibles:', error);
+      if (import.meta.env.DEV) console.error('[ERROR] Error al obtener horarios disponibles:', error);
       throw new Error('Error al obtener horarios disponibles');
     }
   }
@@ -160,7 +160,7 @@ class AppointmentService {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return null; // No patient linked
       }
-      console.error('[ERROR] Error al obtener paciente de la cita:', error);
+      if (import.meta.env.DEV) console.error('[ERROR] Error al obtener paciente de la cita:', error);
       throw new Error('Error al obtener paciente de la cita');
     }
   }

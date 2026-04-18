@@ -232,7 +232,7 @@ const ClinicalHistoryForm = ({ patientId, appointmentId, onSubmit, onCancel }: C
 
       await onSubmit(formData);
     } catch (err: any) {
-      console.error('[ClinicalHistoryForm] Error submitting form:', err);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryForm] Error submitting form:', err);
       setError(err.message || 'Error al guardar la historia clínica');
     } finally {
       setLoading(false);

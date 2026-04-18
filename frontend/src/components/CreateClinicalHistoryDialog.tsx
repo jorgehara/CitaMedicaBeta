@@ -249,7 +249,7 @@ const CreateClinicalHistoryDialog = ({
       onHistoryCreated();
       onClose();
     } catch (err: any) {
-      console.error('[CreateClinicalHistoryDialog] Error creating clinical history:', err);
+      if (import.meta.env.DEV) console.error('[CreateClinicalHistoryDialog] Error creating clinical history:', err);
       setError(err.message || 'Error al crear historia clínica');
     } finally {
       setLoading(false);

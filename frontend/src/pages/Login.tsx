@@ -53,7 +53,7 @@ const Login = () => {
       // Redirect al dashboard
       navigate('/', { replace: true });
     } catch (err: any) {
-      console.error('Error en login:', err);
+      if (import.meta.env.DEV) console.error('Error en login:', err);
       setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {
       setIsLoading(false);

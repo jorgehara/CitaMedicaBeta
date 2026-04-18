@@ -16,7 +16,7 @@ export const validateSobreturno = async (date: string, sobreturnoNumber: number)
         });
         return response.data;
     } catch (error) {
-        console.error('[ERROR] Error al validar sobreturno:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al validar sobreturno:', error);
         throw error;
     }
 };
@@ -26,7 +26,7 @@ export const deleteSobreturno = async (id: string) => {
         const res = await axiosInstance.delete(`${API_BASE}/${id}`);
         return res.data;
     } catch (error) {
-        console.error('[ERROR] Error al eliminar sobreturno:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al eliminar sobreturno:', error);
         throw error;
     }
 };
@@ -36,21 +36,21 @@ export const updateSobreturnoDescription = async (id: string, description: strin
         const res = await axiosInstance.patch(`${API_BASE}/${id}/description`, { description });
         return res.data;
     } catch (error) {
-        console.error('[ERROR] Error al actualizar descripción:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al actualizar descripción:', error);
         throw error;
     }
 };
 
 export const updatePaymentStatus = async (id: string, isPaid: boolean) => {
     try {
-        console.log(`[DEBUG] Enviando petición PATCH a ${API_BASE}/${id}/payment con isPaid=${isPaid}`);
+        if (import.meta.env.DEV) console.log(`[DEBUG] Enviando petición PATCH a ${API_BASE}/${id}/payment con isPaid=${isPaid}`);
         const res = await axiosInstance.patch(`${API_BASE}/${id}/payment`, { isPaid });
         
         if (!res.data) {
             throw new Error('Error al actualizar el estado de pago');
         }
         
-        console.log('[DEBUG] Respuesta recibida:', res.data);
+        if (import.meta.env.DEV) console.log('[DEBUG] Respuesta recibida:', res.data);
         
         // Forzar actualización de la lista después de actualizar el pago
         const updatedSobreturno = res.data;
@@ -60,7 +60,7 @@ export const updatePaymentStatus = async (id: string, isPaid: boolean) => {
         
         return updatedSobreturno;
     } catch (error) {
-        console.error('[ERROR] Error al actualizar estado de pago:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al actualizar estado de pago:', error);
         throw error;
     }
 };
@@ -71,7 +71,7 @@ export const getSobreturnos = async (status?: string): Promise<Appointment[]> =>
         const res = await axiosInstance.get(API_BASE, { params });
         return res.data;
     } catch (error) {
-        console.error('[ERROR] Error al obtener sobreturnos:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al obtener sobreturnos:', error);
         throw error;
     }
 };
@@ -86,7 +86,7 @@ export const createSobreturno = async (sobreturno: Omit<Appointment, '_id'>) => 
         
         return res.data;
     } catch (error: any) {
-        console.error('[ERROR] Error al crear sobreturno:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al crear sobreturno:', error);
         throw new Error(error.response?.data?.error || 'Error al crear el sobreturno');
     }
 };
@@ -96,7 +96,7 @@ export const updateSobreturnoStatus = async (id: string, status: 'confirmed' | '
         const res = await axiosInstance.patch(`${API_BASE}/${id}/status`, { status });
         return res.data;
     } catch (error) {
-        console.error('[ERROR] Error al actualizar estado:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al actualizar estado:', error);
         throw error;
     }
 };
@@ -106,7 +106,7 @@ export const getSobreturnosByDate = async (date: string) => {
         const res = await axiosInstance.get(`${API_BASE}/date/${date}`);
         return res.data;
     } catch (error) {
-        console.error('[ERROR] Error al obtener sobreturnos por fecha:', error);
+        if (import.meta.env.DEV) console.error('[ERROR] Error al obtener sobreturnos por fecha:', error);
         throw error;
     }
 };

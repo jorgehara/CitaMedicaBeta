@@ -25,7 +25,7 @@ class ClinicalHistoryService {
       const response = await axiosInstance.get<ApiResponse<ClinicalHistory[]>>(url);
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error fetching all clinical histories:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error fetching all clinical histories:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener historias clínicas');
       }
@@ -48,7 +48,7 @@ class ClinicalHistoryService {
       const response = await axiosInstance.get<ApiResponse<ClinicalHistory[]>>(url);
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error fetching all clinical histories:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error fetching all clinical histories:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener historias clínicas');
       }
@@ -64,7 +64,7 @@ class ClinicalHistoryService {
       const response = await axiosInstance.get<ApiResponse<ClinicalHistory[]>>(`/clinical-histories/patient/${patientId}`);
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error fetching clinical histories:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error fetching clinical histories:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener historias clínicas');
       }
@@ -80,7 +80,7 @@ class ClinicalHistoryService {
       const response = await axiosInstance.get<ApiResponse<ClinicalHistory>>(`/clinical-histories/${id}`);
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error fetching clinical history:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error fetching clinical history:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener historia clínica');
       }
@@ -110,7 +110,7 @@ class ClinicalHistoryService {
         updatedAt: h.updatedAt,
       }));
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error fetching clinical history summaries:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error fetching clinical history summaries:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener resumen de historias clínicas');
       }
@@ -126,7 +126,7 @@ class ClinicalHistoryService {
       const response = await axiosInstance.post<ApiResponse<ClinicalHistory>>('/clinical-histories', historyData);
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error creating clinical history:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error creating clinical history:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al crear historia clínica');
       }
@@ -142,7 +142,7 @@ class ClinicalHistoryService {
       const response = await axiosInstance.put<ApiResponse<ClinicalHistory>>(`/clinical-histories/${id}`, updateData);
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error updating clinical history:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error updating clinical history:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al actualizar historia clínica');
       }
@@ -157,7 +157,7 @@ class ClinicalHistoryService {
     try {
       await axiosInstance.delete(`/clinical-histories/${id}`);
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error deleting clinical history:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error deleting clinical history:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al eliminar historia clínica');
       }
@@ -176,7 +176,7 @@ class ClinicalHistoryService {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return null; // No clinical history for this appointment
       }
-      console.error('[ClinicalHistoryService] Error fetching clinical history by appointment:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error fetching clinical history by appointment:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener historia clínica de la cita');
       }
@@ -207,7 +207,7 @@ class ClinicalHistoryService {
       );
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error uploading attachment:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error uploading attachment:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al subir archivo adjunto');
       }
@@ -228,7 +228,7 @@ class ClinicalHistoryService {
       );
       return response.data.data;
     } catch (error) {
-      console.error('[ClinicalHistoryService] Error deleting attachment:', error);
+      if (import.meta.env.DEV) console.error('[ClinicalHistoryService] Error deleting attachment:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al eliminar archivo adjunto');
       }

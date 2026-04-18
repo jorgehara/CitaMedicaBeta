@@ -96,7 +96,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
         updatedAppointment = await appointmentService.updatePaymentStatus(appointmentId, value);
       }
       
-      console.log('[DEBUG] Cita actualizada:', updatedAppointment);
+      if (import.meta.env.DEV) console.log('[DEBUG] Cita actualizada:', updatedAppointment);
       
       // Actualizar el estado local inmediatamente
       setPaidStates(prevStates => ({
@@ -112,7 +112,7 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
         window.updateAppointmentsList(updatedAppointments);
       }
     } catch (error) {
-      console.error('Error al actualizar estado de pago:', error);
+      if (import.meta.env.DEV) console.error('Error al actualizar estado de pago:', error);
       alert('Error al actualizar estado de pago');
     }
   };
@@ -178,9 +178,9 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
         setSelectedAppointment({ ...selectedAppointment, description });
       }
 
-      console.log('[DEBUG] Descripción actualizada:', updatedAppointment);
+      if (import.meta.env.DEV) console.log('[DEBUG] Descripción actualizada:', updatedAppointment);
     } catch (error) {
-      console.error('Error al guardar descripción:', error);
+      if (import.meta.env.DEV) console.error('Error al guardar descripción:', error);
       alert('Error al guardar la descripción');
     }
   };

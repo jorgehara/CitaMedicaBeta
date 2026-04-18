@@ -55,7 +55,7 @@ const ChangePassword = () => {
         navigate('/', { replace: true });
       }, 2000);
     } catch (err: any) {
-      console.error('Error al cambiar contraseña:', err);
+      if (import.meta.env.DEV) console.error('Error al cambiar contraseña:', err);
       setError(err.message || 'Error al cambiar la contraseña. Verifica tu contraseña actual.');
     } finally {
       setIsLoading(false);

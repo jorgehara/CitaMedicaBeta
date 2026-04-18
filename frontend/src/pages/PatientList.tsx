@@ -53,7 +53,7 @@ const PatientList = () => {
       setFilteredPatients(data);
       setError('');
     } catch (err: any) {
-      console.error('[PatientList] Error fetching patients:', err);
+      if (import.meta.env.DEV) console.error('[PatientList] Error fetching patients:', err);
       setError(err.message || 'Error al cargar pacientes');
     } finally {
       if (showLoadingState) {

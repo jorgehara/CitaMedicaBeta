@@ -55,7 +55,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   // Si no está autenticado, redirect a login
   if (!isAuthenticated) {
-    console.log('[PROTECTED ROUTE] Usuario no autenticado, redirigiendo a /login');
+    if (import.meta.env.DEV) console.log('[PROTECTED ROUTE] Usuario no autenticado, redirigiendo a /login');
     return <Navigate to="/login" replace />;
   }
 
@@ -64,7 +64,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
 
     if (!allowedRoles.includes(user.role)) {
-      console.log(
+      if (import.meta.env.DEV) console.log(
         `[PROTECTED ROUTE] Usuario sin permisos. Rol requerido: ${allowedRoles.join(' o ')}, Rol actual: ${user.role}`
       );
 

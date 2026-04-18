@@ -79,7 +79,7 @@ const CreateOverturnDialog: React.FC<CreateOverturnDialogProps> = ({ open, onClo
         setAllSobreturnoSlots([]);
       }
     } catch (error) {
-      console.error('[CreateOverturnDialog] Error al cargar sobreturnos disponibles:', error);
+      if (import.meta.env.DEV) console.error('[CreateOverturnDialog] Error al cargar sobreturnos disponibles:', error);
       setAllSobreturnoSlots([]);
       setError('Error al cargar sobreturnos disponibles');
     } finally {
@@ -123,7 +123,7 @@ const CreateOverturnDialog: React.FC<CreateOverturnDialogProps> = ({ open, onClo
       status: 'confirmed'
     };
 
-    console.log('[CreateOverturnDialog] Enviando datos:', sobreturnoData);
+    if (import.meta.env.DEV) console.log('[CreateOverturnDialog] Enviando datos:', sobreturnoData);
     onCreate(sobreturnoData);
     onClose();
   };

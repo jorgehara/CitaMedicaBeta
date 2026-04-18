@@ -262,7 +262,7 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
           isSobreturno: !!formData.isSobreturno,
           isPaid: !!formData.isPaid
         };
-        console.log('Creando cita (frontend, ajustado):', dataToSend);
+        if (import.meta.env.DEV) console.log('Creando cita (frontend, ajustado):', dataToSend);
         await appointmentService.create(dataToSend);
         setSnackbar({
           open: true,
@@ -324,11 +324,13 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
 
     // Log de depuración para saber qué tipo de turno se intenta eliminar
      
-    console.log('[DEBUG] Eliminando:', {
-      id: editingAppointment._id,
-      isSobreturno: editingAppointment.isSobreturno,
-      clientName: editingAppointment.clientName
-    });
+if (import.meta.env.DEV) {
+        console.log('[DEBUG] Eliminando:', {
+          id: editingAppointment._id,
+          isSobreturno: editingAppointment.isSobreturno,
+          clientName: editingAppointment.clientName
+        });
+      }
 
     try {
       if (editingAppointment.isSobreturno) {
@@ -691,7 +693,7 @@ const AppointmentList = forwardRef<AppointmentListHandle, { showHistory?: boolea
           setAvailableSlots({ morning: [], afternoon: [], all: [] });
         }
       } catch (error) {
-        console.error('Error al obtener horarios:', error);
+        if (import.meta.env.DEV) console.error('Error al obtener horarios:', error);
         setAvailableSlots({ morning: [], afternoon: [], all: [] });
       }
     } else {

@@ -56,7 +56,7 @@ const Register = () => {
         navigate('/login', { replace: true });
       }, 2000);
     } catch (err: any) {
-      console.error('Error en registro:', err);
+      if (import.meta.env.DEV) console.error('Error en registro:', err);
       setError(err.message || 'Error al registrar usuario. Intenta nuevamente.');
     } finally {
       setIsLoading(false);

@@ -129,7 +129,7 @@ const CreateFollowUpDialog = ({
       onFollowUpCreated();
       onClose();
     } catch (err: any) {
-      console.error('[CreateFollowUpDialog] Error creating follow-up:', err);
+      if (import.meta.env.DEV) console.error('[CreateFollowUpDialog] Error creating follow-up:', err);
       setError(err.message || 'Error al crear seguimiento');
     } finally {
       setLoading(false);

@@ -78,6 +78,26 @@ exports.updatePaymentStatus = async (req, res) => {
 const Sobreturno = require('../models/sobreturno');
 const googleCalendarService = require('../services/googleCalendarService');
 
+// Determina qué bloques están "quemados" para una fecha+hora dada
+// Retorna { morningBlocked, afternoonBlocked }
+// Exportada para testing unitario
+function getBlockCutoffStatus({ dateStr, nowDate, timezone, mornCutoff = '12:16', aftnCutoff = '20:16' }) {
+    const nowInTZ = new Date(nowDate.toLocaleString('en-US', { timeZone: timezone }));
+    const todayStr = `${nowInTZ.getFullYear()}-${String(nowInTZ.getMonth() + 1).padStart(2, '0')}-${String(nowInTZ.getDate()).padStart(2, '0')}`;
+    const isToday = dateStr === todayStr;
+    const currentMinutes = nowInTZ.getHours() * 60 + nowInTZ.getMinutes();
+
+    const [mH, mM] = mornCutoff.split(':').map(Number);
+    const [aH, aM] = aftnCutoff.split(':').map(Number);
+
+    return {
+        isToday,
+        morningBlocked:   isToday && currentMinutes >= mH * 60 + mM,
+        afternoonBlocked: isToday && currentMinutes >= aH * 60 + aM
+    };
+}
+exports.getBlockCutoffStatus = getBlockCutoffStatus;
+
 // Genera slots de tiempo entre start y end con el intervalo indicado (en minutos)
 function generateTimeSlots(start, end, durationMinutes) {
     const slots = [];
@@ -317,20 +337,13 @@ exports.getSobreturnosByDate = async (req, res) => {
 
     // --- Lógica de corte de bloque por hora (solo para el día actual) ---
     const timezone = req.clinic.settings.timezone || 'America/Argentina/Buenos_Aires';
-    const nowInClinicTZ = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
-    const todayStr = `${nowInClinicTZ.getFullYear()}-${String(nowInClinicTZ.getMonth() + 1).padStart(2, '0')}-${String(nowInClinicTZ.getDate()).padStart(2, '0')}`;
-    const isToday = date === todayStr;
+    const { isToday, morningBlocked, afternoonBlocked } = getBlockCutoffStatus({
+        dateStr: date,
+        nowDate: new Date(),
+        timezone
+    });
 
-    const currentMinutes = nowInClinicTZ.getHours() * 60 + nowInClinicTZ.getMinutes();
-
-    // Corte fijo: mañana se quema a las 12:16, tarde a las 20:16
-    const MORNING_CUTOFF = 12 * 60 + 16; // 12:16 → 736 minutos
-    const AFTERNOON_CUTOFF = 20 * 60 + 16; // 20:16 → 1216 minutos
-
-    const morningBlocked = isToday && currentMinutes >= MORNING_CUTOFF;
-    const afternoonBlocked = isToday && currentMinutes >= AFTERNOON_CUTOFF;
-
-    console.log('[DEBUG] isToday:', isToday, '| currentMinutes:', currentMinutes, '| morningBlocked:', morningBlocked, '| afternoonBlocked:', afternoonBlocked);
+    console.log('[DEBUG] isToday:', isToday, '| morningBlocked:', morningBlocked, '| afternoonBlocked:', afternoonBlocked);
 
     // Crear array con todos los números de sobreturno posibles (1-based)
     const allSobreturnos = Array.from({ length: totalSlots }, (_, i) => i + 1);

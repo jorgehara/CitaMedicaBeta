@@ -18,7 +18,7 @@ class PatientService {
       const response = await axiosInstance.get<ApiResponse<Patient[]>>('/patients');
       return response.data.data;
     } catch (error) {
-      console.error('[PatientService] Error fetching patients:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error fetching patients:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener pacientes');
       }
@@ -34,7 +34,7 @@ class PatientService {
       const response = await axiosInstance.get<ApiResponse<Patient>>(`/patients/${id}`);
       return response.data.data;
     } catch (error) {
-      console.error('[PatientService] Error fetching patient:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error fetching patient:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al obtener paciente');
       }
@@ -52,7 +52,7 @@ class PatientService {
       });
       return response.data.data;
     } catch (error) {
-      console.error('[PatientService] Error searching patients:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error searching patients:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al buscar pacientes');
       }
@@ -68,7 +68,7 @@ class PatientService {
       const response = await axiosInstance.post<ApiResponse<Patient>>('/patients', patientData);
       return response.data.data;
     } catch (error) {
-      console.error('[PatientService] Error creating patient:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error creating patient:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al crear paciente');
       }
@@ -84,7 +84,7 @@ class PatientService {
       const response = await axiosInstance.put<ApiResponse<Patient>>(`/patients/${id}`, updateData);
       return response.data.data;
     } catch (error) {
-      console.error('[PatientService] Error updating patient:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error updating patient:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al actualizar paciente');
       }
@@ -99,7 +99,7 @@ class PatientService {
     try {
       await axiosInstance.delete(`/patients/${id}`);
     } catch (error) {
-      console.error('[PatientService] Error deleting patient:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error deleting patient:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al eliminar paciente');
       }
@@ -120,7 +120,7 @@ class PatientService {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return null; // Patient not found
       }
-      console.error('[PatientService] Error fetching patient by DNI:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error fetching patient by DNI:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al buscar paciente por DNI');
       }
@@ -141,7 +141,7 @@ class PatientService {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return null; // Patient not found
       }
-      console.error('[PatientService] Error fetching patient by clinic number:', error);
+      if (import.meta.env.DEV) console.error('[PatientService] Error fetching patient by clinic number:', error);
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Error al buscar paciente por número de historia');
       }
