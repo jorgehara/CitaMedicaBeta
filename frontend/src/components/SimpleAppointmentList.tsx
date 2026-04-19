@@ -295,7 +295,27 @@ const SimpleAppointmentList = ({ appointments, title, onCreateClick, showCreateB
                       <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
                         {appointment.clientName}
                       </Typography>
-                      {clinicName === 'Od. Melina Villalba' && (() => {
+                      {appointment.consultationType ? (
+                        <Chip
+                          label={appointment.consultationType}
+                          size="small"
+                          sx={{
+                            height: '20px',
+                            fontSize: '0.7rem',
+                            backgroundColor: appointment.consultationType === 'Primera consulta'
+                              ? '#e3f2fd'
+                              : appointment.consultationType === 'Control'
+                                ? 'rgba(33, 150, 243, 0.15)'
+                                : 'rgba(158, 158, 158, 0.15)',
+                            color: appointment.consultationType === 'Primera consulta'
+                              ? '#1565c0'
+                              : appointment.consultationType === 'Control'
+                                ? '#2196f3'
+                                : '#9e9e9e',
+                            fontWeight: 600,
+                          }}
+                        />
+                      ) : clinicName === 'Od. Melina Villalba' && (() => {
                         const typeLabel = getAppointmentTypeLabel(appointment.description);
                         const badgeStyle = getTypeBadgeStyle(typeLabel);
                         return (

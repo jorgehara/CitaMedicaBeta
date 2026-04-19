@@ -350,6 +350,7 @@ exports.createAppointment = async (req, res) => {
       date: req.body.date,
       time: req.body.time,
       description: req.body.description || '',
+      consultationType: req.body.consultationType || '',
       status: isSobreturno ? 'pending' : 'confirmed',
       isSobreturno,
       clinicId: req.clinicId

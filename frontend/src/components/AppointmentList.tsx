@@ -517,8 +517,24 @@ if (import.meta.env.DEV) {
                 size="small"
                 color="success"
                 label="Pagado"
-                sx={{ 
+                sx={{
                   height: '20px',
+                  '& .MuiChip-label': {
+                    px: 1,
+                    fontSize: '0.7rem'
+                  }
+                }}
+              />
+            )}
+            {appointment.consultationType && (
+              <Chip
+                size="small"
+                label={appointment.consultationType}
+                sx={{
+                  height: '20px',
+                  backgroundColor: appointment.consultationType === 'Primera consulta' ? '#e3f2fd' : '#f3e5f5',
+                  color: appointment.consultationType === 'Primera consulta' ? '#1565c0' : '#6a1b9a',
+                  fontWeight: 600,
                   '& .MuiChip-label': {
                     px: 1,
                     fontSize: '0.7rem'

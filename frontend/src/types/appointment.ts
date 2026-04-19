@@ -12,6 +12,7 @@ export interface BaseAppointment {
   dni?: string;
   email?: string;
   description?: string;
+  consultationType?: string;
   attended?: boolean; // indica si el paciente asistió a la cita
   isSobreturno?: boolean; // indica si es sobreturno
   isPaid?: boolean; // indica si el paciente realizó el pago
