@@ -2,6 +2,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import {
   AppBar,
   Box,
+  CircularProgress,
   Drawer,
   IconButton,
   List,
@@ -9,6 +10,7 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
+  Tooltip,
   Typography,
   Avatar,
   Menu,
@@ -26,6 +28,7 @@ import {
   People as PeopleIcon,
   MedicalServices as MedicalServicesIcon,
   QrCode as QrCodeIcon,
+  FileDownload as FileDownloadIcon,
 } from '@mui/icons-material';
 import { FaUserDoctor } from 'react-icons/fa6';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -45,6 +48,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openGlobalDialog, setOpenGlobalDialog] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [exporting, setExporting] = useState(false);
   const { user, logout } = useAuth();
   const { clinicName } = useClinicConfig();
 
@@ -87,6 +91,18 @@ const Layout = ({ children }: LayoutProps) => {
     setAnchorEl(null);
     navigate('/chatbot-qr');
     setMobileOpen(false);
+  };
+
+  const handleExportContacts = async () => {
+    setExporting(true);
+    try {
+      const { exportContactsToExcel } = await import('../utils/exportContacts');
+      await exportContactsToExcel();
+    } catch (error) {
+      console.error('Error al exportar contactos:', error);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const menuItems = [
@@ -179,6 +195,43 @@ const Layout = ({ children }: LayoutProps) => {
             />
           </ListItemButton>
         ))}
+
+        <Divider sx={{ my: 1 }} />
+
+        <Tooltip title="Descarga un Excel con nombre, teléfono y datos de todas las citas" placement="right">
+          <ListItemButton
+            onClick={handleExportContacts}
+            disabled={exporting}
+            sx={{
+              borderRadius: 1,
+              mb: 0.5,
+              '&:hover': {
+                bgcolor: 'success.main',
+                '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+                  color: 'common.white'
+                }
+              },
+              '&.Mui-disabled': {
+                opacity: 0.6,
+              }
+            }}
+          >
+            <ListItemIcon sx={{
+              color: 'success.main',
+              minWidth: { xs: 40, sm: 45 }
+            }}>
+              {exporting ? <CircularProgress size={20} color="success" /> : <FileDownloadIcon />}
+            </ListItemIcon>
+            <ListItemText
+              primary={exporting ? 'Exportando...' : 'Exportar Contactos'}
+              sx={{
+                '& .MuiListItemText-primary': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }
+              }}
+            />
+          </ListItemButton>
+        </Tooltip>
       </List>
 
       {/* User info and logout */}
